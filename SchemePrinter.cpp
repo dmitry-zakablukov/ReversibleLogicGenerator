@@ -51,9 +51,10 @@ string SchemePrinter::horizontalPrint(const deque<ReverseElement>& scheme)
     for(uint elementId  = 0; elementId < elementCount; ++elementId)
     {
         const ReverseElement& element = scheme[elementId];
-        word targetMask  = element.getTargetMask();
-        word controlMask = element.getControlMask();
-        word elementMask = targetMask | controlMask;
+        word targetMask    = element.getTargetMask();
+        word controlMask   = element.getControlMask();
+        word inversionMask = element.getInversionMask();
+        word elementMask   = targetMask | controlMask;
 
         uint positiveBitCount = countNonZeroBits(elementMask);
 
@@ -112,7 +113,14 @@ string SchemePrinter::horizontalPrint(const deque<ReverseElement>& scheme)
                         }
                         else
                         {
-                            strings[index] << "-( )-";
+                            if(inversionMask & mask)
+                            {
+                                strings[index] << "-(0)-";
+                            }
+                            else
+                            {
+                                strings[index] << "-( )-";
+                            }
                         }
                     }
                 }
@@ -193,9 +201,10 @@ string SchemePrinter::verticalPrint(const deque<ReverseElement>& scheme)
     for(uint elementId  = 0; elementId < elementCount; ++elementId)
     {
         const ReverseElement& element = scheme[elementId];
-        word targetMask  = element.getTargetMask();
-        word controlMask = element.getControlMask();
-        word elementMask = targetMask | controlMask;
+        word targetMask    = element.getTargetMask();
+        word controlMask   = element.getControlMask();
+        word inversionMask = element.getInversionMask();
+        word elementMask   = targetMask | controlMask;
 
         uint positiveBitCount = countNonZeroBits(elementMask);
 
@@ -247,7 +256,14 @@ string SchemePrinter::verticalPrint(const deque<ReverseElement>& scheme)
             }
             else if(elementMask & mask)
             {
-                string << "( )";
+                if(inversionMask & mask)
+                {
+                    string << "(0)";
+                }
+                else
+                {
+                    string << "( )";
+                }
             }
             else
             {

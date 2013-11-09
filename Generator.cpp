@@ -4,40 +4,45 @@ namespace ReversibleLogic
 {
 
 Generator::Generator()
-    : transpToCycleIndexMap()
+    : n(0)
+    , permutation()
+    , distMap()
+    , distKeys()
+    , candidatesSorted(false)
+    , transpToCycleIndexMap()
+    , diffToEdgeMap()
+    , log(0)
 {
 }
 
-Generator::Scheme Generator::generate(const PermutationTable& table, ostream& log)
+Generator::Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
 {
+    log = &outputLog;
+
     float totalTime = 0;
     float time = 0;
 
-    uint n = 0;
-    Permutation permutation;
-
+    n = 0;
     {
-        AutoTimer timer( &time );
+        AutoTimer timer(&time);
 
         checkPermutationValidity(table);
 
         tie(n, permutation) = getPermutation(table);
-        prepareTranspToCycleIndexMap(n, permutation);
+        prepareTranspToCycleIndexMap();
     }
 
-    log << "Permutation creation time: ";
-    log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    log << " sec\n";
+    *log << "Permutation creation time: ";
+    *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
+    *log << " sec\n";
 
     totalTime += time;
 
     //debug
-    //log << (string)permutation << "\n";
+    *log << (string)permutation << "\n";
 
     Scheme scheme;
-    map<word, shared_ptr<list<Transposition> >> distMap;
-    list<word> distKeys;
-    bool candidatesSorted = false;
+    candidatesSorted = false;
 
     //debug
     //return scheme;
@@ -46,176 +51,29 @@ Generator::Scheme Generator::generate(const PermutationTable& table, ostream& lo
     {
         AutoTimer timer( &time );
 
-        distMap = getDistancesMap(permutation);
-        distKeys= getSortedDistanceKeys(distMap);
+        fillDistancesMap();
+        computeEdges();
+
+        sortDistanceKeys();
 
         while(!permutation.isEmpty())
         {
-            //debug
-            log << (string)permutation << "\n";
+            ////debug
+            //*log << (string)permutation << "\n";
 
-            TransposPair nextPair;
+            word key = distKeys.front();
+            auto& candidates = distMap[key];
 
-            auto& candidates = distMap[distKeys.front()];
             if(candidates->size() > 1)
             {
-                if(!candidatesSorted)
-                {
-                    sortCandidates(candidates);
-                    candidatesSorted = true;
-                }
-
-                Transposition firstTransp;
-                Transposition secondTransp;
-
-                tie(firstTransp, secondTransp) = findBestCandidates(candidates);
-
-                Transposition newTransp;
-                Transposition oldTransp;
-
-                tie(newTransp, oldTransp) =
-                        removeTranspFromPermutation(permutation, firstTransp);
-                candidates->remove(firstTransp);
-                if(!newTransp.isEmpty())
-                {
-                    assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
-
-                    addTranspToDistMap(distMap, newTransp);
-                    removeTranspFromDistMap(distMap, oldTransp);
-                }
-
-                tie(newTransp, oldTransp) =
-                        removeTranspFromPermutation(permutation, secondTransp);
-                candidates->remove(secondTransp);
-                if(!newTransp.isEmpty())
-                {
-                    assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
-
-                    addTranspToDistMap(distMap, newTransp);
-                    removeTranspFromDistMap(distMap, oldTransp);
-                }
-
-                uint candidateCount = candidates->size();
-                if(candidateCount < 2)
-                {
-                    if(!candidateCount)
-                    {
-                        distMap.erase(distKeys.front());
-                    }
-
-                    distKeys = getSortedDistanceKeys(distMap);
-                    candidatesSorted = false;
-                }
-
-                nextPair = TransposPair(firstTransp, secondTransp);
+                auto elements = implementCandidates(candidates);
+                scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
             }
             else
             {
-                // 1) find first
-                word diff = distKeys.front();
-                Transposition firstTransp = distMap[diff]->front();
-
-                // 2) remove first
-                word skipKeyValue;
-                bool skipKeyFound = false;
-
-                Transposition newTransp;
-                Transposition oldTransp;
-
-                tie(newTransp, oldTransp) =
-                        removeTranspFromPermutation(permutation, firstTransp);
-
-                distMap.erase(diff);
-                distKeys.remove(diff);
-
-                if(!newTransp.isEmpty())
-                {
-                    assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
-
-                    diff = addTranspToDistMap(distMap, newTransp);
-                    if(distMap[diff]->size() > 1)
-                    {
-                        skipKeyValue = diff;
-                        skipKeyFound = true;
-                    }
-                    if(!found(distKeys, diff))
-                    {
-                        distKeys.push_back(diff);
-                    }
-
-                    removeTranspFromDistMap(distMap, oldTransp);
-                    distKeys.remove( oldTransp.getDiff() );
-                }
-
-                // 3) find second
-                uint minComplexity = uintUndefined;
-                Transposition secondTransp;
-
-                forin(iter, distKeys)
-                {
-                    const word& key = *iter;
-                    if(skipKeyFound && key == skipKeyValue)
-                    {
-                        continue;
-                    }
-
-                    Transposition transp = distMap[key]->front();
-                    TransposPair pair = TransposPair(firstTransp, transp);
-                    pair.setN(n);
-
-                    uint complexity = pair.getEstimateImplComplexity();
-                    if(minComplexity == uintUndefined || complexity < minComplexity)
-                    {
-                        minComplexity = complexity;
-                        secondTransp = transp;
-                        nextPair = TransposPair(firstTransp, transp);
-                    }
-                }
-
-                assert(!secondTransp.isEmpty(), string("Second transposition is empty"));
-
-                // 4) remove second
-                bool needSorting = skipKeyFound;
-                tie(newTransp, oldTransp) =
-                        removeTranspFromPermutation(permutation, secondTransp);
-
-                diff = secondTransp.getDiff();
-                distMap.erase(diff);
-                distKeys.remove(diff);
-
-                if(!newTransp.isEmpty())
-                {
-                    assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
-
-                    diff = addTranspToDistMap(distMap, newTransp);
-                    if(distMap[diff]->size() > 1)
-                    {
-                        needSorting = true;
-                    }
-                    if(!found(distKeys, diff))
-                    {
-                        distKeys.push_back(diff);
-                    }
-
-                    removeTranspFromDistMap(distMap, oldTransp);
-                    distKeys.remove( oldTransp.getDiff() );
-                }
-
-                // 5) prepare for next iteration
-                if(needSorting)
-                {
-                    distKeys = getSortedDistanceKeys(distMap);
-                    candidatesSorted = false;
-                }
+                auto elements = implementCommonPair();
+                scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
             }
-
-            // 5)
-            //debug
-            log << (string)nextPair << "\n";
-            nextPair.setN(n);
-
-            auto elements = nextPair.getImplementation();
-            scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
         }
     }
 
@@ -236,17 +94,17 @@ Generator::Scheme Generator::generate(const PermutationTable& table, ostream& lo
     ////elements = pair.getImplementation();
     ////scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
 
-    log << "Scheme synthesis time: ";
-    log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    log << " sec\n";
+    *log << "Scheme synthesis time: ";
+    *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
+    *log << " sec\n";
 
     totalTime += time;
 
     time = 0;
     {
-        AutoTimer timer( &time );
+        AutoTimer timer(&time);
 
-        log << "Complexity before optimization: " << scheme.size() << '\n';
+        *log << "Complexity before optimization: " << scheme.size() << '\n';
 
         PostProcessor optimizer;
 
@@ -268,22 +126,22 @@ Generator::Scheme Generator::generate(const PermutationTable& table, ostream& lo
             scheme[index] = optimizedScheme[index];
         }
 
-        log << "Complexity after optimization: " << scheme.size() << '\n';
+        *log << "Complexity after optimization: " << scheme.size() << '\n';
 
         bool isValid = checkSchemeAgainstPermutationVector(scheme, table);
-        //////debug
-        ////assert(isValid, string("Generated scheme is not valid"));
+        //debug
+        assert(isValid, string("Generated scheme is not valid"));
     }
 
-    log << "Optimization time: ";
-    log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    log << " sec\n";
+    *log << "Optimization time: ";
+    *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
+    *log << " sec\n";
 
     totalTime += time;
 
-    log << "Total time: ";
-    log << setiosflags(ios::fixed) << setprecision(2) << totalTime / 1000;
-    log << " sec\n";
+    *log << "Total time: ";
+    *log << setiosflags(ios::fixed) << setprecision(2) << totalTime / 1000;
+    *log << " sec\n";
 
     //string repres = SchemePrinter::schemeToString(n, scheme, false);
     //log << repres;
@@ -344,7 +202,7 @@ tuple<uint, Permutation> Generator::getPermutation(const PermutationTable& table
     return tie(n, permutation);
 }
 
-void Generator::prepareTranspToCycleIndexMap(uint n, const Permutation& permutation)
+void Generator::prepareTranspToCycleIndexMap()
 {
     word vectorSize = 1 << n;
     transpToCycleIndexMap.resize(vectorSize);
@@ -362,9 +220,9 @@ void Generator::prepareTranspToCycleIndexMap(uint n, const Permutation& permutat
     }
 }
 
-map<word, shared_ptr<list<Transposition> >> Generator::getDistancesMap(const Permutation& permutation)
+void Generator::fillDistancesMap()
 {
-    map<word, shared_ptr<list<Transposition>>> distMap;
+    distMap = map<word, shared_ptr<list<Transposition>>>();
     forin(iter, permutation)
     {
         const shared_ptr<Cycle>& cycle = *iter;
@@ -373,15 +231,12 @@ map<word, shared_ptr<list<Transposition> >> Generator::getDistancesMap(const Per
         for(uint index = 0; index < elementCount; ++index)
         {
             Transposition transp = cycle->getTranspositionByPosition(index);
-            addTranspToDistMap(distMap, transp);
+            addTranspToDistMap(transp);
         }
     }
-
-    return distMap;
 }
 
-word Generator::addTranspToDistMap(map<word, shared_ptr<list<Transposition> >>& distMap,
-                                   Transposition transp)
+word Generator::addTranspToDistMap(Transposition& transp)
 {
     word diff = transp.getDiff();
     if(!distMap.count(diff))
@@ -402,37 +257,51 @@ word Generator::addTranspToDistMap(map<word, shared_ptr<list<Transposition> >>& 
     if(!alreadyHasTransp)
     {
         distMap[diff]->push_back(transp);
+        diffToEdgeMap.erase(diff);
     }
 
     return diff;
 }
 
-list<word> Generator::getSortedDistanceKeys(map<word, shared_ptr<list<Transposition> >>& distMap)
+void Generator::sortDistanceKeys()
 {
+    //if(distKeys.size())
+    //{
+    //    word diff = distKeys.front();
+    //    if(distMap.count(diff) && distMap[diff]->size() > 1)
+    //    {
+    //        return;
+    //    }
+    //}
+
     vector<DiffSortKey> keys(distMap.size());
     uint index = 0;
 
-    forin(iter, distMap)
+    forcin(iter, distMap)
     {
         DiffSortKey key;
 
         key.diff = iter->first;
         key.weight = countNonZeroBits(key.diff);
-        key.length = (iter->second)->size();
+        ///key.length = (iter->second)->size();
+
         //key.isGood = (key.length > 1);
+
+        BooleanEdge edge = computeEdge(key.diff);
+        key.capacity = edge.getCapacity();
 
         keys[index] = key;
         ++index;
     }
 
     auto sortFunc = [](const DiffSortKey& leftKey, const DiffSortKey& rightKey) -> bool
-    {
-        //bool isLess = leftKey.length > rightKey.length;
-        bool isLess = (leftKey.length > 1 ) && (rightKey.length == 1);
-        if(leftKey.length == rightKey.length)
-        {
-            isLess = leftKey.weight < rightKey.weight;
-        }
+    {        
+        ////bool isLess = leftKey.length > rightKey.length;
+        //////bool isLess = (leftKey.length > 1 ) && (rightKey.length == 1);
+        ////if(leftKey.length == rightKey.length)
+        ////{
+        ////    isLess = leftKey.weight < rightKey.weight;
+        ////}        
 
         /*
         bool  isLeftGood = ( leftKey.length > 1);
@@ -449,19 +318,23 @@ list<word> Generator::getSortedDistanceKeys(map<word, shared_ptr<list<Transposit
         }
         */
 
+        bool isLess = (leftKey.capacity > rightKey.capacity);
+        if(leftKey.capacity == rightKey.capacity)
+        {
+            isLess = leftKey.weight < rightKey.weight;
+        }
+
         return isLess;
     };
 
     sort(keys.begin(), keys.end(), sortFunc);
 
-    list<word> sortedKeys;
+    distKeys = list<word>(); 
     forin(iter, keys)
     {
         const DiffSortKey& key = *iter;
-        sortedKeys.push_back(key.diff);
+        distKeys.push_back(key.diff);
     }
-
-    return sortedKeys;
 }
 
 void Generator::sortCandidates(shared_ptr<list<Transposition>> candidates)
@@ -511,7 +384,7 @@ void Generator::sortCandidates(shared_ptr<list<Transposition>> candidates)
 }
 
 tuple<Transposition, Transposition>
-Generator::findBestCandidates(shared_ptr<list<Transposition>>& candidates)
+Generator::findBestCandidates(shared_ptr<list<Transposition>> candidates)
 {
     uint candidateCount = candidates->size();
     assert(candidateCount > 1, string("Too few candidates"));
@@ -560,7 +433,7 @@ Generator::findBestCandidates(shared_ptr<list<Transposition>>& candidates)
 }
 
 tuple<Transposition, uint>
-Generator::findBestCandidatePartner(const shared_ptr<list<Transposition>>& candidates,
+Generator::findBestCandidatePartner(const shared_ptr<list<Transposition>> candidates,
                                     const Transposition& target)
 {
     Transposition second;
@@ -600,8 +473,7 @@ Generator::findBestCandidatePartner(const shared_ptr<list<Transposition>>& candi
 }
 
 tuple<Transposition, Transposition>
-Generator::removeTranspFromPermutation(Permutation& permutation,
-                                       Transposition& transp)
+Generator::removeTranspFromPermutation(const Transposition& transp)
 {
     Transposition newTransp;
     Transposition oldTransp;
@@ -639,8 +511,7 @@ void Generator::onCycleRemoved( uint cycleIndex )
 
 }
 
-void Generator::removeTranspFromDistMap(map<word, shared_ptr<list<Transposition> >>& distMap,
-                                        Transposition& target)
+void Generator::removeTranspFromDistMap(Transposition& target)
 {
     word diff = target.getDiff();
     auto& transpositions = distMap[diff];
@@ -659,14 +530,359 @@ void Generator::removeTranspFromDistMap(map<word, shared_ptr<list<Transposition>
 //    assert(!transp.isEmpty(), string("Transposition not found"));
 
     transpositions->remove(target);
+    diffToEdgeMap.erase(diff);
+
     if(!transpositions->size())
     {
         distMap.erase(diff);
     }
 }
 
+deque<ReverseElement> Generator::implementCandidates(
+    shared_ptr<list<Transposition>> candidates)
+{
+    word initialMask = 0;
+    if(candidates && candidates->size())
+    {
+        const Transposition& transp = candidates->front();
+        initialMask = transp.getDiff();
+    }
+    else
+    {
+        return deque<ReverseElement>();
+    }
+
+    BooleanEdge edge;
+    if(diffToEdgeMap.count(initialMask))
+    {
+        edge = diffToEdgeMap[initialMask];
+        diffToEdgeMap.erase(initialMask);
+    }
+    else
+    {
+        BooleanEdgeSearcher edgeSearcher(candidates, n, initialMask);
+        edge = edgeSearcher.findEdge();
+    }
+
+    deque<ReverseElement> elements;
+    if(edge.isValid() && edge.getCapacity() > 2)
+    {
+        if(edge.isFull())
+        {
+            word mask = 1;
+            while(initialMask >= mask)
+            {
+                if(initialMask & mask)
+                {
+                    ReverseElement element(n, mask);
+                    elements.push_back(element);
+                }
+
+                mask <<= 1;
+            }
+
+            shared_ptr<list<Transposition>> processedCandidates(new list<Transposition>);
+            *processedCandidates = *candidates;
+
+            reduceCandidatesCount(candidates, processedCandidates);
+        }
+        else
+        {
+            elements = implementCandidatesEdge(candidates, edge);
+        }
+    }
+    else
+    {
+        elements = implementBestCandidatesPair(candidates, n);
+    }
+
+    return elements;
+}
+
+deque<ReverseElement> Generator::implementCandidatesEdge(
+    shared_ptr<list<Transposition>> candidates, BooleanEdge edge)
+{
+    assert(candidates && candidates->size(), string("Invalid candidates passed to implementCandidatesEdge()"));
+
+    word baseValue = edge.getBaseValue(n);
+    word baseMask  = edge.getBaseMask(n);
+    word diffMask  = candidates->front().getDiff();
+
+    deque<ReverseElement> elements;
+    word mask = 1;
+
+    while(mask <= diffMask)
+    {
+        if(diffMask & mask)
+        {
+            ReverseElement element(n, mask, baseMask, ~baseValue & baseMask);
+            elements.push_back(element);
+        }
+
+        mask <<= 1;
+    }
+
+    shared_ptr<list<Transposition>> processedCandidates =
+        BooleanEdgeSearcher::getEdgeSubset(edge, n, candidates);
+    reduceCandidatesCount(candidates, processedCandidates);
+
+    return elements;
+}
+
+deque<ReverseElement> Generator::implementBestCandidatesPair(
+    shared_ptr<list<Transposition>> candidates, uint n)
+{
+    if(!candidatesSorted)
+    {
+        sortCandidates(candidates);
+        candidatesSorted = true;
+    }
+
+    TransposPair  transpPair;
+    Transposition firstTransp;
+    Transposition secondTransp;
+
+    tie(firstTransp, secondTransp) = findBestCandidates(candidates);
+
+    reduceCandidatesCount(candidates, firstTransp, false);
+    reduceCandidatesCount(candidates, secondTransp);
+
+    transpPair = TransposPair(firstTransp, secondTransp);
+    transpPair.setN(n);
+
+    ///auto elements = transpPair.getImplementation();
+    deque<ReverseElement> elements;
+
+    // implement first transposition
+    auto firstElements = implementSingleTransposition(firstTransp);
+    elements.insert(elements.end(), firstElements.cbegin(), firstElements.cend());
+
+    // implement second transposition
+    //secondTransp.swap();
+    auto secondElements = implementSingleTransposition(secondTransp);
+    elements.insert(elements.end(), secondElements.cbegin(), secondElements.cend());
+
+    return elements;
+}
+
+void Generator::reduceCandidatesCount(
+    shared_ptr<list<Transposition>> candidates,
+    shared_ptr<list<Transposition>> processedCandidates)
+{
+    forin(iter, *processedCandidates)
+    {
+        reduceCandidatesCount(candidates, *iter, false);
+    }
+
+    word diff = distKeys.front();
+    diffToEdgeMap.erase(diff);
+
+    uint candidateCount = candidates->size();
+    if(candidateCount < 2)
+    {      
+        if(!candidateCount)
+        {
+            distMap.erase(diff);
+        }
+
+        sortDistanceKeys();
+        candidatesSorted = false;
+    }
+}
+
+void Generator::reduceCandidatesCount(
+    shared_ptr<list<Transposition>> candidates, const Transposition& transp,
+    bool updateDistanceMapAndKeys /* = true */)
+{
+    Transposition newTransp;
+    Transposition oldTransp;
+
+    tie(newTransp, oldTransp) = removeTranspFromPermutation(transp);
+    candidates->remove(transp);
+
+    if(!newTransp.isEmpty())
+    {
+        assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
+
+        addTranspToDistMap(newTransp);
+        removeTranspFromDistMap(oldTransp);
+    }
+
+    if(updateDistanceMapAndKeys)
+    {
+        uint candidateCount = candidates->size();
+        if(candidateCount < 2)
+        {
+            if(!candidateCount)
+            {
+                word diff = distKeys.front();
+                distMap.erase(diff);
+                diffToEdgeMap.erase(diff);
+            }
+
+            sortDistanceKeys();
+            candidatesSorted = false;
+        }
+    }
+}
+
+deque<ReverseElement> Generator::implementCommonPair()
+{
+    // 1) find first
+    word diff = distKeys.front();
+    Transposition firstTransp = distMap[diff]->front();
+
+    // 2) remove first
+    word skipKeyValue;
+    bool skipKeyFound = false;
+
+    TransposPair  transpPair;
+    Transposition newTransp;
+    Transposition oldTransp;
+
+    tie(newTransp, oldTransp) =
+        removeTranspFromPermutation(firstTransp);
+
+    distMap.erase(diff);
+    diffToEdgeMap.erase(diff);
+    distKeys.remove(diff);
+
+    if(!newTransp.isEmpty())
+    {
+        assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
+
+        diff = addTranspToDistMap(newTransp);
+        if(distMap[diff]->size() > 1)
+        {
+            skipKeyValue = diff;
+            skipKeyFound = true;
+        }
+        if(!found(distKeys, diff))
+        {
+            distKeys.push_back(diff);
+        }
+
+        removeTranspFromDistMap(oldTransp);
+        distKeys.remove( oldTransp.getDiff() );
+    }
+
+    // 3) find second
+    uint minComplexity = uintUndefined;
+    Transposition secondTransp;
+
+    forin(iter, distKeys)
+    {
+        const word& key = *iter;
+        if(skipKeyFound && key == skipKeyValue)
+        {
+            continue;
+        }
+
+        Transposition transp = distMap[key]->front();
+        TransposPair pair = TransposPair(firstTransp, transp);
+        pair.setN(n);
+
+        uint complexity = pair.getEstimateImplComplexity();
+        if(minComplexity == uintUndefined || complexity < minComplexity)
+        {
+            minComplexity = complexity;
+            secondTransp = transp;
+            transpPair = TransposPair(firstTransp, transp);
+        }
+    }
+
+    assert(!secondTransp.isEmpty(), string("Second transposition is empty"));
+
+    // 4) remove second
+    bool needSorting = skipKeyFound;
+    tie(newTransp, oldTransp) =
+        removeTranspFromPermutation(secondTransp);
+
+    diff = secondTransp.getDiff();
+
+    distMap.erase(diff);
+    diffToEdgeMap.erase(diff);
+    distKeys.remove(diff);
+
+    if(!newTransp.isEmpty())
+    {
+        assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
+
+        diff = addTranspToDistMap(newTransp);
+        if(distMap[diff]->size() > 1)
+        {
+            needSorting = true;
+        }
+        if(!found(distKeys, diff))
+        {
+            distKeys.push_back(diff);
+        }
+
+        removeTranspFromDistMap(oldTransp);
+        distKeys.remove( oldTransp.getDiff() );
+    }
+
+    // 5) prepare for next iteration
+    if(needSorting)
+    {
+        sortDistanceKeys();
+        candidatesSorted = false;
+    }
+
+    transpPair.setN(n);
+
+    auto elements = transpPair.getImplementation();
+    return elements;
+}
+
+deque<ReverseElement> Generator::implementSingleTransposition(const Transposition& transp)
+{
+    /// New method: use maximum control inputs as possible
+    deque<ReverseElement> conjugationElements;
+    deque<ReverseElement> elements;
+
+    word x = transp.getX();
+    word y = transp.getY();
+    word fullMask = ((word)1 << n) - 1;
+
+    word diff = x ^ y;
+    uint pos = findPositiveBitPosition(diff);
+
+    word targetMask = (word)1 << pos;
+    diff ^= targetMask;
+
+    // main element
+    ReverseElement element(n, targetMask, fullMask ^ targetMask,
+        ~y & (fullMask ^ targetMask));
+    elements.push_back(element);
+
+    if(diff)
+    {
+        word value = y ^ targetMask;
+        
+        word mask = targetMask << 1;
+        while(mask <= diff)
+        {
+            if(diff & mask)
+            {
+                ReverseElement element(n, mask, fullMask ^ mask,
+                    ~value & (fullMask ^ mask));
+                conjugationElements.push_back(element);
+                
+                value ^= mask;
+            }
+
+            mask <<= 1;
+        }
+
+        elements = conjugate(elements, conjugationElements, true);
+    }
+
+    return elements;
+}
+
 bool Generator::checkSchemeAgainstPermutationVector(const Scheme& scheme,
-                                                    const PermutationTable& table)
+    const PermutationTable& table)
 {
     bool result = true;
     uint transformCount = table.size();
@@ -690,12 +906,51 @@ bool Generator::checkSchemeAgainstPermutationVector(const Scheme& scheme,
     return result;
 }
 
+void Generator::computeEdges()
+{
+    forcin(iter, distMap)
+    {
+        word diff = iter->first;
+        shared_ptr<list<Transposition>> transpositions = iter->second;
+
+        if(!diffToEdgeMap.count(diff))
+        {
+            BooleanEdgeSearcher edgeSearcher(transpositions, n, diff);
+            BooleanEdge edge = edgeSearcher.findEdge();
+
+            diffToEdgeMap[diff] = edge;
+        }
+    }
+}
+
+BooleanEdge Generator::computeEdge(word diff, bool force /* = false */)
+{
+    BooleanEdge edge;
+    assert(distMap.count(diff), string("Distance map hasn't difference"));
+
+    if(!diffToEdgeMap.count(diff) || force)
+    {
+        auto transpositions = distMap[diff];
+
+        BooleanEdgeSearcher edgeSearcher(transpositions, n, diff);
+        edge = edgeSearcher.findEdge();
+
+        diffToEdgeMap[diff] = edge;
+    }
+    else
+    {
+        edge = diffToEdgeMap[diff];
+    }
+
+    return edge;
+}
 
 Generator::DiffSortKey::DiffSortKey()
     : diff(0)
     , length(uintUndefined)
     , weight(uintUndefined)
-//  , isGood(false)  
+    , capacity(0)
+//  , isGood(false)
 {
 
 }

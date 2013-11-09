@@ -19,9 +19,15 @@ private:
     uint findInversedElementsSequence(const Scheme& scheme, uint startPosition);
     Scheme optimizeInversions(const Scheme& scheme);
 
-    Scheme mergeOptimization(Scheme& scheme, bool* optimized = 0 );
+    // (01)(11) -> *1
+    Scheme mergeOptimization(Scheme& scheme, bool reverse, bool* optimized = 0 );
+    // (01)(10) -> (*1)(1*)
+    Scheme reduceConnectionsOptimization(Scheme& scheme, bool* optimized = 0 );
 
     Scheme getFullScheme(const Scheme& scheme, bool heavyRight = true);
+
+    Scheme transferOptimization(Scheme& scheme, uint* startPos,
+        bool reverse, bool* optimized = 0);
 
     // Remove duplicates elements
     Scheme removeDuplicates(const Scheme& scheme);
@@ -40,6 +46,8 @@ struct PostProcessor::Optimizations
     bool heavyRight;
     // Remove flag suppress "as is" flag
     bool remove;
+    bool replace;
+    vector<ReverseElement> replacement;
     bool asis;
 };
 

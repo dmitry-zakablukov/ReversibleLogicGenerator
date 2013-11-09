@@ -135,8 +135,11 @@ bool ReverseElement::isSwitchable(const ReverseElement& another) const
     if((targetMask & anotherControlMask)
             || (controlMask & anotherTargetMask))
     {
-        switchable = (controlMask & anotherControlMask)
-            && !(controlMask & anotherControlMask & ~(inversionMask ^ anotherInversionMask));
+        word differentInversionsMask = inversionMask ^ anotherInversionMask;
+        switchable = differentInversionsMask &&
+            (controlMask & anotherControlMask & differentInversionsMask) != 0;
+
+        differentInversionsMask = 0;
     }
 
     return switchable;
@@ -275,52 +278,76 @@ deque<ReverseElement> ReverseElement::getImplementation(bool heavyRight /* = tru
 {
     assert(isValid(), string("Reverse element is not valid"));
 
-    // core implementation
+    assert((inversionMask & ~controlMask ) == 0, string("Invalid inversion mask"));
     deque<ReverseElement> implementation;
-    uint controlCount = countNonZeroBits(controlMask);
-
-    // check control count
-    assert(controlCount + 1 <= n, string("Too much controls"));
-
-#if defined(ADDITIONAL_MEMORY_TECHNIQUE)
-    implementation.push_back(ReverseElement(n, targetMask, controlMask));
-#else //ADDITIONAL_MEMORY_TECHNIQUE
-    ////if(controlCount < 3 && isIndependent())
-    ////{
-        implementation.push_back(ReverseElement(n, targetMask, controlMask));
-    ////}
-    ////else   // hard case, use recursion
-    ////{
-    ////    // emulate this element by folowing elements
-    ////    auto leftElement  = getLeftmostElement(heavyRight);
-    ////    auto rightElement = getRightmostElement(heavyRight);
-
-    ////    // combine elements
-    ////    auto leftImpl  =  leftElement.getImplementation();
-    ////    auto rightImpl = rightElement.getImplementation();
-
-    ////    implementation.insert(implementation.end(),  leftImpl.cbegin(),  leftImpl.cend());
-    ////    implementation.insert(implementation.end(), rightImpl.cbegin(), rightImpl.cend());
-    ////    implementation.insert(implementation.end(),  leftImpl.cbegin(),  leftImpl.cend());
-    ////    implementation.insert(implementation.end(), rightImpl.cbegin(), rightImpl.cend());
-    ////}
-#endif //ADDITIONAL_MEMORY_TECHNIQUE
-
-    // conjugate core implementation by inversions
-    deque<ReverseElement> inversions;
-    uint mask = 1;
-
-    while(mask <= inversionMask)
+    
+    if(inversionMask)
     {
-        if(inversionMask & mask)
-        {
-            inversions.push_back(ReverseElement(n, mask));
-        }
+        uint pos = findPositiveBitPosition(inversionMask);
+        word mask = 1 << pos;
 
-        mask <<= 1;
+        word reducedMask = inversionMask ^ mask;
+        ReverseElement first(n, targetMask, controlMask, reducedMask);
+        ReverseElement second(n, targetMask, controlMask ^ mask, reducedMask);
+
+        auto elements = first.getImplementation();
+        implementation.insert(implementation.end(), elements.cbegin(), elements.cend());
+
+        elements = second.getImplementation();
+        implementation.insert(implementation.end(), elements.cbegin(), elements.cend());
+    }
+    else
+    {
+        implementation.push_back(*this);
     }
 
-    implementation = conjugate(implementation, inversions);
+////    // core implementation
+////    deque<ReverseElement> implementation;
+////    uint controlCount = countNonZeroBits(controlMask);
+////
+////    // check control count
+////    assert(controlCount + 1 <= n, string("Too much controls"));
+////
+////#if defined(ADDITIONAL_MEMORY_TECHNIQUE)
+////    implementation.push_back(ReverseElement(n, targetMask, controlMask));
+////#else //ADDITIONAL_MEMORY_TECHNIQUE
+////    ////if(controlCount < 3 && isIndependent())
+////    ////{
+////        implementation.push_back(ReverseElement(n, targetMask, controlMask));
+////    ////}
+////    ////else   // hard case, use recursion
+////    ////{
+////    ////    // emulate this element by folowing elements
+////    ////    auto leftElement  = getLeftmostElement(heavyRight);
+////    ////    auto rightElement = getRightmostElement(heavyRight);
+////
+////    ////    // combine elements
+////    ////    auto leftImpl  =  leftElement.getImplementation();
+////    ////    auto rightImpl = rightElement.getImplementation();
+////
+////    ////    implementation.insert(implementation.end(),  leftImpl.cbegin(),  leftImpl.cend());
+////    ////    implementation.insert(implementation.end(), rightImpl.cbegin(), rightImpl.cend());
+////    ////    implementation.insert(implementation.end(),  leftImpl.cbegin(),  leftImpl.cend());
+////    ////    implementation.insert(implementation.end(), rightImpl.cbegin(), rightImpl.cend());
+////    ////}
+////#endif //ADDITIONAL_MEMORY_TECHNIQUE
+////
+////    // conjugate core implementation by inversions
+////    deque<ReverseElement> inversions;
+////    uint mask = 1;
+////
+////    while(mask <= inversionMask)
+////    {
+////        if(inversionMask & mask)
+////        {
+////            inversions.push_back(ReverseElement(n, mask));
+////        }
+////
+////        mask <<= 1;
+////    }
+////
+////    implementation = conjugate(implementation, inversions);
+
     return implementation;
 }
 

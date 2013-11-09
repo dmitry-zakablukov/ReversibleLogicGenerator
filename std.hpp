@@ -2,6 +2,7 @@
 
 // system headers
 #include <string.h>
+#include <stdarg.h>
 #include <exception>
 #include <iostream>
 #include <iomanip>
@@ -12,6 +13,7 @@
 #include <tuple>
 #include <set>
 #include <map>
+#include <unordered_map>
 #include <functional>
 #include <algorithm>
 #include <memory>
@@ -34,7 +36,7 @@ using namespace std;
 
 typedef size_t uint;
 
-#define uintUndefined (uint)(-1)
+#define uintUndefined (size_t)(-1)
 #define wordUndefined (word)(-1)
 
 // Optimization techniques
@@ -51,4 +53,5 @@ typedef size_t uint;
 #include "PermutationUtils.hpp"
 #include "PostProcessor.hpp"
 #include "SchemePrinter.hpp"
+#include "BooleanEdgeSearcher.hpp"
 #include "Generator.hpp"
