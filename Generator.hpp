@@ -16,12 +16,11 @@ public:
 
 private:
     tuple<uint, Permutation> getPermutation(const PermutationTable& table);
-    void prepareTranspToCycleIndexMap();
 
     void fillDistancesMap();
 
-    word addTranspToDistMap(Transposition& transp);
-    void removeTranspFromDistMap(Transposition& target);
+    word addTranspToDistMap(const Transposition& transp);
+    void removeTranspFromDistMap(const Transposition& target);
 
     void sortDistanceKeys();
     void sortCandidates(shared_ptr<list<Transposition>> candidates);
@@ -33,8 +32,7 @@ private:
     findBestCandidatePartner(const shared_ptr<list<Transposition>> candidates,
                              const Transposition& target);
 
-    tuple<Transposition, Transposition>
-    removeTranspFromPermutation(const Transposition& transp);
+    Transposition removeTranspFromPermutation(const Transposition& transp);
     void onCycleRemoved(uint cycleIndex);
 
     // Edge optimization

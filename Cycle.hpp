@@ -29,12 +29,28 @@ public:
     bool operator ==(const Cycle& another) const;
     bool has(const Transposition& target) const;
 
-    void remove(const Transposition& target,
-        Transposition* first = 0, Transposition* second = 0);
+    void remove(const Transposition& target);
 
     operator string() const;
 
+    // Get next transposition which will be first in decomposition
+    // this transposition minimize sum of Hamming distances for all cycle
+    Transposition getNextDisjointTransposition();
+
 private:
+    // Find next best transposition,
+    // which minimize sum of Hamming distances for all cycle
+    void findBestDisjointIndex();
+
+    // Calculates sum of Hamming distances for all cycle
+    void calculateDistancesSum();
+
+    uint distnancesSum;
+    uint newDistancesSum;
+
+    Transposition disjointTransp;
+    uint disjointIndex;
+
     vector<word> elements;
     bool finalized;
 };

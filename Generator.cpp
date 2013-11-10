@@ -29,7 +29,6 @@ Generator::Scheme Generator::generate(const PermutationTable& table, ostream& ou
         checkPermutationValidity(table);
 
         tie(n, permutation) = getPermutation(table);
-        prepareTranspToCycleIndexMap();
     }
 
     *log << "Permutation creation time: ";
@@ -202,8 +201,10 @@ tuple<uint, Permutation> Generator::getPermutation(const PermutationTable& table
     return tie(n, permutation);
 }
 
-void Generator::prepareTranspToCycleIndexMap()
+void Generator::fillDistancesMap()
 {
+    distMap = map<word, shared_ptr<list<Transposition>>>();
+
     word vectorSize = 1 << n;
     transpToCycleIndexMap.resize(vectorSize);
 
@@ -211,6 +212,10 @@ void Generator::prepareTranspToCycleIndexMap()
     for(uint cycleIndex = 0; cycleIndex < cycleCount; ++cycleIndex)
     {
         auto cycle = permutation.getCycle(cycleIndex);
+        Transposition transp = cycle->getNextDisjointTransposition();
+
+        addTranspToDistMap(transp);
+
         uint elementCount = cycle->length();
         for(uint elementIndex = 0; elementIndex < elementCount; ++elementIndex)
         {
@@ -220,23 +225,7 @@ void Generator::prepareTranspToCycleIndexMap()
     }
 }
 
-void Generator::fillDistancesMap()
-{
-    distMap = map<word, shared_ptr<list<Transposition>>>();
-    forin(iter, permutation)
-    {
-        const shared_ptr<Cycle>& cycle = *iter;
-
-        uint elementCount = cycle->length();
-        for(uint index = 0; index < elementCount; ++index)
-        {
-            Transposition transp = cycle->getTranspositionByPosition(index);
-            addTranspToDistMap(transp);
-        }
-    }
-}
-
-word Generator::addTranspToDistMap(Transposition& transp)
+word Generator::addTranspToDistMap(const Transposition& transp)
 {
     word diff = transp.getDiff();
     if(!distMap.count(diff))
@@ -472,38 +461,21 @@ Generator::findBestCandidatePartner(const shared_ptr<list<Transposition>> candid
     return tie(second, minDist);
 }
 
-tuple<Transposition, Transposition>
-Generator::removeTranspFromPermutation(const Transposition& transp)
+Transposition Generator::removeTranspFromPermutation(const Transposition& transp)
 {
-    Transposition newTransp;
-    Transposition oldTransp;
-
     word x = transp.getX();
     uint cycleIndex = transpToCycleIndexMap[x];
 
     auto cycle = permutation.getCycle(cycleIndex);
-    cycle->remove(transp, &newTransp, &oldTransp);
-    //if(cycle->isEmpty())
-    //{
-    //    permutation.remove(cycle);
-    //}
+    cycle->remove(transp);
 
-    //forin(iter, permutation)
-    //{
-    //    const shared_ptr<Cycle>& cycle = *iter;
-    //    if(cycle->has(transp))
-    //    {
-    //        cycle->remove(transp, &newTransp, &oldTransp);
-    //        if(cycle->isEmpty())
-    //        {
-    //            permutation.remove(cycle);
-    //        }
+    Transposition temp;
+    if(!cycle->isEmpty())
+    {
+        temp = cycle->getNextDisjointTransposition();
+    }
 
-    //        break;
-    //    }
-    //}
-
-    return tie(newTransp, oldTransp);
+    return temp;
 }
 
 void Generator::onCycleRemoved( uint cycleIndex )
@@ -511,23 +483,10 @@ void Generator::onCycleRemoved( uint cycleIndex )
 
 }
 
-void Generator::removeTranspFromDistMap(Transposition& target)
+void Generator::removeTranspFromDistMap(const Transposition& target)
 {
     word diff = target.getDiff();
     auto& transpositions = distMap[diff];
-
-    // check if this needed
-//    Transposition transp;
-//    for(auto& t : transpositions)
-//    {
-//        if(t == target)
-//        {
-//            transp = t;
-//            break;
-//        }
-//    }
-
-//    assert(!transp.isEmpty(), string("Transposition not found"));
 
     transpositions->remove(target);
     diffToEdgeMap.erase(diff);
@@ -694,18 +653,13 @@ void Generator::reduceCandidatesCount(
     shared_ptr<list<Transposition>> candidates, const Transposition& transp,
     bool updateDistanceMapAndKeys /* = true */)
 {
-    Transposition newTransp;
-    Transposition oldTransp;
-
-    tie(newTransp, oldTransp) = removeTranspFromPermutation(transp);
     candidates->remove(transp);
+    removeTranspFromDistMap(transp);
 
+    Transposition newTransp = removeTranspFromPermutation(transp);
     if(!newTransp.isEmpty())
     {
-        assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
-
         addTranspToDistMap(newTransp);
-        removeTranspFromDistMap(oldTransp);
     }
 
     if(updateDistanceMapAndKeys)
@@ -737,11 +691,10 @@ deque<ReverseElement> Generator::implementCommonPair()
     bool skipKeyFound = false;
 
     TransposPair  transpPair;
-    Transposition newTransp;
-    Transposition oldTransp;
+    Transposition newTransp = removeTranspFromPermutation(firstTransp);
 
-    tie(newTransp, oldTransp) =
-        removeTranspFromPermutation(firstTransp);
+    removeTranspFromDistMap(firstTransp);
+    distKeys.remove(firstTransp.getDiff());
 
     distMap.erase(diff);
     diffToEdgeMap.erase(diff);
@@ -749,21 +702,17 @@ deque<ReverseElement> Generator::implementCommonPair()
 
     if(!newTransp.isEmpty())
     {
-        assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
-
         diff = addTranspToDistMap(newTransp);
         if(distMap[diff]->size() > 1)
         {
             skipKeyValue = diff;
             skipKeyFound = true;
         }
+
         if(!found(distKeys, diff))
         {
             distKeys.push_back(diff);
         }
-
-        removeTranspFromDistMap(oldTransp);
-        distKeys.remove( oldTransp.getDiff() );
     }
 
     // 3) find second
@@ -795,10 +744,11 @@ deque<ReverseElement> Generator::implementCommonPair()
 
     // 4) remove second
     bool needSorting = skipKeyFound;
-    tie(newTransp, oldTransp) =
-        removeTranspFromPermutation(secondTransp);
+    newTransp = removeTranspFromPermutation(secondTransp);
 
     diff = secondTransp.getDiff();
+    removeTranspFromDistMap(secondTransp);
+    distKeys.remove(diff);
 
     distMap.erase(diff);
     diffToEdgeMap.erase(diff);
@@ -806,20 +756,16 @@ deque<ReverseElement> Generator::implementCommonPair()
 
     if(!newTransp.isEmpty())
     {
-        assert(!oldTransp.isEmpty(), string("Old transposition is empty"));
-
         diff = addTranspToDistMap(newTransp);
         if(distMap[diff]->size() > 1)
         {
             needSorting = true;
         }
+
         if(!found(distKeys, diff))
         {
             distKeys.push_back(diff);
         }
-
-        removeTranspFromDistMap(oldTransp);
-        distKeys.remove( oldTransp.getDiff() );
     }
 
     // 5) prepare for next iteration
