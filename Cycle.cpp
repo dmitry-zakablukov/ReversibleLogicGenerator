@@ -10,6 +10,8 @@ Cycle::Cycle()
     , newDistancesSum(uintUndefined)
     , disjointTransp()
     , disjointIndex(0)
+    , firstTranspositions()
+    , restElements()
 {
 }
 
@@ -20,6 +22,8 @@ Cycle::Cycle(vector<word>&& source)
     , newDistancesSum(uintUndefined)
     , disjointTransp()
     , disjointIndex(0)
+    , firstTranspositions()
+    , restElements()
 {
     uint elementCount = length();
     if(elements[0] == elements[elementCount - 1])
@@ -165,36 +169,21 @@ bool Cycle::has(const Transposition& target) const
     return result;
 }
 
-void Cycle::remove(const Transposition& target)
+bool Cycle::remove(const Transposition& target)
 {
-    assert(disjointTransp == target, string("Removing non-existent transposition from cycle"));
+    assert(found(*firstTranspositions, target),
+        string("Removing non-existent transposition from cycle"));
 
-    uint elementCount = length();
-    if(elementCount == 2)
+    firstTranspositions->remove(target);
+    bool hasTranspositions = !!firstTranspositions->size();
+
+    if(!hasTranspositions)
     {
-        elements.resize(0);
-    }
-    else
-    {
-        uint newElementCount = elementCount - 1;
-        word* ptr = elements.data();
-
-        if(disjointIndex < newElementCount)
-        {
-            // (..., x, y, w, ...) -> (..., x, w, ...)
-            memcpy(ptr + disjointIndex + 1,
-                   ptr + disjointIndex + 2,
-                   (elementCount - disjointIndex - 2) * sizeof(word));
-        }
-        else
-        {
-            // (y, w, ..., x) -> (w, ..., x)
-            memcpy(ptr, ptr + 1, newElementCount * sizeof(word));
-        }
-
-        elements.resize(newElementCount);
+        elements = restElements;
         distnancesSum = newDistancesSum;
     }
+
+    return hasTranspositions;
 }
 
 Cycle::operator string() const
@@ -210,6 +199,22 @@ Cycle::operator string() const
 
     result << ")";
     return result.str();
+}
+
+uint Cycle::modIndex(uint index)
+{
+    uint elementCount = length();
+    uint resIndex = modIndex(index, elementCount);
+
+    return resIndex;
+}
+
+uint Cycle::modIndex(uint index, uint mod)
+{
+    uint resIndex = index;
+
+    resIndex -= (resIndex >= mod) * mod;
+    return resIndex;
 }
 
 Transposition Cycle::getNextDisjointTransposition()
@@ -235,20 +240,20 @@ void Cycle::findBestDisjointIndex()
 
     if(distnancesSum == uintUndefined)
     {
-        //this is the first call
+        // this is the first call
         calculateDistancesSum();
     }
 
     // find disjoint index for which transposition will get the minimum of distances sum
     disjointIndex = 0;
-    uint minSum = distnancesSum;
+    uint minSum = uintUndefined;
 
-    for(uint index = 0; index < elementCount - 2; ++index)
+    for(uint index = 0; index < elementCount; ++index)
     {
         //(x, y, w, ...)
         uint sum = distnancesSum;
-        sum += countNonZeroBits(elements[index] ^ elements[index + 2]);     //distance between x and w
-        sum -= countNonZeroBits(elements[index + 1] ^ elements[index + 2]); //distance between y and w
+        sum += countNonZeroBits(elements[index] ^ elements[modIndex(index + 2)]);     //distance between x and w
+        sum -= countNonZeroBits(elements[modIndex(index + 1)] ^ elements[modIndex(index + 2)]); //distance between y and w
 
         if(sum < minSum)
         {
@@ -257,38 +262,13 @@ void Cycle::findBestDisjointIndex()
         }
     }
 
-    // case of (w, ..., x, y)
-    uint sum = distnancesSum;
-    sum += countNonZeroBits(elements[elementCount - 2] ^ elements[0]);  //distance between x and w
-    sum -= countNonZeroBits(elements[elementCount - 1] ^ elements[0]);  //distance between y and w
-
-    if(sum < minSum)
-    {
-        disjointIndex = elementCount - 2;
-        newDistancesSum = sum;
-    }
-
-    // case of (y, w, ..., x)
-    sum = distnancesSum;
-    sum += countNonZeroBits(elements[elementCount - 1] ^ elements[1]);  //distance between x and w
-    sum -= countNonZeroBits(elements[0] ^ elements[1]);                 //distance between y and w
-
-    if(sum < minSum)
-    {
-        disjointIndex = elementCount - 1;
-        newDistancesSum = sum;
-    }
-
     // now make disjoint transposition
     disjointTransp.setX(elements[disjointIndex]);
-    if(disjointIndex < elementCount - 1)
-    {
-        disjointTransp.setY(elements[disjointIndex + 1]);
-    }
-    else //disjointIndex == elementCount - 1
-    {
-        disjointTransp.setY(elements[0]);
-    }
+    disjointTransp.setY(elements[modIndex(disjointIndex + 1)]);
+
+    // debug
+    printf("Disjoint diff: 0x%X\n", disjointTransp.getDiff());
+    getBestTranspositionsForDisjoint();
 }
 
 void Cycle::calculateDistancesSum()
@@ -297,13 +277,166 @@ void Cycle::calculateDistancesSum()
 
     // we assume, that element count > 2
     uint elementCount = length();
-    for(uint index = 0; index < elementCount - 1; ++index)
+    for(uint index = 0; index < elementCount; ++index)
     {
-        distnancesSum += countNonZeroBits(elements[index] ^ elements[index + 1]);
+        distnancesSum += countNonZeroBits(elements[index] ^ elements[modIndex(index + 1)]);
     }
 
-    distnancesSum += countNonZeroBits(elements[0] ^ elements[elementCount - 1]);
     newDistancesSum = distnancesSum;
+}
+
+shared_ptr<list<Transposition>> Cycle::getBestTranspositionsForDisjoint()
+{
+    firstTranspositions = 0;
+
+    uint elementCount = length();
+    if(elementCount == 2)
+    {
+        word x = elements[0];
+        word y = elements[1];
+
+        firstTranspositions = shared_ptr<list<Transposition>>(new list<Transposition>);
+        firstTranspositions->push_back(Transposition(x, y));
+
+        restElements.resize(0);
+        newDistancesSum = 0;
+    }
+    else if(elementCount > 2)
+    {
+        if(distnancesSum == uintUndefined)
+        {
+            // this is the first call
+            calculateDistancesSum();
+        }
+
+        unordered_map<word, uint> sums;
+        uint minSum = uintUndefined;
+        word bestFirstDiff = 0;
+
+        for(uint index = 0; index < elementCount; ++index)
+        {
+            uint sum = distnancesSum;
+
+            word dxy = elements[index] ^ elements[modIndex(index + 1)];
+            word dxz = elements[index] ^ elements[modIndex(index + 2)];
+            word dyz = elements[modIndex(index + 1)] ^ elements[modIndex(index + 2)];
+
+            sum += countNonZeroBits(dxz);
+            sum -= countNonZeroBits(dyz);
+
+            if(!sums.count(dxy))
+            {
+                sums[dxy] = 0;
+            }
+
+            sums[dxy] += sum;
+
+            if(sum < minSum)
+            {
+                minSum = sum;
+                bestFirstDiff = dxy;
+            }
+        }
+
+        // comment this for testing the best strategy
+        //bestFirstDiff = findBestDiff(sums);
+
+        firstTranspositions = getTranspositionsByDiff(bestFirstDiff);
+    }
+
+    return firstTranspositions;
+}
+
+word Cycle::findBestDiff( unordered_map<word, uint> sums )
+{
+    // sort keys
+    typedef struct 
+    {
+        word diff;
+        uint sum;
+    } TempSortStruct;
+
+    vector<TempSortStruct> keys(sums.size());
+    uint index = 0;
+
+    forcin(iter, sums)
+    {
+        TempSortStruct key;
+
+        key.diff = iter->first;
+        key.sum  = iter->second;
+
+        keys[index] = key;
+        ++index;
+    }
+
+    auto sortFunc = [](const TempSortStruct& leftKey, const TempSortStruct& rightKey) -> bool
+    {        
+        bool isLess = (leftKey.sum < rightKey.sum);
+        return isLess;
+    };
+
+    sort(keys.begin(), keys.end(), sortFunc);
+    return keys[0].diff;
+}
+
+void Cycle::removeElement(vector<word>* target, uint index)
+{
+    if(target)
+    {
+        uint elementCount = target->size();
+        assert(index < elementCount, string("Removing non-existent element from vector"));
+
+        word* ptr = target->data();
+        if(index < elementCount - 1)
+        {
+            memcpy(ptr + index, ptr + index + 1,
+                (elementCount - index - 1) * sizeof(word));
+        }
+
+        target->resize(elementCount - 1);
+    }
+}
+
+shared_ptr<list<Transposition>> Cycle::getTranspositionsByDiff(word diff)
+{
+    shared_ptr<list<Transposition>> result(new list<Transposition>);
+
+    uint elementCount = length();
+    newDistancesSum = distnancesSum;
+
+    restElements = elements;
+    uint restIndex = 0;
+
+    for(uint index = 0; index < elementCount; ++index)
+    {
+        word x = elements[index];
+        word y = elements[modIndex(index + 1)];
+        word dxy = x ^ y;
+
+        if(dxy == diff)
+        {
+            // save found transposition to result
+            result->push_back(Transposition(x, y));
+
+            // calculate new distance sum
+            word z = elements[modIndex(index + 2)];
+            word dxz = x ^ z;
+            word dyz = y ^ z;
+
+            newDistancesSum += countNonZeroBits(dxz);
+            newDistancesSum -= countNonZeroBits(dyz);
+
+            // remove element from vector of rest elements
+            removeElement(&restElements, modIndex(restIndex + 1, restElements.size()));
+        }
+        else
+        {
+            ++restIndex;
+        }
+    }
+
+    return result;
 }
 
 }   // namespace ReversibleLogic

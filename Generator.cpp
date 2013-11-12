@@ -212,9 +212,12 @@ void Generator::fillDistancesMap()
     for(uint cycleIndex = 0; cycleIndex < cycleCount; ++cycleIndex)
     {
         auto cycle = permutation.getCycle(cycleIndex);
-        Transposition transp = cycle->getNextDisjointTransposition();
+        shared_ptr<list<Transposition>> transpositions = cycle->getBestTranspositionsForDisjoint();
 
-        addTranspToDistMap(transp);
+        forcin(iter, *transpositions)
+        {
+            addTranspToDistMap(*iter);
+        }
 
         uint elementCount = cycle->length();
         for(uint elementIndex = 0; elementIndex < elementCount; ++elementIndex)
@@ -461,18 +464,18 @@ Generator::findBestCandidatePartner(const shared_ptr<list<Transposition>> candid
     return tie(second, minDist);
 }
 
-Transposition Generator::removeTranspFromPermutation(const Transposition& transp)
+shared_ptr<list<Transposition>> Generator::removeTranspFromPermutation(const Transposition& transp)
 {
     word x = transp.getX();
     uint cycleIndex = transpToCycleIndexMap[x];
 
     auto cycle = permutation.getCycle(cycleIndex);
-    cycle->remove(transp);
+    bool getNewTranspositions = !cycle->remove(transp);
 
-    Transposition temp;
-    if(!cycle->isEmpty())
+    shared_ptr<list<Transposition>> temp = 0;
+    if(getNewTranspositions)
     {
-        temp = cycle->getNextDisjointTransposition();
+        temp = cycle->getBestTranspositionsForDisjoint();
     }
 
     return temp;
@@ -656,10 +659,13 @@ void Generator::reduceCandidatesCount(
     candidates->remove(transp);
     removeTranspFromDistMap(transp);
 
-    Transposition newTransp = removeTranspFromPermutation(transp);
-    if(!newTransp.isEmpty())
+    shared_ptr<list<Transposition>> newTranspositions = removeTranspFromPermutation(transp);
+    if(newTranspositions)
     {
-        addTranspToDistMap(newTransp);
+        forcin(iter, *newTranspositions)
+        {
+            addTranspToDistMap(*iter);
+        }
     }
 
     if(updateDistanceMapAndKeys)
@@ -691,7 +697,7 @@ deque<ReverseElement> Generator::implementCommonPair()
     bool skipKeyFound = false;
 
     TransposPair  transpPair;
-    Transposition newTransp = removeTranspFromPermutation(firstTransp);
+    shared_ptr<list<Transposition>> newTranspositions = removeTranspFromPermutation(firstTransp);
 
     removeTranspFromDistMap(firstTransp);
     distKeys.remove(firstTransp.getDiff());
@@ -700,9 +706,13 @@ deque<ReverseElement> Generator::implementCommonPair()
     diffToEdgeMap.erase(diff);
     distKeys.remove(diff);
 
-    if(!newTransp.isEmpty())
+    if(newTranspositions)
     {
-        diff = addTranspToDistMap(newTransp);
+        forcin(iter, *newTranspositions)
+        {
+            diff = addTranspToDistMap(*iter);
+        }
+
         if(distMap[diff]->size() > 1)
         {
             skipKeyValue = diff;
@@ -744,7 +754,7 @@ deque<ReverseElement> Generator::implementCommonPair()
 
     // 4) remove second
     bool needSorting = skipKeyFound;
-    newTransp = removeTranspFromPermutation(secondTransp);
+    newTranspositions = removeTranspFromPermutation(secondTransp);
 
     diff = secondTransp.getDiff();
     removeTranspFromDistMap(secondTransp);
@@ -754,9 +764,13 @@ deque<ReverseElement> Generator::implementCommonPair()
     diffToEdgeMap.erase(diff);
     distKeys.remove(diff);
 
-    if(!newTransp.isEmpty())
+    if(newTranspositions)
     {
-        diff = addTranspToDistMap(newTransp);
+        forcin(iter, *newTranspositions)
+        {
+            diff = addTranspToDistMap(*iter);
+        }
+
         if(distMap[diff]->size() > 1)
         {
             needSorting = true;

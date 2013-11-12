@@ -32,7 +32,7 @@ private:
     findBestCandidatePartner(const shared_ptr<list<Transposition>> candidates,
                              const Transposition& target);
 
-    Transposition removeTranspFromPermutation(const Transposition& transp);
+    shared_ptr<list<Transposition>> removeTranspFromPermutation(const Transposition& transp);
     void onCycleRemoved(uint cycleIndex);
 
     // Edge optimization

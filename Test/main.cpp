@@ -149,13 +149,14 @@ vector<word> getRd53()
     uint n = 7;
     Generator::Scheme scheme;
 
-    scheme.push_back( ReverseElement(n, mask(6, uint(-1)), mask(0, 1, 2, 3, uint(-1))) );
-    scheme.push_back( ReverseElement(n, mask(6, uint(-1)), mask(0, 1, 2, 4, uint(-1))) );
-    scheme.push_back( ReverseElement(n, mask(6, uint(-1)), mask(1, 2, 3, 4, uint(-1))) );
-    scheme.push_back( ReverseElement(n, mask(5, uint(-1)), mask(1, 2, uint(-1))) );
-    scheme.push_back( ReverseElement(n, mask(1, uint(-1)), mask(2, uint(-1))) );
-    scheme.push_back( ReverseElement(n, mask(6, uint(-1)), mask(0, 1, 3, 4, uint(-1))) );
-    scheme.push_back( ReverseElement(n, mask(5, uint(-1)), mask(0, 1, uint(-1))) );
+    uint end = uint(-1);
+    scheme.push_back( ReverseElement(n, mask(6, end), mask(0, 1, 2, 3, end)) );
+    scheme.push_back( ReverseElement(n, mask(6, end), mask(0, 1, 2, 4, end)) );
+    scheme.push_back( ReverseElement(n, mask(6, end), mask(1, 2, 3, 4, end)) );
+    scheme.push_back( ReverseElement(n, mask(5, end), mask(1, 2, end)) );
+    scheme.push_back( ReverseElement(n, mask(1, end), mask(2, end)) );
+    scheme.push_back( ReverseElement(n, mask(6, end), mask(0, 1, 3, 4, end)) );
+    scheme.push_back( ReverseElement(n, mask(5, end), mask(0, 1, end)) );
 
     scheme.push_back( ReverseElement(n, mask(0, uint(-1)), mask(1, uint(-1))) );
     
@@ -250,9 +251,9 @@ int main(int argc, const char* argv[])
 
         vector<word> table;
         //table = getLinearMemoryless();
-        //table = getRd53();
+        table = getRd53();
         //table = getSimple();
-        table = getBadCase();
+        //table = getBadCase();
 
         Generator generator;
         auto scheme = generator.generate(table, outputFile);
@@ -271,7 +272,7 @@ int main(int argc, const char* argv[])
 
             //outputFile << "Scheme file: " << schemeFileName.str() << "\n";
 
-            string schemeString = SchemePrinter::schemeToString(scheme, true);
+            string schemeString = SchemePrinter::schemeToString(scheme, false);
 
             //ofstream schemeFile(schemeFileName.str());
             //schemeFile << schemeString;
@@ -294,6 +295,8 @@ int main(int argc, const char* argv[])
 
     inputFile.close();
     outputFile.close();
+
+    system("pause");
 
     return 0;
 }

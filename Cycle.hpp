@@ -29,7 +29,8 @@ public:
     bool operator ==(const Cycle& another) const;
     bool has(const Transposition& target) const;
 
-    void remove(const Transposition& target);
+    // Returns true if there is some transposition in firstTranspositions
+    bool remove(const Transposition& target);
 
     operator string() const;
 
@@ -37,7 +38,13 @@ public:
     // this transposition minimize sum of Hamming distances for all cycle
     Transposition getNextDisjointTransposition();
 
+    shared_ptr<list<Transposition>> getBestTranspositionsForDisjoint();
+
 private:
+    /// Returns index modulo element count
+    uint modIndex(uint index);
+    uint modIndex(uint index, uint mod);
+
     // Find next best transposition,
     // which minimize sum of Hamming distances for all cycle
     void findBestDisjointIndex();
@@ -45,14 +52,21 @@ private:
     // Calculates sum of Hamming distances for all cycle
     void calculateDistancesSum();
 
+    word findBestDiff(unordered_map<word, uint> sums);
+    void removeElement(vector<word>* target, uint index);
+    shared_ptr<list<Transposition>> getTranspositionsByDiff(word diff);
+
+    vector<word> elements;
+    bool finalized;
+
     uint distnancesSum;
     uint newDistancesSum;
 
     Transposition disjointTransp;
     uint disjointIndex;
 
-    vector<word> elements;
-    bool finalized;
+    shared_ptr<list<Transposition>> firstTranspositions;
+    vector<word> restElements;
 };
 
 }   // namespace ReversibleLogic
