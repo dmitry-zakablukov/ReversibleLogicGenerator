@@ -275,7 +275,7 @@ void Generator::sortDistanceKeys()
 
         key.diff = iter->first;
         key.weight = countNonZeroBits(key.diff);
-        ///key.length = (iter->second)->size();
+        key.length = (iter->second)->size();
 
         //key.isGood = (key.length > 1);
 
@@ -313,7 +313,12 @@ void Generator::sortDistanceKeys()
         bool isLess = (leftKey.capacity > rightKey.capacity);
         if(leftKey.capacity == rightKey.capacity)
         {
-            isLess = leftKey.weight < rightKey.weight;
+            ///isLess = leftKey.weight < rightKey.weight;
+            isLess = (leftKey.length > 1 ) && (rightKey.length == 1);
+            if(leftKey.length == rightKey.length)
+            {
+                isLess = leftKey.weight < rightKey.weight;
+            }     
         }
 
         return isLess;
@@ -529,6 +534,9 @@ deque<ReverseElement> Generator::implementCandidates(
     deque<ReverseElement> elements;
     if(edge.isValid() && edge.getCapacity() > 2)
     {
+        ////debug
+        *log << "Implementing full edge, line " << __LINE__ << "\n";
+
         if(edge.isFull())
         {
             word mask = 1;
@@ -550,11 +558,17 @@ deque<ReverseElement> Generator::implementCandidates(
         }
         else
         {
+            ////debug
+            *log << "Implementing edge, line " << __LINE__ << "\n";
+
             elements = implementCandidatesEdge(candidates, edge);
         }
     }
     else
     {
+        ////debug
+        *log << "Implementing best candidates pair, line " << __LINE__ << "\n";
+
         elements = implementBestCandidatesPair(candidates, n);
     }
 
@@ -791,13 +805,23 @@ deque<ReverseElement> Generator::implementCommonPair()
 
     transpPair.setN(n);
 
-    auto elements = transpPair.getImplementation();
+    ////debug
+    *log << "Implementing common pair " << (string)transpPair << ", line " << __LINE__ << "\n";
+    
+    //auto elements = transpPair.getImplementation();
+    deque<ReverseElement> elements;
+
+    auto firstRealization = implementSingleTransposition(firstTransp);
+    elements.insert(elements.end(), firstRealization.cbegin(), firstRealization.cend());
+
+    auto secondRealization = implementSingleTransposition(secondTransp);
+    elements.insert(elements.end(), secondRealization.cbegin(), secondRealization.cend());
     return elements;
 }
 
 deque<ReverseElement> Generator::implementSingleTransposition(const Transposition& transp)
 {
-    /// New method: use maximum control inputs as possible
+    /// New method: use maximum control inputs as possible with inversion
     deque<ReverseElement> conjugationElements;
     deque<ReverseElement> elements;
 
@@ -812,26 +836,33 @@ deque<ReverseElement> Generator::implementSingleTransposition(const Transpositio
     diff ^= targetMask;
 
     // main element
+    word mainElementInversionMask = 0;
+    if(x & targetMask) // target in B_10 (x_i == 1, y_i == 0)
+    {
+        mainElementInversionMask =
+            (~(x ^ diff)) & fullMask;
+    }
+    else // target in B_01 (x_i == 0, y_i == 1)
+    {
+        mainElementInversionMask =
+            (~(y ^ diff)) & fullMask;
+    }
+
     ReverseElement element(n, targetMask, fullMask ^ targetMask,
-        ~y & (fullMask ^ targetMask));
+        mainElementInversionMask);
+
     elements.push_back(element);
 
     if(diff)
     {
-        word value = y ^ targetMask;
-        
         word mask = targetMask << 1;
         while(mask <= diff)
         {
             if(diff & mask)
             {
-                ReverseElement element(n, mask, fullMask ^ mask,
-                    ~value & (fullMask ^ mask));
+                ReverseElement element(n, mask, targetMask);
                 conjugationElements.push_back(element);
-                
-                value ^= mask;
             }
-
             mask <<= 1;
         }
 
