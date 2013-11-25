@@ -125,6 +125,7 @@
     <ClCompile Include="Cycle.cpp" />
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="Generator.cpp" />
+    <ClCompile Include="PartialGenerator.cpp" />
     <ClCompile Include="Permutation.cpp" />
     <ClCompile Include="PermutationUtils.cpp" />
     <ClCompile Include="PostProcessor.cpp" />
@@ -144,6 +145,7 @@
     <ClInclude Include="Cycle.hpp" />
     <ClInclude Include="Element.hpp" />
     <ClInclude Include="Generator.hpp" />
+    <ClInclude Include="PartialGenerator.hpp" />
     <ClInclude Include="Permutation.hpp" />
     <ClInclude Include="PermutationUtils.hpp" />
     <ClInclude Include="PostProcessor.hpp" />

@@ -50,6 +50,9 @@
     <ClCompile Include="BooleanEdgeSearcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PartialGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="std.hpp">
@@ -86,6 +89,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BooleanEdgeSearcher.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PartialGenerator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

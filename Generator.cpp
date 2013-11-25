@@ -15,7 +15,7 @@ Generator::Generator()
 {
 }
 
-Generator::Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
+Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
 {
     log = &outputLog;
 

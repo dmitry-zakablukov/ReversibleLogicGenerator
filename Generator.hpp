@@ -8,9 +8,6 @@ class Generator
 public:
     Generator();
 
-    typedef vector<word> PermutationTable;
-    typedef deque<ReverseElement> Scheme;
-
     Scheme generate(const PermutationTable& table, ostream& outputLog);
     void checkPermutationValidity(const PermutationTable& table);
 

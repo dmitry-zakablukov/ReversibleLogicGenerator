@@ -6,7 +6,6 @@ namespace ReversibleLogic
 class PermutationUtils
 {
 public:
-    typedef vector<word> PermutationTable;
     typedef vector<word> Piece;
 
     static Permutation createPermutation(const PermutationTable& inputTable);

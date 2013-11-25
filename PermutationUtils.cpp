@@ -3,7 +3,7 @@
 namespace ReversibleLogic
 {
 
-PermutationUtils::PermutationTable PermutationUtils::expandTable(const PermutationTable& table)
+PermutationTable PermutationUtils::expandTable(const PermutationTable& table)
 {
     PermutationTable expandedTable;
 

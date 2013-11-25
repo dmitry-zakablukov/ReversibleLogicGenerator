@@ -71,7 +71,7 @@ string polynomialToString(word polynomial)
     return result;
 }
 
-vector<word> makePermutationFromScheme(ReversibleLogic::Generator::Scheme scheme,
+vector<word> makePermutationFromScheme(ReversibleLogic::Scheme scheme,
     uint n)
 {
     using namespace ReversibleLogic;
@@ -82,7 +82,7 @@ vector<word> makePermutationFromScheme(ReversibleLogic::Generator::Scheme scheme
     for(word x = 0; x < transformCount; ++x)
     {
         word y = x;
-        for(Generator::Scheme::const_iterator iter = scheme.begin();
+        for(Scheme::const_iterator iter = scheme.begin();
             iter != scheme.end(); ++iter)
         {
             y = (*iter).getValue(y);

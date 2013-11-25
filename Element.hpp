@@ -63,4 +63,6 @@ private:
     word inversionMask;
 };
 
+typedef deque<ReverseElement> Scheme;
+
 }   // namespace ReversibleLogic

@@ -2,9 +2,9 @@
 
 using namespace ReversibleLogic;
 
-Generator::Scheme getRd53_8of12_goodPart()
+Scheme getRd53_8of12_goodPart()
 {
-    Generator::Scheme scheme;
+    Scheme scheme;
     uint n = 7;
 
     scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, END), mask(2, END)) );
@@ -48,7 +48,7 @@ void testOptimization( int argc, const char* argv[] )
 
     try
     {
-        Generator::Scheme scheme = getRd53_8of12_goodPart();
+        Scheme scheme = getRd53_8of12_goodPart();
         PostProcessor optimizer;
 
         uint elementCount = scheme.size();

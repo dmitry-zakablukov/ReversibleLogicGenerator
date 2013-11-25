@@ -5,7 +5,7 @@ vector<word> getLinearWithMemory()
     using namespace ReversibleLogic;
 
     uint n = 10;
-    Generator::Scheme scheme;
+    Scheme scheme;
 
     scheme.push_back( ReverseElement(n, 1 << 9, 1 << 0) );
     scheme.push_back( ReverseElement(n, 1 << 9, 1 << 4) );
@@ -28,7 +28,7 @@ vector<word> getLinearMemoryless()
     using namespace ReversibleLogic;
 
     uint n = 9;
-    Generator::Scheme scheme;
+    Scheme scheme;
 
     scheme.push_back( ReverseElement(n, 1 << 0, 1 << 1) );
     scheme.push_back( ReverseElement(n, 1 << 1, 1 << 2) );
@@ -52,7 +52,7 @@ vector<word> getRd53()
     using namespace ReversibleLogic;
 
     uint n = 7;
-    Generator::Scheme scheme;
+    Scheme scheme;
 
     scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 3, END)) );
     scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 4, END)) );
@@ -79,7 +79,7 @@ vector<word> getSimple()
     using namespace ReversibleLogic;
 
     uint n = 4;
-    Generator::Scheme scheme;
+    Scheme scheme;
 
     scheme.push_back( ReverseElement(n, 1, 14, 8) );
     scheme.push_back( ReverseElement(n, 2, 13, 8) );
@@ -109,7 +109,7 @@ vector<word> getBadCase()
     using namespace ReversibleLogic;
 
     uint n = 4;
-    Generator::Scheme scheme;
+    Scheme scheme;
 
     scheme.push_back( ReverseElement(n, mask(3, END), mask(1, 2, END)) );
     scheme.push_back( ReverseElement(n, mask(1, END), mask(2, END)) );

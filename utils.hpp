@@ -1,5 +1,7 @@
 #pragma once
 
+typedef vector<word> PermutationTable;
+
 class AssertionError: public exception
 {
 public:

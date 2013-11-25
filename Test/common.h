@@ -5,4 +5,4 @@
 word mask(uint first, ...);
 word binStringToInt(string value);
 string polynomialToString(word polynomial);
-vector<word> makePermutationFromScheme(ReversibleLogic::Generator::Scheme scheme, uint n);
+vector<word> makePermutationFromScheme(ReversibleLogic::Scheme scheme, uint n);
