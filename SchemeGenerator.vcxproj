@@ -146,6 +146,7 @@
     <ClInclude Include="Element.hpp" />
     <ClInclude Include="Generator.hpp" />
     <ClInclude Include="PartialGenerator.hpp" />
+    <ClInclude Include="PartialResult.h" />
     <ClInclude Include="Permutation.hpp" />
     <ClInclude Include="PermutationUtils.hpp" />
     <ClInclude Include="PostProcessor.hpp" />
