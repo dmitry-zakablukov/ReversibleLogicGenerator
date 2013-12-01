@@ -218,7 +218,6 @@ void PartialGenerator::processSameDiffTranspositions(shared_ptr<list<Transpositi
     if(diffToEdgeMap.count(initialMask))
     {
         edge = diffToEdgeMap[initialMask];
-        //diffToEdgeMap.erase(initialMask);
     }
     else
     {
@@ -228,23 +227,23 @@ void PartialGenerator::processSameDiffTranspositions(shared_ptr<list<Transpositi
 
     if(edge.isValid() && edge.getCapacity() > 2)
     {
-        partialResult.params.edgeCapacity = edge.getCapacity();
+        partialResultParams.params.edgeCapacity = edge.getCapacity();
         
         if(edge.isFull())
         {
-            partialResult.type = tFullEdge;
-            resultTranspositions = candidates;
+            partialResultParams.type = tFullEdge;
+            transpositionsToSynthesize = candidates;
         }
         else
         {
-            partialResult.type = tEdge;
-            resultTranspositions = BooleanEdgeSearcher::getEdgeSubset(edge, n, candidates);
+            partialResultParams.type = tEdge;
+            transpositionsToSynthesize = BooleanEdgeSearcher::getEdgeSubset(edge, n, candidates);
         }
     }
     else
     {
-        partialResult.type = tSameDiffPair;
-        partialResult.params.diff = initialMask;
+        partialResultParams.type = tSameDiffPair;
+        partialResultParams.params.diff = initialMask;
 
         findBestCandidates(candidates);
     }
@@ -254,10 +253,43 @@ void PartialGenerator::findBestCandidates(shared_ptr<list<Transposition>> candid
 {
     sortCandidates(candidates);
 
-    // TODO:
+    uint candidateCount = candidates->size();
+    assert(candidateCount > 1, string("PartialGenerator: too few candidates for findBestCandidates()"));
+
     auto iter = candidates->begin();
-    resultTranspositions->push_back(*iter++);
-    resultTranspositions->push_back(*iter);
+
+    // find best partner for first transposition among candidates
+    Transposition firstPartner;
+    uint firstDist;
+
+    tie(firstPartner, firstDist) = findBestCandidatePartner(candidates, *iter);
+    ++iter;
+
+    // find best partner for second transposition among candidates
+    Transposition secondPartner;
+    uint secondDist;
+
+    tie(secondPartner, secondDist) = findBestCandidatePartner(candidates, *iter);
+
+    Transposition first;
+    Transposition second;
+
+    if(firstDist <= secondDist)
+    {
+        first  = candidates->front();
+        second = firstPartner;
+    }
+    else
+    {
+        auto iter = candidates->begin();
+        ++iter;
+
+        first  = *iter;
+        second = secondPartner;
+    }
+
+    transpositionsToSynthesize->push_back(first);
+    transpositionsToSynthesize->push_back(second);
 }
 
 void PartialGenerator::sortCandidates( shared_ptr<list<Transposition>> candidates )
@@ -296,6 +328,46 @@ void PartialGenerator::sortCandidates( shared_ptr<list<Transposition>> candidate
     }
 }
 
+tuple<Transposition, uint>
+PartialGenerator::findBestCandidatePartner(
+    const shared_ptr<list<Transposition>> candidates, const Transposition& target)
+{
+    Transposition second;
+    uint minDist = uintUndefined;
+
+    auto count = countNonZeroBits;
+    forin(iter, *candidates)
+    {
+        const Transposition& cand = *iter;
+
+        uint dxz = uintUndefined;
+        uint dxw = uintUndefined;
+        uint dyz = uintUndefined;
+        uint dyw = uintUndefined;
+
+        if(cand != target)
+        {
+            dxz = count(target.getX() ^ cand.getX());
+            dxw = count(target.getX() ^ cand.getY());
+            dyz = count(target.getY() ^ cand.getX());
+            dyw = count(target.getY() ^ cand.getY());
+
+            uint dist = min(dxz, dxw);
+            dist = min(dist, dyz);
+            dist = min(dist, dyw);
+
+            if(minDist == uintUndefined || dist < minDist)
+            {
+                minDist = dist;
+                second = cand;
+            }
+        }
+    }
+
+    assert(!second.isEmpty(), string("Candidate partner not found"));
+    return tie(second, minDist);
+}
+
 void PartialGenerator::processCommonTranspositions()
 {
     // 1) find first
@@ -309,12 +381,13 @@ void PartialGenerator::processCommonTranspositions()
     forin(iter, distKeys)
     {
         const word& key = *iter;
+        if(key == diff)
+        {
+            continue;
+        }
 
-        // TODO:
-        //if(skipKeyFound && key == skipKeyValue)
-        //{
-        //    continue;
-        //}
+        // no skipping keys here because we don't know if partial result
+        // would be left or right multiplied
 
         Transposition transp = distMap[key]->front();
         TransposPair pair = TransposPair(firstTransp, transp);
@@ -330,15 +403,51 @@ void PartialGenerator::processCommonTranspositions()
 
     assert(!secondTransp.isEmpty(), string("Second transposition is empty"));
 
-    partialResult.type = tCommonPair;
-    // TODO:
-    partialResult.params.common.leftDiff  =  firstTransp.getDiff();
-    partialResult.params.common.rightDiff = secondTransp.getDiff();
-    partialResult.params.common.distance  = (firstTransp.getX() & (~firstTransp.getDiff()))
-        ^ (secondTransp.getX() & (~secondTransp.getDiff()));
+    // fill partial result parameters
+    partialResultParams.type = tCommonPair;
 
-    resultTranspositions->push_back(firstTransp);
-    resultTranspositions->push_back(secondTransp);
+    word leftDiff  = firstTransp.getDiff();
+    word rightDiff = secondTransp.getDiff();
+
+    word leftX  = firstTransp.getX();
+    word rightX = secondTransp.getX();
+    word distance = (leftX & (~leftDiff)) ^ (rightX & (~rightDiff));
+
+    partialResultParams.params.common.leftDiff  = leftDiff;
+    partialResultParams.params.common.rightDiff = rightDiff;
+    partialResultParams.params.common.distance  = distance;
+
+    transpositionsToSynthesize->push_back(firstTransp);
+    transpositionsToSynthesize->push_back(secondTransp);
+}
+
+bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
+{
+    assert(!transpositionsToSynthesize->size(),
+        string("PartialGenerator: can't tell the difference for empty partial result"));
+
+    bool isDiffer = false;
+    forcin(iter, *transpositionsToSynthesize)
+    {
+        const Transposition& target = *iter;
+
+        uint parentCycleIndex = transpToCycleIndexMap.at(target.getX());
+        shared_ptr<Cycle> parentCycle = permutation.getCycle(parentCycleIndex);
+
+        if(parentCycle->length() > 2)
+        {
+            isDiffer = true;
+            break;
+        }
+    }
+
+    return isDiffer;
+}
+
+Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplied)
+{
+    Permutation residualPermutation;
+    return residualPermutation;
 }
 
 } //namespace ReversibleLogic

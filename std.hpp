@@ -54,6 +54,6 @@ typedef size_t uint;
 #include "PostProcessor.hpp"
 #include "SchemePrinter.hpp"
 #include "BooleanEdgeSearcher.hpp"
-#include "PartialResult.h"
+#include "PartialResultParams.h"
 #include "PartialGenerator.hpp"
 #include "Generator.hpp"

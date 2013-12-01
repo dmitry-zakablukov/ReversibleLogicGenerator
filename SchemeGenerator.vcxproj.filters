@@ -94,7 +94,7 @@
     <ClInclude Include="PartialGenerator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PartialResult.h">
+    <ClInclude Include="PartialResultParams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

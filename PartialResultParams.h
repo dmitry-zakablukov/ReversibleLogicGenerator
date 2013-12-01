@@ -8,7 +8,7 @@ enum PartialResultType
     tCommonPair,
 };
 
-struct PartialResult
+struct PartialResultParams
 {
     PartialResultType type;
 
