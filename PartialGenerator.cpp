@@ -49,6 +49,11 @@ void PartialGenerator::prepareForGeneration()
     }
 }
 
+PartialResultParams PartialGenerator::getPartialResultParams() const
+{
+    return partialResultParams;
+}
+
 void PartialGenerator::fillDistancesMap()
 {
     decltype(distMap) emptyMap;
@@ -444,10 +449,178 @@ bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
     return isDiffer;
 }
 
-Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplied)
+Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication)
 {
-    Permutation residualPermutation;
+    // 1) remember all elements in transpositions to remove
+    unordered_set<word> targetElements;
+    forcin(transp, *transpositionsToSynthesize)
+    {
+        targetElements.insert(transp->getX());
+        targetElements.insert(transp->getY());
+    }
+
+    // 2) remember all cycle indices which should be reduced
+    unordered_set<uint> cycleIndicesToReduce;
+
+    forcin(transp, *transpositionsToSynthesize)
+    {
+        uint cycleIndex = transpToCycleIndexMap[transp->getX()];
+        if(!cycleIndicesToReduce.count(cycleIndex))
+        {
+            cycleIndicesToReduce.insert(cycleIndex);
+        }
+    }
+
+    // 3) loop on cycles and reduce them if needed
+    uint cycleCount = permutation.length();
+
+    vector<shared_ptr<Cycle>> newCycles;
+    newCycles.reserve(cycleCount);
+
+    for(uint index = 0; index < cycleCount; ++index)
+    {
+        shared_ptr<Cycle> nextCycle = permutation.getCycle(index);
+
+        if(cycleIndicesToReduce.count(index))
+        {
+            shared_ptr<Cycle> reducedCycle =
+                nextCycle->multiplyByTranspositions(targetElements, isLeftMultiplication);
+
+            if(reducedCycle && reducedCycle->length())
+            {
+                newCycles.push_back(reducedCycle);
+            }
+        }
+        else if(nextCycle->length())
+        {
+            newCycles.push_back(nextCycle);
+        }
+    }
+
+    // 4) create residual permutation based on new cycles
+    Permutation residualPermutation(newCycles);
     return residualPermutation;
+}
+
+deque<ReverseElement> PartialGenerator::implementPartialResult()
+{
+    assert(transpositionsToSynthesize->size(), string("PartialGenerator: no transpositions to synthesize"));
+
+    deque<ReverseElement> synthesisResult;
+    switch(partialResultParams.type)
+    {
+    case tFullEdge:
+    case tEdge:
+        synthesisResult = implementEdge();
+        break;
+
+    case tSameDiffPair:
+    case tCommonPair:
+        synthesisResult = implementPairOfTranspositions();
+        break;
+    }
+   
+
+    return synthesisResult;
+}
+
+deque<ReverseElement> PartialGenerator::implementEdge()
+{
+    const Transposition& transp = transpositionsToSynthesize->front();
+    word diff = transp.getDiff();
+
+    BooleanEdge edge = diffToEdgeMap[diff];
+
+    word baseValue = edge.getBaseValue(n);
+    word baseMask  = edge.getBaseMask(n);
+
+    deque<ReverseElement> elements;
+    word mask = 1;
+
+    while(mask <= diff)
+    {
+        if(diff & mask)
+        {
+            ReverseElement element(n, mask, baseMask, (~baseValue) & baseMask);
+            elements.push_back(element);
+        }
+
+        mask <<= 1;
+    }
+
+    return elements;
+}
+
+deque<ReverseElement> PartialGenerator::implementPairOfTranspositions()
+{
+    assert(transpositionsToSynthesize->size() == 2,
+        string("PartialGenerator: can't implement pair of transpositions"));
+
+    Transposition firstTransp  = transpositionsToSynthesize->front();
+    Transposition secondTransp = transpositionsToSynthesize->back();
+
+    deque<ReverseElement> elements;
+
+    auto firstRealization = implementSingleTransposition(firstTransp);
+    elements.insert(elements.end(), firstRealization.cbegin(), firstRealization.cend());
+
+    auto secondRealization = implementSingleTransposition(secondTransp);
+    elements.insert(elements.end(), secondRealization.cbegin(), secondRealization.cend());
+
+    return elements;
+}
+
+deque<ReverseElement> PartialGenerator::implementSingleTransposition(const Transposition& transp)
+{
+    /// New method: use maximum control inputs as possible with inversion
+    deque<ReverseElement> conjugationElements;
+    deque<ReverseElement> elements;
+
+    word x = transp.getX();
+    word y = transp.getY();
+    word fullMask = ((word)1 << n) - 1;
+
+    word diff = x ^ y;
+    uint pos = findPositiveBitPosition(diff);
+
+    word targetMask = (word)1 << pos;
+    diff ^= targetMask;
+
+    // main element
+    word mainElementInversionMask = 0;
+    if(x & targetMask) // target in B_10 (x_i == 1, y_i == 0)
+    {
+        mainElementInversionMask =
+            (~(x ^ diff)) & fullMask;
+    }
+    else // target in B_01 (x_i == 0, y_i == 1)
+    {
+        mainElementInversionMask =
+            (~(y ^ diff)) & fullMask;
+    }
+
+    ReverseElement element(n, targetMask, fullMask ^ targetMask,
+        mainElementInversionMask);
+
+    elements.push_back(element);
+
+    if(diff)
+    {
+        word mask = targetMask << 1;
+        while(mask <= diff)
+        {
+            if(diff & mask)
+            {
+                ReverseElement element(n, mask, targetMask);
+                conjugationElements.push_back(element);
+            }
+            mask <<= 1;
+        }
+
+        elements = conjugate(elements, conjugationElements, true);
+    }
+
+    return elements;
 }
 
 } //namespace ReversibleLogic

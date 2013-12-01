@@ -14,15 +14,20 @@ public:
     void setPermutation(Permutation thePermutation, uint inputCount);
     void prepareForGeneration();
 
+    PartialResultParams getPartialResultParams() const;
+
     /// Returns false if left and right multiplication by partial result
     /// would produce the same residual permutation
     bool isLeftAndRightMultiplicationDiffers() const;
 
-    /// @isLeftMultiplied - parameter, for which true means that
+    /// @isLeftMultiplication - parameter, for which true means that
     /// residual permutation would be left multiplied by partial result
-    /// i.e. (partial_result) * (residual_permutation) for isLeftMultiplied == true
-    /// and  (residual_permutation) * (partial_result) for isLeftMultiplied == false
-    Permutation getResidualPermutation(bool isLeftMultiplied);
+    /// i.e. (partial_result) * (residual_permutation) for isLeftMultiplication == true
+    /// and  (residual_permutation) * (partial_result) for isLeftMultiplication == false
+    Permutation getResidualPermutation(bool isLeftMultiplication);
+
+    // TODO: return shared_ptr
+    deque<ReverseElement> implementPartialResult();
 
 private:
     void fillDistancesMap();
@@ -44,6 +49,10 @@ private:
     tuple<Transposition, uint>
         findBestCandidatePartner(const shared_ptr<list<Transposition>> candidates,
         const Transposition& target);
+
+    deque<ReverseElement> implementEdge();
+    deque<ReverseElement> implementPairOfTranspositions();
+    deque<ReverseElement> implementSingleTransposition(const Transposition& transp);
 
     Permutation permutation;
     uint n;

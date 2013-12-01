@@ -41,114 +41,247 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
     *log << (string)permutation << "\n";
 
     Scheme scheme;
-    candidatesSorted = false;
+    Scheme::iterator targetIter = scheme.end();
 
-    //debug
-    //return scheme;
+    shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
+    partialGenerator->setPermutation(permutation, n);
+    partialGenerator->prepareForGeneration();
 
-    time = 0;
+    while(partialGenerator)
     {
-        AutoTimer timer( &time );
-
-        fillDistancesMap();
-        computeEdges();
-
-        sortDistanceKeys();
-
-        while(!permutation.isEmpty())
-        {
-            ////debug
-            //*log << (string)permutation << "\n";
-
-            word key = distKeys.front();
-            auto& candidates = distMap[key];
-
-            if(candidates->size() > 1)
-            {
-                auto elements = implementCandidates(candidates);
-                scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
-            }
-            else
-            {
-                auto elements = implementCommonPair();
-                scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
-            }
-        }
+        reducePermutation(partialGenerator, permutation, n, &scheme, &targetIter);
     }
 
-    //////debug: test generation
-    ////scheme.resize(0);
-    ////TransposPair pair( Transposition(5, 13, false), Transposition(7, 15, false) );
-    ////pair.setN(n);
-    ////auto elements = pair.getImplementation();
-    ////scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
+    ////candidatesSorted = false;
 
-    ////pair = TransposPair( Transposition(5, 7, false), Transposition(13, 15, false) );
-    ////pair.setN(n);
-    ////elements = pair.getImplementation();
-    ////scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
+    //////debug
+    //////return scheme;
 
-    ////pair = TransposPair( Transposition(5, 13, false), Transposition(9, 11, false) );
-    ////pair.setN(n);
-    ////elements = pair.getImplementation();
-    ////scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
+    ////time = 0;
+    ////{
+    ////    AutoTimer timer( &time );
 
-    *log << "Scheme synthesis time: ";
-    *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    *log << " sec\n";
+    ////    fillDistancesMap();
+    ////    computeEdges();
 
-    totalTime += time;
+    ////    sortDistanceKeys();
 
-    time = 0;
-    {
-        AutoTimer timer(&time);
+    ////    while(!permutation.isEmpty())
+    ////    {
+    ////        ////debug
+    ////        //*log << (string)permutation << "\n";
 
-        *log << "Complexity before optimization: " << scheme.size() << '\n';
+    ////        word key = distKeys.front();
+    ////        auto& candidates = distMap[key];
 
-        PostProcessor optimizer;
+    ////        if(candidates->size() > 1)
+    ////        {
+    ////            auto elements = implementCandidates(candidates);
+    ////            scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
+    ////        }
+    ////        else
+    ////        {
+    ////            auto elements = implementCommonPair();
+    ////            scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
+    ////        }
+    ////    }
+    ////}
 
-        uint elementCount = scheme.size();
-        vector<ReverseElement> optimizedScheme(elementCount);
+    //////////debug: test generation
+    ////////scheme.resize(0);
+    ////////TransposPair pair( Transposition(5, 13, false), Transposition(7, 15, false) );
+    ////////pair.setN(n);
+    ////////auto elements = pair.getImplementation();
+    ////////scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
 
-        for(uint index = 0; index < elementCount; ++index)
-        {
-            optimizedScheme[index] = scheme[index];
-        }
+    ////////pair = TransposPair( Transposition(5, 7, false), Transposition(13, 15, false) );
+    ////////pair.setN(n);
+    ////////elements = pair.getImplementation();
+    ////////scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
 
-        optimizedScheme = optimizer.optimize(optimizedScheme);
+    ////////pair = TransposPair( Transposition(5, 13, false), Transposition(9, 11, false) );
+    ////////pair.setN(n);
+    ////////elements = pair.getImplementation();
+    ////////scheme.insert(scheme.end(), elements.cbegin(), elements.cend());
 
-        elementCount = optimizedScheme.size();
-        scheme.resize(elementCount);
+    ////*log << "Scheme synthesis time: ";
+    ////*log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
+    ////*log << " sec\n";
 
-        for(uint index = 0; index < elementCount; ++index)
-        {
-            scheme[index] = optimizedScheme[index];
-        }
+    ////totalTime += time;
 
-        *log << "Complexity after optimization: " << scheme.size() << '\n';
+    ////time = 0;
+    ////{
+    ////    AutoTimer timer(&time);
 
-        bool isValid = checkSchemeAgainstPermutationVector(scheme, table);
-        //debug
-        assert(isValid, string("Generated scheme is not valid"));
-    }
+    ////    *log << "Complexity before optimization: " << scheme.size() << '\n';
 
-    *log << "Optimization time: ";
-    *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    *log << " sec\n";
+    ////    PostProcessor optimizer;
 
-    totalTime += time;
+    ////    uint elementCount = scheme.size();
+    ////    vector<ReverseElement> optimizedScheme(elementCount);
 
-    *log << "Total time: ";
-    *log << setiosflags(ios::fixed) << setprecision(2) << totalTime / 1000;
-    *log << " sec\n";
+    ////    for(uint index = 0; index < elementCount; ++index)
+    ////    {
+    ////        optimizedScheme[index] = scheme[index];
+    ////    }
 
-    //string repres = SchemePrinter::schemeToString(n, scheme, false);
-    //log << repres;
+    ////    optimizedScheme = optimizer.optimize(optimizedScheme);
 
-    //repres = SchemePrinter::schemeToString(n, scheme, false);
-    //log << repres;
+    ////    elementCount = optimizedScheme.size();
+    ////    scheme.resize(elementCount);
+
+    ////    for(uint index = 0; index < elementCount; ++index)
+    ////    {
+    ////        scheme[index] = optimizedScheme[index];
+    ////    }
+
+    ////    *log << "Complexity after optimization: " << scheme.size() << '\n';
+
+    ////    bool isValid = checkSchemeAgainstPermutationVector(scheme, table);
+    ////    //debug
+    ////    assert(isValid, string("Generated scheme is not valid"));
+    ////}
+
+    ////*log << "Optimization time: ";
+    ////*log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
+    ////*log << " sec\n";
+
+    ////totalTime += time;
+
+    ////*log << "Total time: ";
+    ////*log << setiosflags(ios::fixed) << setprecision(2) << totalTime / 1000;
+    ////*log << " sec\n";
+
+    //////string repres = SchemePrinter::schemeToString(n, scheme, false);
+    //////log << repres;
+
+    //////repres = SchemePrinter::schemeToString(n, scheme, false);
+    //////log << repres;
 
     return scheme;
+}
+
+shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGenerator> partialGenerator,
+    const Permutation& permutation, uint n, Scheme* scheme, Scheme::iterator* targetIter)
+{
+    shared_ptr<PartialGenerator> restGenerator = 0;
+
+    bool isLeftAndRightMultiplicationDiffers = partialGenerator->isLeftAndRightMultiplicationDiffers();
+    if(isLeftAndRightMultiplicationDiffers)
+    {
+        // get left choice
+        Permutation leftMultipliedPermutation  = partialGenerator->getResidualPermutation(true);
+
+        shared_ptr<PartialGenerator> leftGenerator(new PartialGenerator());
+        leftGenerator->setPermutation(leftMultipliedPermutation, n);
+        leftGenerator->prepareForGeneration();
+
+        // get right choice
+        Permutation rightMultipliedPermutation = partialGenerator->getResidualPermutation(false);
+
+        shared_ptr<PartialGenerator> rightGenerator(new PartialGenerator());
+        rightGenerator->setPermutation(rightMultipliedPermutation, n);
+        rightGenerator->prepareForGeneration();
+
+        // compare left and right choices and choose the best
+        PartialResultParams leftPartialResultParams  =  leftGenerator->getPartialResultParams();
+        PartialResultParams rightPartialResultParams = rightGenerator->getPartialResultParams();
+
+        bool isLeftBetter = isLeftChoiceBetter(leftPartialResultParams, rightPartialResultParams);
+        if(isLeftBetter)
+        {
+            implementPartialResult(partialGenerator, true, scheme, targetIter);
+            restGenerator = leftGenerator;
+        }
+        else
+        {
+            implementPartialResult(partialGenerator, false, scheme, targetIter);
+            restGenerator = rightGenerator;
+        }
+    }
+    else
+    {
+        implementPartialResult(partialGenerator, true, scheme, targetIter);
+
+        // get residual permutation and iterate on it
+        Permutation residualPermutation = partialGenerator->getResidualPermutation(true);
+
+        if(!residualPermutation.isEmpty())
+        {
+            restGenerator = shared_ptr<PartialGenerator>(new PartialGenerator());
+            restGenerator->setPermutation(residualPermutation, n);
+            restGenerator->prepareForGeneration();
+        }
+    }
+
+    return restGenerator;
+}
+
+bool Generator::isLeftChoiceBetter(const PartialResultParams& leftPartialResultParams,
+    const PartialResultParams& rightPartialResultParams)
+{
+    bool isLeftBetter = false;
+
+    if(leftPartialResultParams.type == rightPartialResultParams.type)
+    {
+        switch(leftPartialResultParams.type)
+        {
+        case tFullEdge:
+        case tEdge:
+            isLeftBetter = leftPartialResultParams.params.edgeCapacity >= rightPartialResultParams.params.edgeCapacity;
+            break;
+
+        case tSameDiffPair:
+            {
+                uint leftWeight  = countNonZeroBits( leftPartialResultParams.params.diff);
+                uint rightWeight = countNonZeroBits(rightPartialResultParams.params.diff);
+
+                isLeftBetter = leftWeight <= rightWeight;
+            }
+            break;
+
+        case tCommonPair:
+            {
+                uint leftSum = 0;
+
+                leftSum += countNonZeroBits(leftPartialResultParams.params.common.leftDiff );
+                leftSum += countNonZeroBits(leftPartialResultParams.params.common.rightDiff);
+                leftSum += countNonZeroBits(leftPartialResultParams.params.common.distance );
+
+                uint rightSum = 0;
+
+                rightSum += countNonZeroBits(rightPartialResultParams.params.common.leftDiff );
+                rightSum += countNonZeroBits(rightPartialResultParams.params.common.rightDiff);
+                rightSum += countNonZeroBits(rightPartialResultParams.params.common.distance );
+
+                isLeftBetter = leftSum <= rightSum;
+            }
+            break;
+
+        default:
+            assert(false, string("Generator: can't choose on unknown partial result type"));
+            break;
+        }
+    }
+    else
+    {
+        isLeftBetter = leftPartialResultParams.type < rightPartialResultParams.type;
+    }
+
+    return isLeftBetter;
+}
+
+void Generator::implementPartialResult(shared_ptr<PartialGenerator> partialGenerator,
+    bool isLeftMultiplication, Scheme* scheme, Scheme::iterator* targetIter)
+{
+    deque<ReverseElement> elements = partialGenerator->implementPartialResult();
+    scheme->insert(*targetIter, elements.cbegin(), elements.cend());
+
+    if(isLeftMultiplication)
+    {
+        advance(*targetIter, elements.size());
+    }
 }
 
 void Generator::checkPermutationValidity(const PermutationTable& table)

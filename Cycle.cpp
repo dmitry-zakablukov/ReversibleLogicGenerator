@@ -201,7 +201,7 @@ Cycle::operator string() const
     return result.str();
 }
 
-uint Cycle::modIndex(uint index)
+uint Cycle::modIndex(uint index) const
 {
     uint elementCount = length();
     uint resIndex = modIndex(index, elementCount);
@@ -209,7 +209,7 @@ uint Cycle::modIndex(uint index)
     return resIndex;
 }
 
-uint Cycle::modIndex(uint index, uint mod)
+uint Cycle::modIndex(uint index, uint mod) const
 {
     uint resIndex = index;
 
@@ -298,16 +298,18 @@ shared_ptr<list<Transposition>> Cycle::getBestTranspositionsForDisjoint()
         firstTranspositions = shared_ptr<list<Transposition>>(new list<Transposition>);
         firstTranspositions->push_back(Transposition(x, y));
 
-        restElements.resize(0);
-        newDistancesSum = 0;
+        //restElements.resize(0);
+        //newDistancesSum = 0;
     }
     else if(elementCount > 2)
     {
-        if(distnancesSum == uintUndefined)
-        {
-            // this is the first call
-            calculateDistancesSum();
-        }
+        //if(distnancesSum == uintUndefined)
+        //{
+        //    // this is the first call
+        //    calculateDistancesSum();
+        //}
+
+        calculateDistancesSum();
 
         unordered_map<word, uint> sums;
         uint minSum = uintUndefined;
@@ -419,16 +421,16 @@ shared_ptr<list<Transposition>> Cycle::getTranspositionsByDiff(word diff)
             // save found transposition to result
             result->push_back(Transposition(x, y));
 
-            // calculate new distance sum
-            word z = elements[modIndex(index + 2)];
-            word dxz = x ^ z;
-            word dyz = y ^ z;
+            //// calculate new distance sum
+            //word z = elements[modIndex(index + 2)];
+            //word dxz = x ^ z;
+            //word dyz = y ^ z;
 
-            newDistancesSum += countNonZeroBits(dxz);
-            newDistancesSum -= countNonZeroBits(dyz);
+            //newDistancesSum += countNonZeroBits(dxz);
+            //newDistancesSum -= countNonZeroBits(dyz);
 
-            // remove element from vector of rest elements
-            removeElement(&restElements, modIndex(restIndex + 1, restElements.size()));
+            //// remove element from vector of rest elements
+            //removeElement(&restElements, modIndex(restIndex + 1, restElements.size()));
         }
         else
         {
@@ -437,6 +439,74 @@ shared_ptr<list<Transposition>> Cycle::getTranspositionsByDiff(word diff)
     }
 
     return result;
+}
+
+shared_ptr<Cycle> Cycle::multiplyByTranspositions(
+    shared_ptr<list<Transposition>> transpositions,
+    bool isLeftMultiplication) const
+{
+    // remember all elements in transpositions to remove
+    unordered_set<word> targetElements;
+    forcin(transp, *transpositions)
+    {
+        targetElements.insert(transp->getX());
+        targetElements.insert(transp->getY());
+    }
+
+    return multiplyByTranspositions(targetElements, isLeftMultiplication);
+}
+
+shared_ptr<Cycle> Cycle::multiplyByTranspositions(
+    const unordered_set<word>& targetElements, bool isLeftMultiplication) const
+{
+    // 1) create new vector of elements
+    uint elementCount = length();
+
+    vector<word> resultElements;
+    resultElements.reserve(elementCount);
+
+    // 2) fill this vector
+    bool copyNeeded = true;
+    if(elementCount == 2 && targetElements.count(elements[0]))
+    {
+        // whole cycle need to be removed
+        copyNeeded = false;
+    }
+
+    if(copyNeeded)
+    {
+        for(uint index = 0; index < elementCount; ++index)
+        {
+            const word& first  = elements[index];
+            const word& second = elements[modIndex(index + 1)];
+
+            if(targetElements.count(first))
+            {
+                if(targetElements.count(second))
+                {
+                    if(isLeftMultiplication)
+                    {
+                        resultElements.push_back(first);
+                    }
+                    else
+                    {
+                        resultElements.push_back(second);
+                    }
+
+                    // skip second element
+                    ++index;
+                }
+            }
+            else
+            {
+                resultElements.push_back(first);
+            }
+        }
+    }
+
+    // 3) create result cycle
+    shared_ptr<Cycle> resultCycle(new Cycle(move(resultElements)));
+    return resultCycle;
 }
 
 }   // namespace ReversibleLogic

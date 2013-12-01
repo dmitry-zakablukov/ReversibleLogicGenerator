@@ -40,10 +40,17 @@ public:
 
     shared_ptr<list<Transposition>> getBestTranspositionsForDisjoint();
 
+    shared_ptr<Cycle> multiplyByTranspositions(shared_ptr<list<Transposition>> transpositions,
+        bool isLeftMultiplication) const;
+
+    /// @targetElements - elements from transpositions (x and y)
+    shared_ptr<Cycle> multiplyByTranspositions(const unordered_set<word>& targetElements,
+        bool isLeftMultiplication) const;
+
 private:
     /// Returns index modulo element count
-    uint modIndex(uint index);
-    uint modIndex(uint index, uint mod);
+    uint modIndex(uint index) const;
+    uint modIndex(uint index, uint mod) const;
 
     // Find next best transposition,
     // which minimize sum of Hamming distances for all cycle
