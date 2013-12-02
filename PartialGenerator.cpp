@@ -293,6 +293,7 @@ void PartialGenerator::findBestCandidates(shared_ptr<list<Transposition>> candid
         second = secondPartner;
     }
 
+    transpositionsToSynthesize = shared_ptr<list<Transposition>>(new list<Transposition>);
     transpositionsToSynthesize->push_back(first);
     transpositionsToSynthesize->push_back(second);
 }
@@ -422,6 +423,7 @@ void PartialGenerator::processCommonTranspositions()
     partialResultParams.params.common.rightDiff = rightDiff;
     partialResultParams.params.common.distance  = distance;
 
+    transpositionsToSynthesize = shared_ptr<list<Transposition>>(new list<Transposition>);
     transpositionsToSynthesize->push_back(firstTransp);
     transpositionsToSynthesize->push_back(secondTransp);
 }

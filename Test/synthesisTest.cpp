@@ -114,7 +114,7 @@ vector<word> getBadCase()
     scheme.push_back( ReverseElement(n, mask(3, END), mask(1, 2, END)) );
     scheme.push_back( ReverseElement(n, mask(1, END), mask(2, END)) );
     scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, END)) );
-    //scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
+    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
 
     vector<word> table = makePermutationFromScheme(scheme, n);
     return table;

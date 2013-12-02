@@ -23,8 +23,9 @@ PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
     Scheme optimizedScheme = scheme;
     uint lengthBefore = uintUndefined;
     uint lengthAfter  = uintUndefined;
-
-    //return scheme;
+    
+    // debug
+    return scheme;
 
     ////// optimize inversions
     ////optimizedScheme = optimizeInversions(optimizedScheme);
