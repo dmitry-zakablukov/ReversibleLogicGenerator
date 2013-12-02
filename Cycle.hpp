@@ -45,7 +45,7 @@ public:
 
     /// @targetElements - elements from transpositions (x and y)
     shared_ptr<Cycle> multiplyByTranspositions(const unordered_set<word>& targetElements,
-        bool isLeftMultiplication) const;
+        word diff, bool isLeftMultiplication) const;
 
 private:
     /// Returns index modulo element count

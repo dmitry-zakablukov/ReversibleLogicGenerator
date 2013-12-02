@@ -428,15 +428,13 @@ void PartialGenerator::processCommonTranspositions()
 
 bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
 {
-    assert(!transpositionsToSynthesize->size(),
+    assert(transpositionsToSynthesize->size(),
         string("PartialGenerator: can't tell the difference for empty partial result"));
 
     bool isDiffer = false;
-    forcin(iter, *transpositionsToSynthesize)
+    forcin(target, *transpositionsToSynthesize)
     {
-        const Transposition& target = *iter;
-
-        uint parentCycleIndex = transpToCycleIndexMap.at(target.getX());
+        uint parentCycleIndex = transpToCycleIndexMap.at(target->getX());
         shared_ptr<Cycle> parentCycle = permutation.getCycle(parentCycleIndex);
 
         if(parentCycle->length() > 2)
@@ -460,7 +458,9 @@ Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication)
     }
 
     // 2) remember all cycle indices which should be reduced
+    // and difference for this cycle
     unordered_set<uint> cycleIndicesToReduce;
+    unordered_map<uint, word> cycleIndexToDiff;
 
     forcin(transp, *transpositionsToSynthesize)
     {
@@ -468,6 +468,7 @@ Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication)
         if(!cycleIndicesToReduce.count(cycleIndex))
         {
             cycleIndicesToReduce.insert(cycleIndex);
+            cycleIndexToDiff[cycleIndex] = transp->getDiff();
         }
     }
 
@@ -483,8 +484,10 @@ Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication)
 
         if(cycleIndicesToReduce.count(index))
         {
+            word diff = cycleIndexToDiff[index];
+
             shared_ptr<Cycle> reducedCycle =
-                nextCycle->multiplyByTranspositions(targetElements, isLeftMultiplication);
+                nextCycle->multiplyByTranspositions(targetElements, diff, isLeftMultiplication);
 
             if(reducedCycle && reducedCycle->length())
             {

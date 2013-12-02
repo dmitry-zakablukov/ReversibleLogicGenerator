@@ -446,6 +446,9 @@ shared_ptr<Cycle> Cycle::multiplyByTranspositions(
     bool isLeftMultiplication) const
 {
     // remember all elements in transpositions to remove
+    // and difference for them
+    word diff = transpositions->front().getDiff();
+
     unordered_set<word> targetElements;
     forcin(transp, *transpositions)
     {
@@ -453,11 +456,11 @@ shared_ptr<Cycle> Cycle::multiplyByTranspositions(
         targetElements.insert(transp->getY());
     }
 
-    return multiplyByTranspositions(targetElements, isLeftMultiplication);
+    return multiplyByTranspositions(targetElements, diff, isLeftMultiplication);
 }
 
 shared_ptr<Cycle> Cycle::multiplyByTranspositions(
-    const unordered_set<word>& targetElements, bool isLeftMultiplication) const
+    const unordered_set<word>& targetElements, word diff, bool isLeftMultiplication) const
 {
     // 1) create new vector of elements
     uint elementCount = length();
@@ -482,7 +485,7 @@ shared_ptr<Cycle> Cycle::multiplyByTranspositions(
 
             if(targetElements.count(first))
             {
-                if(targetElements.count(second))
+                if(targetElements.count(second) && ((first ^ second) == diff))
                 {
                     if(isLeftMultiplication)
                     {
@@ -505,7 +508,12 @@ shared_ptr<Cycle> Cycle::multiplyByTranspositions(
     }
 
     // 3) create result cycle
-    shared_ptr<Cycle> resultCycle(new Cycle(move(resultElements)));
+    shared_ptr<Cycle> resultCycle = 0;
+    if(resultElements.size())
+    {
+        resultCycle = shared_ptr<Cycle>(new Cycle(move(resultElements)));
+    }
+
     return resultCycle;
 }
 

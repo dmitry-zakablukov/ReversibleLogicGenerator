@@ -23,6 +23,10 @@ private:
 #define forin(name, collection) for(auto (name) = (collection).begin(); (name) != (collection).end(); ++(name))
 #define forcin(name, collection) for(auto (name) = (collection).cbegin(); (name) != (collection).cend(); ++(name))
 
+// reversed
+#define forrin(name, collection) for(auto (name) = (collection).rbegin(); (name) != (collection).rend(); ++(name))
+#define forrcin(name, collection) for(auto (name) = (collection).crbegin(); (name) != (collection).crend(); ++(name))
+
 uint countNonZeroBits(word value);
 uint findPositiveBitPosition(word value, uint startPos = 0);
 
