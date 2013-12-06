@@ -24,8 +24,8 @@ PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
     uint lengthBefore = uintUndefined;
     uint lengthAfter  = uintUndefined;
     
-    // debug
-    return scheme;
+    //// debug
+    //return scheme;
 
     ////// optimize inversions
     ////optimizedScheme = optimizeInversions(optimizedScheme);
@@ -46,7 +46,8 @@ PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
     ////optimizedScheme = removeDuplicates(optimizedScheme);
 
     bool needOptimization = true;
-    while(needOptimization)
+    uint step = 0;
+    while(needOptimization /*&& step < 1*/)
     {
         optimizedScheme = mergeOptimization(optimizedScheme, false, &needOptimization);
         bool additionalOptimized = false;
@@ -60,6 +61,7 @@ PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
         }
 
         needOptimization = needOptimization || additionalOptimized;
+        ++step;
     }
 
     //needOptimization = true;
@@ -104,7 +106,7 @@ PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
 
     needOptimization = true;
     uint startPos = 0;
-    //uint step = 0;
+    //step = 0;
     while(needOptimization/* && step < 1*/)
     {
         startPos = 0;
@@ -365,7 +367,11 @@ PostProcessor::Scheme PostProcessor::reduceConnectionsOptimization( Scheme& sche
                 word differentInversionMask = firstInversionMask ^ secondInversionMask;
 
                 uint differentInvesionBitsCount = countNonZeroBits(differentInversionMask);
-                if(differentInvesionBitsCount == 2)
+                uint firstElementCheckCount = countNonZeroBits(firstInversionMask & differentInversionMask);
+
+                // check first element inversion mask to exclude situation with
+                // (00)(11)
+                if(differentInvesionBitsCount == 2 && firstElementCheckCount == 1)
                 {
                     // (01)(10) -> (*1)(1*)
 
@@ -380,7 +386,7 @@ PostProcessor::Scheme PostProcessor::reduceConnectionsOptimization( Scheme& sche
                     if((firstInversionMask & removeMask) != removeMask
                         && (secondInversionMask & removeMask) != removeMask )
                     {
-                        // change first
+                        // change first element
                         word firstControlMask = firstElement.getControlMask();
                         firstControlMask &= ~(firstInversionMask & removeMask);
                         firstElement.setControlMask(firstControlMask);
@@ -388,9 +394,7 @@ PostProcessor::Scheme PostProcessor::reduceConnectionsOptimization( Scheme& sche
                         firstInversionMask &= ~removeMask;
                         firstElement.setInversionMask(firstInversionMask);
 
-                        firstOptimization.asis  = false;
-
-                        // change second
+                        // change second element
                         word secondControlMask = secondElement.getControlMask();
                         secondControlMask &= ~(secondInversionMask & removeMask);
                         secondElement.setControlMask(secondControlMask);
@@ -398,7 +402,17 @@ PostProcessor::Scheme PostProcessor::reduceConnectionsOptimization( Scheme& sche
                         secondInversionMask &= ~removeMask;
                         secondElement.setInversionMask(secondInversionMask);
 
-                        secondOptimization.asis = false;
+                        // first element was transfered to second, so remove it from
+                        // previous position and stick to the second element
+                        firstOptimization.remove = true;
+
+                        secondOptimization.replace = true;
+
+                        vector<ReverseElement>& replacement = secondOptimization.replacement;
+                        replacement.resize(2);
+                        
+                        replacement[0] = firstElement;
+                        replacement[1] = secondElement;
 
                         *optimized = true;
                         break;

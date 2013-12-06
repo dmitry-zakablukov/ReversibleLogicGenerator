@@ -61,13 +61,13 @@ vector<word> getRd53()
     scheme.push_back( ReverseElement(n, mask(1, END), mask(2, END)) );
     scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 3, 4, END)) );
     scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, END)) );
-
+    
     scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
-
-    scheme.push_back( ReverseElement(n, 1 << 5, (1 << 0) + (1 << 4)) );
-    scheme.push_back( ReverseElement(n, 1 << 3, 1 << 0) );
-    scheme.push_back( ReverseElement(n, 1 << 5, (1 << 3) + (1 << 4)) );
-    scheme.push_back( ReverseElement(n, 1 << 4, 1 << 3) );
+    
+    //scheme.push_back( ReverseElement(n, 1 << 5, (1 << 0) + (1 << 4)) );
+    //scheme.push_back( ReverseElement(n, 1 << 3, 1 << 0) );
+    //scheme.push_back( ReverseElement(n, 1 << 5, (1 << 3) + (1 << 4)) );
+    //scheme.push_back( ReverseElement(n, 1 << 4, 1 << 3) );
 
     vector<word> table = makePermutationFromScheme(scheme, n);
     return table;
@@ -157,9 +157,9 @@ void testSynthesis( int argc, const char* argv[] )
 
         vector<word> table;
         //table = getLinearMemoryless();
-        //table = getRd53();
+        table = getRd53();
+        //table = getBadCase();
         //table = getSimple();
-        table = getBadCase();
 
         Generator generator;
         auto scheme = generator.generate(table, outputFile);
@@ -178,7 +178,8 @@ void testSynthesis( int argc, const char* argv[] )
 
             //outputFile << "Scheme file: " << schemeFileName.str() << "\n";
 
-            string schemeString = SchemePrinter::schemeToString(scheme, false);
+            string schemeString = SchemePrinter::schemeToString(scheme, false); // vertical
+            //string schemeString = SchemePrinter::schemeToString(scheme, true); // horizontal
 
             //ofstream schemeFile(schemeFileName.str());
             //schemeFile << schemeString;
