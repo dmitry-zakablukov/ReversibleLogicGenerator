@@ -136,6 +136,11 @@ PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
     return implementation;
 }
 
+PostProcessor::Optimizations& PostProcessor::getOptimization(uint index)
+{
+    return optimizations[index];
+}
+
 void PostProcessor::prepareSchemeForOptimization(const Scheme& scheme)
 {
     uint elementCount = scheme.size();
@@ -702,6 +707,341 @@ PostProcessor::Scheme PostProcessor::transferOptimization(Scheme& scheme, uint* 
     }
 
     return applyOptimizations(scheme);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Selection functions
+//////////////////////////////////////////////////////////////////////////
+bool PostProcessor::selectEqual(const ReverseElement& left, const ReverseElement& right)
+{
+    return left == right;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Swap functions
+//////////////////////////////////////////////////////////////////////////
+void PostProcessor::swapEqualElements(const ReverseElement& left, const ReverseElement& right,
+    list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
+{
+    assert(selectEqual(left, right), string("swapEqualElements(): wrong input elements"));
+
+    // leave replacements empty
+    leftReplacement->resize(0);
+    rightReplacement->resize(0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Main optimization tactic implementation
+//////////////////////////////////////////////////////////////////////////
+
+bool PostProcessor::tryOptimizationTactics(Scheme& scheme,
+    SelectionFunc selectionFunc, SwapFunc swapFunc,
+    bool searchPairFromEnd, int* startIndex /* = 0 */)
+{
+    prepareSchemeForOptimization(scheme);
+
+    bool schemeOptimized = false;
+
+    int elementCount = scheme.size();
+    
+    // find left element
+    for(int leftIndex = startIndex ? *startIndex : 0;
+        !schemeOptimized && leftIndex < elementCount - 1; ++leftIndex)
+    {
+        if(startIndex)
+        {
+            *startIndex = leftIndex;
+        }
+
+        int leftElementMaxTransferIndex = -1; // for optimization
+        const ReverseElement& leftElement = scheme[leftIndex];
+
+        // find right element
+        for(int rightIndex = (searchPairFromEnd ? elementCount - 1 : leftIndex + 1);
+            !schemeOptimized && (searchPairFromEnd ? rightIndex > leftIndex : rightIndex < elementCount);
+            rightIndex += (searchPairFromEnd ? -1 : 1))
+        {
+            const ReverseElement& rightElement = scheme[rightIndex];
+
+            // 1) check right element with selection function
+            if(selectionFunc(leftElement, rightElement))
+            {
+                int transferedLeftIndex  = leftIndex;
+                int transferedRightIndex = rightIndex;
+
+                // transfer elements if needed
+                if(transferedLeftIndex + 1 != transferedRightIndex)
+                {
+                    // transfer right element to left at maximum
+                    transferedRightIndex = getMaximumTransferIndex(scheme, rightElement, rightIndex, leftIndex);
+
+                    if(transferedRightIndex != leftIndex + 1)
+                    {
+                        // transfer left element to left at maximum (just once)
+                        if(leftElementMaxTransferIndex == -1)
+                        {
+                            leftElementMaxTransferIndex = getMaximumTransferIndex(scheme, leftElement,
+                                leftIndex, elementCount - 1);
+                        }
+
+                        transferedLeftIndex = leftElementMaxTransferIndex;
+                    }
+
+                    // compare indices
+                    if(transferedLeftIndex + 1 >= transferedRightIndex)
+                    {
+                        // good right element, try to apply optimization
+                        transferedLeftIndex = transferedRightIndex - 1; // keep left element maximum left aligned
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+                // 2) swap left and right elements
+                list<ReverseElement> leftReplacement;
+                list<ReverseElement> rightReplacement;
+
+                swapFunc(leftElement, rightElement, &leftReplacement, &rightReplacement);
+                if(leftReplacement.size() || rightReplacement.size())
+                {
+                    schemeOptimized = processReplacements(scheme, leftIndex, transferedLeftIndex,
+                        rightIndex, transferedRightIndex, leftReplacement, rightReplacement);
+                }
+                else
+                {
+                    // just remove left and right elements from scheme
+                    Optimizations& leftOptimization = optimizations[leftIndex];
+                    leftOptimization.remove = true;
+
+                    Optimizations& rightOptimization = optimizations[rightIndex];
+                    rightOptimization.remove = true;
+
+                    schemeOptimized = true;
+                }
+            }
+        }
+    }
+
+    if(schemeOptimized)
+    {
+        applyOptimizations(scheme);
+    }
+
+    return schemeOptimized;
+}
+
+int PostProcessor::getMaximumTransferIndex(const Scheme& scheme,
+    const ReverseElement& target, int startIndex, int stopIndex) const
+{
+    int elementCount = scheme.size();
+
+    assert(startIndex >= 0 && startIndex < elementCount,
+        string("PostProcessor: invalid start index for getMaximumTransferIndex()"));
+
+    assert(stopIndex >= 0 && stopIndex < elementCount,
+        string("PostProcessor: invalid stop index for getMaximumTransferIndex()"));
+
+    int step = 1;
+    if(startIndex > stopIndex)
+    {
+        // from right to left
+        step = -1;
+    }
+
+    int index = startIndex;
+    while(index != stopIndex)
+    {
+        const ReverseElement& neighborElement = scheme[index];
+
+        // stop search if not switchable
+        if(!target.isSwitchable(neighborElement))
+        {
+            break;
+        }
+
+        index += step;
+    }
+
+    index -= step; // target element can be in previous position, not in the last
+    return index;
+}
+
+bool PostProcessor::processReplacements(const Scheme& scheme,
+    int leftIndex, int transferedLeftIndex,
+    int rightIndex, int transferedRightIndex,
+    const list<ReverseElement>& leftReplacement,
+    const list<ReverseElement>& rightReplacement)
+{
+    // 1) check replacements
+    checkReplacement(leftReplacement);
+    checkReplacement(rightReplacement);
+
+    // 2) check element count in left and right replacement less than 4
+    assert(leftReplacement.size() + rightReplacement.size() < 4,
+        string("PostProcessor: too many elements in replacements"));
+
+    // 3) find duplicates
+    bool someDuplicatesFound = false;
+
+    // left replacement processing
+    vector<ReverseElement> leftProcessedReplacement;
+
+    bool foundDuplicatesInLeftReplacement =
+        processDuplicatesInReplacement(scheme, leftReplacement, leftIndex,
+        transferedLeftIndex, false, &leftProcessedReplacement);
+
+    // right replacement processing
+    vector<ReverseElement> rightProcessedReplacement;
+
+    bool foundDuplicatesInRightReplacement =
+        processDuplicatesInReplacement(scheme, rightReplacement, rightIndex,
+        transferedRightIndex, true, &rightProcessedReplacement);
+
+    someDuplicatesFound = foundDuplicatesInLeftReplacement || foundDuplicatesInRightReplacement;
+    if(someDuplicatesFound)
+    {
+        setReplacement(scheme,  leftProcessedReplacement,  leftIndex,  transferedLeftIndex);
+        setReplacement(scheme, rightProcessedReplacement, rightIndex, transferedRightIndex);
+    }
+
+    return someDuplicatesFound;
+}
+
+void PostProcessor::checkReplacement(const list<ReverseElement>& replacement)
+{
+    uint elementCount = replacement.size();
+    if(elementCount > 1)
+    {
+        const ReverseElement& firstElement = replacement.front();
+        word targetMask = firstElement.getTargetMask();
+
+        forcin(element, replacement)
+        {
+            word mask = element->getTargetMask();
+            assert(mask == targetMask, string("PostProcessor: invalid replacement list"));
+        }
+    }
+}
+
+int PostProcessor::findDuplicateElementIndex(const Scheme& scheme,
+    const ReverseElement& target, int startIndex, int stopIndex, int skipIndex) const
+{
+    int elementCount = scheme.size();
+
+    assert(startIndex >= 0 && startIndex < elementCount,
+        string("PostProcessor: invalid start index for findDuplicateElementIndex()"));
+
+    assert(stopIndex >= 0 && stopIndex < elementCount,
+        string("PostProcessor: invalid stop index for findDuplicateElementIndex()"));
+
+    int step = 1;
+    if(startIndex > stopIndex)
+    {
+        // from right to left
+        step = -1;
+    }
+
+    int index = startIndex;
+    bool found = false;
+
+    while(index != stopIndex)
+    {
+        if(index = skipIndex)
+        {
+            continue;
+        }
+
+        const ReverseElement& neighborElement = scheme[index];
+
+        // stop search if neighbor element is duplicate of target element
+        if(target == neighborElement)
+        {
+            found = true;
+            break;
+        }
+
+        // stop search if not switchable
+        if(!target.isSwitchable(neighborElement))
+        {
+            break;
+        }
+
+        index += step;
+    }
+
+    int resultIndex = (found ? index : -1);
+    return resultIndex;
+}
+
+bool PostProcessor::processDuplicatesInReplacement(const Scheme& scheme,
+    const list<ReverseElement>& replacement, int originalIndex,
+    int transferedIndex, bool searchToRight,
+    vector<ReverseElement>* processedReplacement)
+{
+    bool someDuplicatesFound = false;
+
+    int elementCount = scheme.size();
+    forcin(iter, replacement)
+    {
+        const ReverseElement& element = *iter;
+
+        int duplicateIndex = findDuplicateElementIndex(scheme, element, transferedIndex,
+            searchToRight ? elementCount : -1, originalIndex);
+
+        if(duplicateIndex == -1)
+        {
+            processedReplacement->push_back(element);
+        }
+        else
+        {
+            Optimizations& duplicateOptimization = getOptimization(duplicateIndex);
+            duplicateOptimization.remove = true;
+
+            someDuplicatesFound = true;
+        }
+    }
+
+    return someDuplicatesFound;
+}
+
+void PostProcessor::setReplacement(const Scheme& scheme,
+    vector<ReverseElement>& replacement,
+    int originalIndex, int transferedIndex)
+{
+    int elementCount = replacement.size();
+    if(!elementCount)
+    {
+        // all replacement elements were removed as duplicates,
+        // so remove original element from scheme
+        Optimizations& targetOptimization = getOptimization(originalIndex);
+        targetOptimization.remove = true;
+    }
+    else
+    {
+        if(originalIndex == transferedIndex)
+        {
+            // element wasn't transfered, just replace it
+            Optimizations& targetOptimization = getOptimization(originalIndex);
+            targetOptimization.replace      = true;
+            targetOptimization.replacement  = replacement;
+        }
+        else
+        {
+            // remove original element
+            Optimizations& targetOptimization = getOptimization(originalIndex);
+            targetOptimization.remove = true;
+
+            // replace element with transfered index with itself plus replacement
+            const ReverseElement& transferedElement = scheme[transferedIndex];
+            replacement.insert(replacement.begin(), transferedElement);
+
+            Optimizations& transferedOptimization = getOptimization(transferedIndex);
+            transferedOptimization.replace      = true;
+            transferedOptimization.replacement  = replacement;
+        }
+    }
 }
 
 }   // namespace ReversibleLogic
