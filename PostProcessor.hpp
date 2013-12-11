@@ -38,8 +38,6 @@ private:
     // right element in terms of optimization
     typedef bool (*SelectionFunc)(const ReverseElement& left, const ReverseElement& right);
 
-    bool selectEqual(const ReverseElement& left, const ReverseElement& right);
-
     // Swap function should return in leftReplacement list of elements for replacement after
     // left and right element would be swapped. Same for rightReplacement list.
     // left  element are definitely not in  leftReplacement and may be in rigthReplacement
@@ -47,12 +45,9 @@ private:
     typedef void (*SwapFunc)(const ReverseElement& left, const ReverseElement& right,
         list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement);
 
-    void swapEqualElements(const ReverseElement& left, const ReverseElement& right,
-        list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement);
-
     // Returns true in optimizationSucceeded param if optimization tactics
     // succeeded and result scheme has less gate complexity
-    Scheme tryOptimizationTactics(Scheme& scheme, SelectionFunc selectionFunc, SwapFunc swapFunc,
+    Scheme tryOptimizationTactics(const Scheme& scheme, SelectionFunc selectionFunc, SwapFunc swapFunc,
         bool* optimizationSucceeded,
         bool searchPairFromEnd, int* startIndex = 0);
 

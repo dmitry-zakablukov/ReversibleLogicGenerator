@@ -3,6 +3,28 @@
 namespace ReversibleLogic
 {
 
+//////////////////////////////////////////////////////////////////////////
+// Selection functions
+//////////////////////////////////////////////////////////////////////////
+bool selectEqual(const ReverseElement& left, const ReverseElement& right)
+{
+    return left == right;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Swap functions
+//////////////////////////////////////////////////////////////////////////
+void swapEqualElements(const ReverseElement& left, const ReverseElement& right,
+    list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
+{
+    assert(selectEqual(left, right), string("swapEqualElements(): wrong input elements"));
+
+    // leave replacements empty
+    leftReplacement->resize(0);
+    rightReplacement->resize(0);
+}
+
+
 PostProcessor::Optimizations::Optimizations()
     : inversions(false)
     , heavyRight(false)
@@ -449,40 +471,17 @@ PostProcessor::Scheme PostProcessor::getFullScheme(const Scheme& scheme, bool he
 
 PostProcessor::Scheme PostProcessor::removeDuplicates(const Scheme& scheme)
 {
+    Scheme optimizedScheme = scheme;
+    int startIndex = 0;
+    bool repeat = true;
 
-    Scheme optimizedScheme;
-    bool repeat = false;
-
-    prepareSchemeForOptimization(scheme);
-
-    uint elementCount = scheme.size();
-    for(uint firstIndex = 0; firstIndex < elementCount; ++firstIndex)
+    while(repeat)
     {
-        Optimizations& firstOptimization = optimizations[firstIndex];
-        if(firstOptimization.remove)
-        {
-            continue;
-        }
-
-        const ReverseElement& firstElement = scheme[firstIndex];
-        for(uint secondIndex = firstIndex + 1; secondIndex < elementCount; ++secondIndex)
-        {
-            const ReverseElement& secondElement = scheme[secondIndex];
-            if(firstElement == secondElement)
-            {
-                firstOptimization.remove = true;
-                optimizations[secondIndex].remove = true;
-                break;
-            }
-            else if(!firstElement.isSwitchable(secondElement))
-            {
-
-                break;
-            }
-        }
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectEqual,
+            swapEqualElements, &repeat, false, &startIndex);
     }
 
-    return applyOptimizations(scheme);
+    return optimizedScheme;
 }
 
 PostProcessor::Scheme PostProcessor::getFinalSchemeImplementation(const Scheme& scheme)
@@ -714,31 +713,10 @@ PostProcessor::Scheme PostProcessor::transferOptimization(Scheme& scheme, uint* 
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Selection functions
-//////////////////////////////////////////////////////////////////////////
-bool PostProcessor::selectEqual(const ReverseElement& left, const ReverseElement& right)
-{
-    return left == right;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Swap functions
-//////////////////////////////////////////////////////////////////////////
-void PostProcessor::swapEqualElements(const ReverseElement& left, const ReverseElement& right,
-    list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
-{
-    assert(selectEqual(left, right), string("swapEqualElements(): wrong input elements"));
-
-    // leave replacements empty
-    leftReplacement->resize(0);
-    rightReplacement->resize(0);
-}
-
-//////////////////////////////////////////////////////////////////////////
 // Main optimization tactic implementation
 //////////////////////////////////////////////////////////////////////////
 
-PostProcessor::Scheme PostProcessor::tryOptimizationTactics(Scheme& scheme,
+PostProcessor::Scheme PostProcessor::tryOptimizationTactics(const Scheme& scheme,
     SelectionFunc selectionFunc, SwapFunc swapFunc,
     bool* optimizationSucceeded,
     bool searchPairFromEnd, int* startIndex /* = 0 */)
