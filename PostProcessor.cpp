@@ -449,6 +449,10 @@ PostProcessor::Scheme PostProcessor::getFullScheme(const Scheme& scheme, bool he
 
 PostProcessor::Scheme PostProcessor::removeDuplicates(const Scheme& scheme)
 {
+
+    Scheme optimizedScheme;
+    bool repeat = false;
+
     prepareSchemeForOptimization(scheme);
 
     uint elementCount = scheme.size();
@@ -734,8 +738,9 @@ void PostProcessor::swapEqualElements(const ReverseElement& left, const ReverseE
 // Main optimization tactic implementation
 //////////////////////////////////////////////////////////////////////////
 
-bool PostProcessor::tryOptimizationTactics(Scheme& scheme,
+PostProcessor::Scheme PostProcessor::tryOptimizationTactics(Scheme& scheme,
     SelectionFunc selectionFunc, SwapFunc swapFunc,
+    bool* optimizationSucceeded,
     bool searchPairFromEnd, int* startIndex /* = 0 */)
 {
     prepareSchemeForOptimization(scheme);
@@ -824,12 +829,12 @@ bool PostProcessor::tryOptimizationTactics(Scheme& scheme,
         }
     }
 
-    if(schemeOptimized)
+    if(optimizationSucceeded)
     {
-        applyOptimizations(scheme);
+        *optimizationSucceeded = schemeOptimized;
     }
 
-    return schemeOptimized;
+    return applyOptimizations(scheme);
 }
 
 int PostProcessor::getMaximumTransferIndex(const Scheme& scheme,

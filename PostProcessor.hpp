@@ -50,8 +50,10 @@ private:
     void swapEqualElements(const ReverseElement& left, const ReverseElement& right,
         list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement);
 
-    // Returns true if optimization tactics succeeded and result scheme has less gate complexity
-    bool tryOptimizationTactics(Scheme& scheme, SelectionFunc selectionFunc, SwapFunc swapFunc,
+    // Returns true in optimizationSucceeded param if optimization tactics
+    // succeeded and result scheme has less gate complexity
+    Scheme tryOptimizationTactics(Scheme& scheme, SelectionFunc selectionFunc, SwapFunc swapFunc,
+        bool* optimizationSucceeded,
         bool searchPairFromEnd, int* startIndex = 0);
 
     int getMaximumTransferIndex(const Scheme& scheme, const ReverseElement& target,
