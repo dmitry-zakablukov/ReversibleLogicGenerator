@@ -48,8 +48,8 @@ private:
     // Returns true in optimizationSucceeded param if optimization tactics
     // succeeded and result scheme has less gate complexity
     Scheme tryOptimizationTactics(const Scheme& scheme, SelectionFunc selectionFunc, SwapFunc swapFunc,
-        bool* optimizationSucceeded,
-        bool searchPairFromEnd, int* startIndex = 0);
+        bool* optimizationSucceeded, bool searchPairFromEnd,
+        bool lessComplexityRequired, int* startIndex = 0);
 
     int getMaximumTransferIndex(const Scheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex) const;

@@ -46,6 +46,20 @@ Scheme getDuplicatesScheme()
     return scheme;
 }
 
+Scheme getReduceConnectionsScheme()
+{
+    Scheme scheme;
+    uint n = 4;
+
+    scheme.push_back( ReverseElement(n, mask(2, END), mask(1, END)) );
+    scheme.push_back( ReverseElement(n, mask(2, END), mask(0, 1, END), mask(1, END)) );
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(1, END)) );
+    scheme.push_back( ReverseElement(n, mask(2, END), mask(0, 1, END), mask(0, END)) );
+    scheme.push_back( ReverseElement(n, mask(0, END), mask(2, END)) );
+
+    return scheme;
+}
+
 void testOptimization( int argc, const char* argv[] )
 {
     const char strDefaultOutputFileName[] = "results.txt";
@@ -64,7 +78,8 @@ void testOptimization( int argc, const char* argv[] )
     {
         Scheme scheme;
         //scheme = getRd53_8of12_goodPart();
-        scheme = getDuplicatesScheme();
+        //scheme = getDuplicatesScheme();
+        scheme = getReduceConnectionsScheme();
         
         PostProcessor optimizer;
 
@@ -91,7 +106,7 @@ void testOptimization( int argc, const char* argv[] )
 
         outputFile << "Complexity after optimization: " << scheme.size() << '\n';
 
-        string schemeString = SchemePrinter::schemeToString(scheme, false);
+        string schemeString = SchemePrinter::schemeToString(scheme, true);
 
         outputFile << schemeString;
 

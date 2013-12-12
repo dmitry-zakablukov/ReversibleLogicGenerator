@@ -11,6 +11,28 @@ bool selectEqual(const ReverseElement& left, const ReverseElement& right)
     return left == right;
 }
 
+bool selectForReduceConnectionsOptimization(const ReverseElement& left,
+    const ReverseElement& right)
+{
+    // (01)(10) -> (*1)(1*)
+
+    bool result = false;
+    if(left.getTargetMask() == right.getTargetMask()
+        && left.getControlMask() == right.getControlMask())
+    {
+        word  leftInversionMask =  left.getInversionMask();
+        word rightInversionMask = right.getInversionMask();
+
+        word diffInversionMask = leftInversionMask ^ rightInversionMask;
+        word controlValue = leftInversionMask & diffInversionMask;
+
+        result = (countNonZeroBits(diffInversionMask) == 2
+            && countNonZeroBits(controlValue) == 1);
+    }
+
+    return result;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Swap functions
 //////////////////////////////////////////////////////////////////////////
@@ -24,6 +46,33 @@ void swapEqualElements(const ReverseElement& left, const ReverseElement& right,
     rightReplacement->resize(0);
 }
 
+void swapElementsWithConnectionReduction(const ReverseElement& left, const ReverseElement& right,
+    list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
+{
+    assert(selectForReduceConnectionsOptimization(left, right),
+        string("swapElementsWithConnectionReduction(): wrong input elements"));
+
+    word  leftInversionMask =  left.getInversionMask();
+    word rightInversionMask = right.getInversionMask();
+    word diffInversionMask  = leftInversionMask ^ rightInversionMask;
+
+    // important! fill only left replacement
+    ReverseElement newLeft = left;
+    word clearMask = diffInversionMask & leftInversionMask;
+
+    newLeft.setControlMask(left.getControlMask() & ~clearMask);
+    newLeft.setInversionMask(leftInversionMask & ~clearMask);
+
+    leftReplacement->push_back(newLeft);
+
+    ReverseElement newRight = right;
+    clearMask = diffInversionMask & rightInversionMask;
+
+    newRight.setControlMask(right.getControlMask() & ~clearMask);
+    newRight.setInversionMask(rightInversionMask & ~clearMask);
+
+    leftReplacement->push_back(newRight);
+}
 
 PostProcessor::Optimizations::Optimizations()
     : inversions(false)
@@ -358,98 +407,18 @@ PostProcessor::Scheme PostProcessor::reduceConnectionsOptimization( Scheme& sche
     assert(optimized, string("Null 'optimized' pointer"));
     *optimized = false;
 
-    prepareSchemeForOptimization(scheme);
+    Scheme optimizedScheme = scheme;
+    bool repeat = true;
 
-    uint elementCount = scheme.size();
-    for(uint firstIndex = 0; firstIndex < elementCount; ++firstIndex)
+    while(repeat)
     {
-        Optimizations& firstOptimization = optimizations[firstIndex];
-        if(!firstOptimization.asis)
-        {
-            continue;
-        }
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForReduceConnectionsOptimization,
+            swapElementsWithConnectionReduction, &repeat, false, false);
 
-        ReverseElement& firstElement = scheme[firstIndex];
-        for(uint secondIndex = firstIndex + 1; secondIndex < elementCount; ++secondIndex)
-        {
-            ReverseElement& secondElement = scheme[secondIndex];
-            Optimizations& secondOptimization = optimizations[secondIndex];
-
-            if(!firstElement.isSwitchable(secondElement))
-            {
-                break;
-            }
-
-            if(!secondOptimization.asis)
-            {
-                continue;
-            }
-
-            if(firstElement.getTargetMask() == secondElement.getTargetMask()
-                && firstElement.getControlMask() == secondElement.getControlMask())
-            {
-                word firstInversionMask  =  firstElement.getInversionMask();
-                word secondInversionMask = secondElement.getInversionMask();
-
-                word differentInversionMask = firstInversionMask ^ secondInversionMask;
-
-                uint differentInvesionBitsCount = countNonZeroBits(differentInversionMask);
-                uint firstElementCheckCount = countNonZeroBits(firstInversionMask & differentInversionMask);
-
-                // check first element inversion mask to exclude situation with
-                // (00)(11)
-                if(differentInvesionBitsCount == 2 && firstElementCheckCount == 1)
-                {
-                    // (01)(10) -> (*1)(1*)
-
-                    uint firstRemovePosition = findPositiveBitPosition(differentInversionMask);
-                    word firstRemoveMask = 1 << firstRemovePosition;
-
-                    uint secondRemovePosition =
-                        findPositiveBitPosition(differentInversionMask, firstRemovePosition + 1);
-                    word secondRemoveMask = 1 << secondRemovePosition;
-                    word removeMask = firstRemoveMask ^ secondRemoveMask;
-
-                    if((firstInversionMask & removeMask) != removeMask
-                        && (secondInversionMask & removeMask) != removeMask )
-                    {
-                        // change first element
-                        word firstControlMask = firstElement.getControlMask();
-                        firstControlMask &= ~(firstInversionMask & removeMask);
-                        firstElement.setControlMask(firstControlMask);
-
-                        firstInversionMask &= ~removeMask;
-                        firstElement.setInversionMask(firstInversionMask);
-
-                        // change second element
-                        word secondControlMask = secondElement.getControlMask();
-                        secondControlMask &= ~(secondInversionMask & removeMask);
-                        secondElement.setControlMask(secondControlMask);
-
-                        secondInversionMask &= ~removeMask;
-                        secondElement.setInversionMask(secondInversionMask);
-
-                        // first element was transfered to second, so remove it from
-                        // previous position and stick to the second element
-                        firstOptimization.remove = true;
-
-                        secondOptimization.replace = true;
-
-                        vector<ReverseElement>& replacement = secondOptimization.replacement;
-                        replacement.resize(2);
-                        
-                        replacement[0] = firstElement;
-                        replacement[1] = secondElement;
-
-                        *optimized = true;
-                        break;
-                    }
-                }
-            }
-        }
+        *optimized = *optimized || repeat;
     }
 
-    return applyOptimizations(scheme);
+    return optimizedScheme;
 }
 
 PostProcessor::Scheme PostProcessor::getFullScheme(const Scheme& scheme, bool heavyRight /*= true*/)
@@ -478,7 +447,7 @@ PostProcessor::Scheme PostProcessor::removeDuplicates(const Scheme& scheme)
     while(repeat)
     {
         optimizedScheme = tryOptimizationTactics(optimizedScheme, selectEqual,
-            swapEqualElements, &repeat, false, &startIndex);
+            swapEqualElements, &repeat, false, true, &startIndex);
     }
 
     return optimizedScheme;
@@ -718,8 +687,8 @@ PostProcessor::Scheme PostProcessor::transferOptimization(Scheme& scheme, uint* 
 
 PostProcessor::Scheme PostProcessor::tryOptimizationTactics(const Scheme& scheme,
     SelectionFunc selectionFunc, SwapFunc swapFunc,
-    bool* optimizationSucceeded,
-    bool searchPairFromEnd, int* startIndex /* = 0 */)
+    bool* optimizationSucceeded, bool searchPairFromEnd,
+    bool lessComplexityRequired, int* startIndex /* = 0 */)
 {
     prepareSchemeForOptimization(scheme);
 
@@ -789,8 +758,10 @@ PostProcessor::Scheme PostProcessor::tryOptimizationTactics(const Scheme& scheme
                 swapFunc(leftElement, rightElement, &leftReplacement, &rightReplacement);
                 if(leftReplacement.size() || rightReplacement.size())
                 {
-                    schemeOptimized = processReplacements(scheme, leftIndex, transferedLeftIndex,
+                    bool duplicatesFound = processReplacements(scheme, leftIndex, transferedLeftIndex,
                         rightIndex, transferedRightIndex, leftReplacement, rightReplacement);
+
+                    schemeOptimized = !lessComplexityRequired || duplicatesFound;
                 }
                 else
                 {
@@ -865,31 +836,60 @@ bool PostProcessor::processReplacements(const Scheme& scheme,
     assert(leftReplacement.size() + rightReplacement.size() < 4,
         string("PostProcessor: too many elements in replacements"));
 
-    // 3) find duplicates
+    // 3) find duplicates if needed
+    bool onlyOneReplacement  = false;
     bool someDuplicatesFound = false;
 
     // left replacement processing
     vector<ReverseElement> leftProcessedReplacement;
+    bool foundDuplicatesInLeftReplacement = false;
 
-    bool foundDuplicatesInLeftReplacement =
-        processDuplicatesInReplacement(scheme, leftReplacement, leftIndex,
-        transferedLeftIndex, false, &leftProcessedReplacement);
+    if(leftReplacement.size())
+    {
+        foundDuplicatesInLeftReplacement =
+            processDuplicatesInReplacement(scheme, leftReplacement, leftIndex,
+            transferedLeftIndex, false, &leftProcessedReplacement);
+
+        if(!rightReplacement.size())
+        {
+            foundDuplicatesInLeftReplacement = foundDuplicatesInLeftReplacement ||
+                processDuplicatesInReplacement(scheme, leftReplacement, rightIndex,
+                transferedRightIndex, true, &leftProcessedReplacement);
+
+            onlyOneReplacement = true;
+        }
+    }
 
     // right replacement processing
     vector<ReverseElement> rightProcessedReplacement;
+    bool foundDuplicatesInRightReplacement = false;
 
-    bool foundDuplicatesInRightReplacement =
-        processDuplicatesInReplacement(scheme, rightReplacement, rightIndex,
-        transferedRightIndex, true, &rightProcessedReplacement);
+    if(rightReplacement.size())
+    {
+        foundDuplicatesInRightReplacement =
+            processDuplicatesInReplacement(scheme, rightReplacement, rightIndex,
+            transferedRightIndex, true, &rightProcessedReplacement);
+
+        if(!leftReplacement.size())
+        {
+            foundDuplicatesInRightReplacement = foundDuplicatesInRightReplacement ||
+                processDuplicatesInReplacement(scheme, rightReplacement, leftIndex,
+                transferedRightIndex, false, &rightProcessedReplacement);
+
+            onlyOneReplacement = true;
+        }
+    }
 
     someDuplicatesFound = foundDuplicatesInLeftReplacement || foundDuplicatesInRightReplacement;
-    if(someDuplicatesFound)
+    bool success = onlyOneReplacement || someDuplicatesFound;
+
+    if(success)
     {
         setReplacement(scheme,  leftProcessedReplacement,  leftIndex,  transferedLeftIndex);
         setReplacement(scheme, rightProcessedReplacement, rightIndex, transferedRightIndex);
     }
 
-    return someDuplicatesFound;
+    return success;
 }
 
 void PostProcessor::checkReplacement(const list<ReverseElement>& replacement)
@@ -916,7 +916,7 @@ int PostProcessor::findDuplicateElementIndex(const Scheme& scheme,
     assert(startIndex >= 0 && startIndex < elementCount,
         string("PostProcessor: invalid start index for findDuplicateElementIndex()"));
 
-    assert(stopIndex >= 0 && stopIndex < elementCount,
+    assert(stopIndex >= -1 && stopIndex <= elementCount,
         string("PostProcessor: invalid stop index for findDuplicateElementIndex()"));
 
     int step = 1;
@@ -931,24 +931,22 @@ int PostProcessor::findDuplicateElementIndex(const Scheme& scheme,
 
     while(index != stopIndex)
     {
-        if(index = skipIndex)
+        if(index != skipIndex)
         {
-            continue;
-        }
+            const ReverseElement& neighborElement = scheme[index];
 
-        const ReverseElement& neighborElement = scheme[index];
+            // stop search if neighbor element is duplicate of target element
+            if(target == neighborElement)
+            {
+                found = true;
+                break;
+            }
 
-        // stop search if neighbor element is duplicate of target element
-        if(target == neighborElement)
-        {
-            found = true;
-            break;
-        }
-
-        // stop search if not switchable
-        if(!target.isSwitchable(neighborElement))
-        {
-            break;
+            // stop search if not switchable
+            if(!target.isSwitchable(neighborElement))
+            {
+                break;
+            }
         }
 
         index += step;
