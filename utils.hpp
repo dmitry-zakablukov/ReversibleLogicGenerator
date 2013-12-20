@@ -90,3 +90,13 @@ inline void bufferize(vector<T>& container)
         container.reserve(size + numBufferSize);
     }
 }
+
+template<typename T>
+inline void toVector(const list<T>& container, vector<T>* output)
+{
+    output->reserve(container.size());
+    forcin(iter, container)
+    {
+        output->push_back(*iter);
+    }
+}

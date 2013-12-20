@@ -19,19 +19,17 @@ private:
     uint findInversedElementsSequence(const Scheme& scheme, uint startPosition);
     Scheme optimizeInversions(const Scheme& scheme);
 
-    // (01)(11) -> *1
-    Scheme mergeOptimization(Scheme& scheme, bool reverse, bool* optimized = 0 );
-    // (01)(10) -> (*1)(1*)
-    Scheme reduceConnectionsOptimization(Scheme& scheme, bool* optimized = 0 );
-
-    Scheme getFullScheme(const Scheme& scheme, bool heavyRight = true);
-
-    Scheme transferOptimization(Scheme& scheme, uint* startPos,
-        bool reverse, bool* optimized = 0);
-
     // Remove duplicates elements
     Scheme removeDuplicates(const Scheme& scheme);
 
+    // (01)(11) -> *1
+    Scheme mergeOptimization(Scheme& scheme, bool* optimized = 0 );
+    // (01)(10) -> (*1)(1*)
+    Scheme reduceConnectionsOptimization(Scheme& scheme, bool* optimized = 0 );
+
+    Scheme transferOptimization(Scheme& scheme, bool* optimized = 0);
+
+    Scheme getFullScheme(const Scheme& scheme, bool heavyRight = true);
     Scheme getFinalSchemeImplementation(const Scheme& scheme);
 
     // Selection function should return true if and only if right element fits to
@@ -67,14 +65,14 @@ private:
     bool processDuplicatesInReplacement(const Scheme& scheme,
         const list<ReverseElement>& replacement,
         int originalIndex, int transferedIndex, bool searchToRight,
-        vector<ReverseElement>* processedReplacement);
+        list<ReverseElement>* processedReplacement);
 
     // Returns index of duplicate element in specified range of indices
     // or -1 if not found
     int findDuplicateElementIndex(const Scheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex, int skipIndex) const;
 
-    void setReplacement(const Scheme& scheme, vector<ReverseElement>& replacement,
+    void setReplacement(const Scheme& scheme, list<ReverseElement>& replacement,
         int originalIndex, int transferedIndex);
 
     struct Optimizations;
