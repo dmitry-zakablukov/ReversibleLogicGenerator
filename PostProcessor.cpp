@@ -215,13 +215,6 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     //// debug
     //return scheme;
 
-    // debug
-    cout << "Input scheme\n";
-    string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
-    cout << schemeString;
-    cout << "\n===============================================================\n\n";
-    // debug
-
     //optimizedScheme = removeDuplicates(optimizedScheme);
 
     bool needOptimization = true;
@@ -388,13 +381,6 @@ PostProcessor::OptScheme PostProcessor::removeDuplicates(const OptScheme& scheme
     {
         optimizedScheme = tryOptimizationTactics(optimizedScheme, selectEqual,
             swapEqualElements, &repeat, false, true, &startIndex);
-
-        // debug
-        cout << "Remove duplicates optimization\n";
-        string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
-        cout << schemeString;
-        cout << "\n===============================================================\n\n";
-        // debug
     }
 
     return optimizedScheme;
@@ -414,13 +400,6 @@ PostProcessor::OptScheme PostProcessor::mergeOptimization(OptScheme& scheme, boo
             swapElementsWithMerge, &repeat, false, false);
 
         *optimized = *optimized || repeat;
-
-        // debug
-        cout << "Merge optimization\n";
-        string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
-        cout << schemeString;
-        cout << "\n===============================================================\n\n";
-        // debug
     }
 
     return optimizedScheme;
@@ -440,13 +419,6 @@ PostProcessor::OptScheme PostProcessor::reduceConnectionsOptimization( OptScheme
             swapElementsWithConnectionReduction, &repeat, false, false);
 
         *optimized = *optimized || repeat;
-
-        // debug
-        cout << "Reduce connections optimization\n";
-        string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
-        cout << schemeString;
-        cout << "\n===============================================================\n\n";
-        // debug
     }
 
     return optimizedScheme;
@@ -466,13 +438,6 @@ PostProcessor::OptScheme PostProcessor::transferOptimization(OptScheme& scheme, 
             swapElementsWithTransferOptimization, &repeat, false, true);
 
         *optimized = *optimized || repeat;
-
-        // debug
-        cout << "Transfer optimization\n";
-        string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
-        cout << schemeString;
-        cout << "\n===============================================================\n\n";
-        // debug
     }
 
     return optimizedScheme;
