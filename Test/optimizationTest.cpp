@@ -147,8 +147,7 @@ void testOptimization( int argc, const char* argv[] )
 
         outputFile << "Complexity before optimization: " << scheme.size() << '\n';
 
-        vector<ReverseElement> optimizedScheme(elementCount);
-
+        PostProcessor::OptScheme optimizedScheme(elementCount);
         for(uint index = 0; index < elementCount; ++index)
         {
             optimizedScheme[index] = scheme[index];

@@ -8,29 +8,29 @@ class PostProcessor
 public:
     PostProcessor();
 
-    typedef vector<ReverseElement> Scheme;
-    Scheme optimize(const Scheme& scheme);
+    typedef vector<ReverseElement> OptScheme;
+    OptScheme optimize(const OptScheme& scheme);
 
 private:
-    void prepareSchemeForOptimization(const Scheme& scheme);
-    Scheme applyOptimizations(const Scheme& scheme);
+    void prepareSchemeForOptimization(const OptScheme& scheme);
+    OptScheme applyOptimizations(const OptScheme& scheme);
 
     // Optimize CNOTs and CCNOTs with inversions
-    uint findInversedElementsSequence(const Scheme& scheme, uint startPosition);
-    Scheme optimizeInversions(const Scheme& scheme);
+    uint findInversedElementsSequence(const OptScheme& scheme, uint startPosition);
+    OptScheme optimizeInversions(const OptScheme& scheme);
 
     // Remove duplicates elements
-    Scheme removeDuplicates(const Scheme& scheme);
+    OptScheme removeDuplicates(const OptScheme& scheme);
 
     // (01)(11) -> *1
-    Scheme mergeOptimization(Scheme& scheme, bool* optimized = 0 );
+    OptScheme mergeOptimization(OptScheme& scheme, bool* optimized = 0 );
     // (01)(10) -> (*1)(1*)
-    Scheme reduceConnectionsOptimization(Scheme& scheme, bool* optimized = 0 );
+    OptScheme reduceConnectionsOptimization(OptScheme& scheme, bool* optimized = 0 );
 
-    Scheme transferOptimization(Scheme& scheme, bool* optimized = 0);
+    OptScheme transferOptimization(OptScheme& scheme, bool* optimized = 0);
 
-    Scheme getFullScheme(const Scheme& scheme, bool heavyRight = true);
-    Scheme getFinalSchemeImplementation(const Scheme& scheme);
+    OptScheme getFullScheme(const OptScheme& scheme, bool heavyRight = true);
+    OptScheme getFinalSchemeImplementation(const OptScheme& scheme);
 
     // Selection function should return true if and only if right element fits to
     // right element in terms of optimization
@@ -45,15 +45,15 @@ private:
 
     // Returns true in optimizationSucceeded param if optimization tactics
     // succeeded and result scheme has less gate complexity
-    Scheme tryOptimizationTactics(const Scheme& scheme, SelectionFunc selectionFunc, SwapFunc swapFunc,
+    OptScheme tryOptimizationTactics(const OptScheme& scheme, SelectionFunc selectionFunc, SwapFunc swapFunc,
         bool* optimizationSucceeded, bool searchPairFromEnd,
         bool lessComplexityRequired, int* startIndex = 0);
 
-    int getMaximumTransferIndex(const Scheme& scheme, const ReverseElement& target,
+    int getMaximumTransferIndex(const OptScheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex) const;
 
     // Returns true if some duplicates were found in scheme and replacements
-    bool processReplacements(const Scheme& scheme,
+    bool processReplacements(const OptScheme& scheme,
         int leftIndex, int transferedLeftIndex,
         int rightIndex, int transferedRightIndex,
         const list<ReverseElement>& leftReplacement,
@@ -62,17 +62,17 @@ private:
     void checkReplacement(const list<ReverseElement>& replacement);
 
     // Returns true if some duplicates were found in scheme and specified replacement
-    bool processDuplicatesInReplacement(const Scheme& scheme,
+    bool processDuplicatesInReplacement(const OptScheme& scheme,
         const list<ReverseElement>& replacement,
         int originalIndex, int transferedIndex, bool searchToRight,
         list<ReverseElement>* processedReplacement);
 
     // Returns index of duplicate element in specified range of indices
     // or -1 if not found
-    int findDuplicateElementIndex(const Scheme& scheme, const ReverseElement& target,
+    int findDuplicateElementIndex(const OptScheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex, int skipIndex) const;
 
-    void setReplacement(const Scheme& scheme, list<ReverseElement>& replacement,
+    void setReplacement(const OptScheme& scheme, list<ReverseElement>& replacement,
         int originalIndex, int transferedIndex);
 
     struct Optimizations;

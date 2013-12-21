@@ -129,7 +129,6 @@
     <ClCompile Include="Permutation.cpp" />
     <ClCompile Include="PermutationUtils.cpp" />
     <ClCompile Include="PostProcessor.cpp" />
-    <ClCompile Include="SchemePrinter.cpp" />
     <ClCompile Include="std.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -151,6 +150,7 @@
     <ClInclude Include="PermutationUtils.hpp" />
     <ClInclude Include="PostProcessor.hpp" />
     <ClInclude Include="SchemePrinter.hpp" />
+    <ClInclude Include="SchemePrinterImpl.hpp" />
     <ClInclude Include="std.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transposition.hpp" />

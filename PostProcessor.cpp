@@ -206,14 +206,21 @@ PostProcessor::PostProcessor()
 {
 }
 
-PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
+PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
 {
-    Scheme optimizedScheme = scheme;
+    OptScheme optimizedScheme = scheme;
     uint lengthBefore = uintUndefined;
     uint lengthAfter  = uintUndefined;
     
     //// debug
     //return scheme;
+
+    // debug
+    cout << "Input scheme\n";
+    string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
+    cout << schemeString;
+    cout << "\n===============================================================\n\n";
+    // debug
 
     //optimizedScheme = removeDuplicates(optimizedScheme);
 
@@ -235,7 +242,7 @@ PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
     }
 
     // final implementation
-    Scheme implementation;
+    OptScheme implementation;
     implementation = optimizedScheme;
 
     implementation = getFullScheme(optimizedScheme);
@@ -258,7 +265,7 @@ PostProcessor::Optimizations& PostProcessor::getOptimization(uint index)
     return optimizations[index];
 }
 
-void PostProcessor::prepareSchemeForOptimization(const Scheme& scheme)
+void PostProcessor::prepareSchemeForOptimization(const OptScheme& scheme)
 {
     uint elementCount = scheme.size();
     optimizations.resize(elementCount);
@@ -269,10 +276,10 @@ void PostProcessor::prepareSchemeForOptimization(const Scheme& scheme)
     }
 }
 
-PostProcessor::Scheme PostProcessor::applyOptimizations(const Scheme& scheme)
+PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& scheme)
 {
     uint elementCount = scheme.size();
-    Scheme optimizedScheme;
+    OptScheme optimizedScheme;
     optimizedScheme.reserve(elementCount);
 
     for(uint index = 0; index < elementCount; ++index)
@@ -311,7 +318,7 @@ PostProcessor::Scheme PostProcessor::applyOptimizations(const Scheme& scheme)
     return optimizedScheme;
 }
 
-uint PostProcessor::findInversedElementsSequence(const Scheme& scheme, uint startPosition)
+uint PostProcessor::findInversedElementsSequence(const OptScheme& scheme, uint startPosition)
 {
     uint sequenceLength = 1;
     uint elementCount = scheme.size();
@@ -337,7 +344,7 @@ uint PostProcessor::findInversedElementsSequence(const Scheme& scheme, uint star
     return sequenceLength;
 }
 
-PostProcessor::Scheme PostProcessor::optimizeInversions(const Scheme& scheme)
+PostProcessor::OptScheme PostProcessor::optimizeInversions(const OptScheme& scheme)
 {
     prepareSchemeForOptimization(scheme);
 
@@ -371,9 +378,9 @@ PostProcessor::Scheme PostProcessor::optimizeInversions(const Scheme& scheme)
     return applyOptimizations(scheme);
 }
 
-PostProcessor::Scheme PostProcessor::removeDuplicates(const Scheme& scheme)
+PostProcessor::OptScheme PostProcessor::removeDuplicates(const OptScheme& scheme)
 {
-    Scheme optimizedScheme = scheme;
+    OptScheme optimizedScheme = scheme;
     int startIndex = 0;
     bool repeat = true;
 
@@ -381,17 +388,24 @@ PostProcessor::Scheme PostProcessor::removeDuplicates(const Scheme& scheme)
     {
         optimizedScheme = tryOptimizationTactics(optimizedScheme, selectEqual,
             swapEqualElements, &repeat, false, true, &startIndex);
+
+        // debug
+        cout << "Remove duplicates optimization\n";
+        string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
+        cout << schemeString;
+        cout << "\n===============================================================\n\n";
+        // debug
     }
 
     return optimizedScheme;
 }
 
-PostProcessor::Scheme PostProcessor::mergeOptimization(Scheme& scheme, bool* optimized /* = 0 */)
+PostProcessor::OptScheme PostProcessor::mergeOptimization(OptScheme& scheme, bool* optimized /* = 0 */)
 {
     assert(optimized, string("Null 'optimized' pointer"));
     *optimized = false;
 
-    Scheme optimizedScheme = scheme;
+    OptScheme optimizedScheme = scheme;
     bool repeat = true;
 
     while(repeat)
@@ -400,17 +414,24 @@ PostProcessor::Scheme PostProcessor::mergeOptimization(Scheme& scheme, bool* opt
             swapElementsWithMerge, &repeat, false, false);
 
         *optimized = *optimized || repeat;
+
+        // debug
+        cout << "Merge optimization\n";
+        string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
+        cout << schemeString;
+        cout << "\n===============================================================\n\n";
+        // debug
     }
 
     return optimizedScheme;
 }
 
-PostProcessor::Scheme PostProcessor::reduceConnectionsOptimization( Scheme& scheme, bool* optimized /*= 0 */ )
+PostProcessor::OptScheme PostProcessor::reduceConnectionsOptimization( OptScheme& scheme, bool* optimized /*= 0 */ )
 {
     assert(optimized, string("Null 'optimized' pointer"));
     *optimized = false;
 
-    Scheme optimizedScheme = scheme;
+    OptScheme optimizedScheme = scheme;
     bool repeat = true;
 
     while(repeat)
@@ -419,17 +440,24 @@ PostProcessor::Scheme PostProcessor::reduceConnectionsOptimization( Scheme& sche
             swapElementsWithConnectionReduction, &repeat, false, false);
 
         *optimized = *optimized || repeat;
+
+        // debug
+        cout << "Reduce connections optimization\n";
+        string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
+        cout << schemeString;
+        cout << "\n===============================================================\n\n";
+        // debug
     }
 
     return optimizedScheme;
 }
 
-PostProcessor::Scheme PostProcessor::transferOptimization(Scheme& scheme, bool* optimized /* = 0 */)
+PostProcessor::OptScheme PostProcessor::transferOptimization(OptScheme& scheme, bool* optimized /* = 0 */)
 {
     assert(optimized, string("Null 'optimized' pointer"));
     *optimized = false;
 
-    Scheme optimizedScheme = scheme;
+    OptScheme optimizedScheme = scheme;
     bool repeat = true;
 
     while(repeat)
@@ -438,14 +466,21 @@ PostProcessor::Scheme PostProcessor::transferOptimization(Scheme& scheme, bool* 
             swapElementsWithTransferOptimization, &repeat, false, true);
 
         *optimized = *optimized || repeat;
+
+        // debug
+        cout << "Transfer optimization\n";
+        string schemeString = SchemePrinter::schemeToString(optimizedScheme, true);
+        cout << schemeString;
+        cout << "\n===============================================================\n\n";
+        // debug
     }
 
     return optimizedScheme;
 }
 
-PostProcessor::Scheme PostProcessor::getFullScheme(const Scheme& scheme, bool heavyRight /*= true*/)
+PostProcessor::OptScheme PostProcessor::getFullScheme(const OptScheme& scheme, bool heavyRight /*= true*/)
 {
-    Scheme fullScheme;
+    OptScheme fullScheme;
     uint elementCount = scheme.size();
 
     for(uint index = 0; index < elementCount; ++index)
@@ -460,9 +495,9 @@ PostProcessor::Scheme PostProcessor::getFullScheme(const Scheme& scheme, bool he
     return fullScheme;
 }
 
-PostProcessor::Scheme PostProcessor::getFinalSchemeImplementation(const Scheme& scheme)
+PostProcessor::OptScheme PostProcessor::getFinalSchemeImplementation(const OptScheme& scheme)
 {
-    Scheme implementation;
+    OptScheme implementation;
     
     uint elementCount = scheme.size();
     implementation.resize(elementCount);
@@ -480,7 +515,7 @@ PostProcessor::Scheme PostProcessor::getFinalSchemeImplementation(const Scheme& 
 // Main optimization tactic implementation
 //////////////////////////////////////////////////////////////////////////
 
-PostProcessor::Scheme PostProcessor::tryOptimizationTactics(const Scheme& scheme,
+PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& scheme,
     SelectionFunc selectionFunc, SwapFunc swapFunc,
     bool* optimizationSucceeded, bool searchPairFromEnd,
     bool lessComplexityRequired, int* startIndex /* = 0 */)
@@ -581,7 +616,7 @@ PostProcessor::Scheme PostProcessor::tryOptimizationTactics(const Scheme& scheme
     return applyOptimizations(scheme);
 }
 
-int PostProcessor::getMaximumTransferIndex(const Scheme& scheme,
+int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
     const ReverseElement& target, int startIndex, int stopIndex) const
 {
     int elementCount = scheme.size();
@@ -617,7 +652,7 @@ int PostProcessor::getMaximumTransferIndex(const Scheme& scheme,
     return index;
 }
 
-bool PostProcessor::processReplacements(const Scheme& scheme,
+bool PostProcessor::processReplacements(const OptScheme& scheme,
     int leftIndex, int transferedLeftIndex,
     int rightIndex, int transferedRightIndex,
     const list<ReverseElement>& leftReplacement,
@@ -632,10 +667,6 @@ bool PostProcessor::processReplacements(const Scheme& scheme,
         string("PostProcessor: too many elements in replacements"));
 
     // 3) find duplicates if needed
-    // TODO: always search to left and to right from replacement
-    // see getTransferScheme() test
-
-    bool onlyOneReplacement  = false;
     bool someDuplicatesFound = false;
 
     // left replacement processing
@@ -644,21 +675,19 @@ bool PostProcessor::processReplacements(const Scheme& scheme,
 
     if(leftReplacement.size())
     {
+        // search duplicates to left
         foundDuplicatesInLeftReplacement =
             processDuplicatesInReplacement(scheme, leftReplacement, leftIndex,
             transferedLeftIndex, false, &leftProcessedReplacement);
 
-        if(!rightReplacement.size())
-        {
-            list<ReverseElement> temp = leftProcessedReplacement;
-            leftProcessedReplacement.resize(0);
+        // search duplicates to right
+        list<ReverseElement> temp = leftProcessedReplacement;
+        leftProcessedReplacement.resize(0);
 
-            foundDuplicatesInLeftReplacement = foundDuplicatesInLeftReplacement ||
-                processDuplicatesInReplacement(scheme, temp, rightIndex,
-                transferedRightIndex, true, &leftProcessedReplacement);
-
-            onlyOneReplacement = true;
-        }
+        foundDuplicatesInLeftReplacement = 
+            processDuplicatesInReplacement(scheme, temp, rightIndex,
+            transferedRightIndex, true, &leftProcessedReplacement)
+            || foundDuplicatesInLeftReplacement;
     }
 
     // right replacement processing
@@ -667,26 +696,25 @@ bool PostProcessor::processReplacements(const Scheme& scheme,
 
     if(rightReplacement.size())
     {
+        // search duplicates to right
         foundDuplicatesInRightReplacement =
             processDuplicatesInReplacement(scheme, rightReplacement, rightIndex,
             transferedRightIndex, true, &rightProcessedReplacement);
 
-        if(!leftReplacement.size())
-        {
-            list<ReverseElement> temp = rightProcessedReplacement;
-            rightProcessedReplacement.resize(0);
+        // search duplicates to left
+        list<ReverseElement> temp = rightProcessedReplacement;
+        rightProcessedReplacement.resize(0);
 
-            foundDuplicatesInRightReplacement = foundDuplicatesInRightReplacement ||
-                processDuplicatesInReplacement(scheme, temp, leftIndex,
-                transferedRightIndex, false, &rightProcessedReplacement);
-
-            onlyOneReplacement = true;
-        }
+        foundDuplicatesInRightReplacement =
+            processDuplicatesInReplacement(scheme, temp, leftIndex,
+            transferedRightIndex, false, &rightProcessedReplacement)
+            || foundDuplicatesInRightReplacement;
     }
 
     someDuplicatesFound = foundDuplicatesInLeftReplacement || foundDuplicatesInRightReplacement;
-    bool success = onlyOneReplacement || someDuplicatesFound;
+    bool onlyOneReplacement  = !leftReplacement.size() || !rightReplacement.size();
 
+    bool success = onlyOneReplacement || someDuplicatesFound;
     if(success)
     {
         setReplacement(scheme,  leftProcessedReplacement,  leftIndex,  transferedLeftIndex);
@@ -712,7 +740,7 @@ void PostProcessor::checkReplacement(const list<ReverseElement>& replacement)
     }
 }
 
-int PostProcessor::findDuplicateElementIndex(const Scheme& scheme,
+int PostProcessor::findDuplicateElementIndex(const OptScheme& scheme,
     const ReverseElement& target, int startIndex, int stopIndex, int skipIndex) const
 {
     int elementCount = scheme.size();
@@ -760,7 +788,7 @@ int PostProcessor::findDuplicateElementIndex(const Scheme& scheme,
     return resultIndex;
 }
 
-bool PostProcessor::processDuplicatesInReplacement(const Scheme& scheme,
+bool PostProcessor::processDuplicatesInReplacement(const OptScheme& scheme,
     const list<ReverseElement>& replacement, int originalIndex,
     int transferedIndex, bool searchToRight,
     list<ReverseElement>* processedReplacement)
@@ -791,7 +819,7 @@ bool PostProcessor::processDuplicatesInReplacement(const Scheme& scheme,
     return someDuplicatesFound;
 }
 
-void PostProcessor::setReplacement(const Scheme& scheme,
+void PostProcessor::setReplacement(const OptScheme& scheme,
     list<ReverseElement>& replacement,
     int originalIndex, int transferedIndex)
 {

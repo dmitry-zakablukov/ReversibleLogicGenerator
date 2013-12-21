@@ -64,7 +64,7 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
         PostProcessor optimizer;
 
         uint elementCount = scheme.size();
-        vector<ReverseElement> optimizedScheme(elementCount);
+        PostProcessor::OptScheme optimizedScheme(elementCount);
 
         for(uint index = 0; index < elementCount; ++index)
         {

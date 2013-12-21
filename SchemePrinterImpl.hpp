@@ -1,9 +1,10 @@
-#include "std.hpp"
+#pragma once
 
 namespace ReversibleLogic
 {
 
-string SchemePrinter::schemeToString(const deque<ReverseElement>& scheme,
+template<typename Container>
+string SchemePrinter::schemeToString(const Container& scheme,
     bool horizontal /*= true*/)
 {
     string result;
@@ -19,7 +20,8 @@ string SchemePrinter::schemeToString(const deque<ReverseElement>& scheme,
     return result;
 }
 
-string SchemePrinter::horizontalPrint(const deque<ReverseElement>& scheme)
+template<typename Container>
+string SchemePrinter::horizontalPrint(const Container& scheme)
 {
     ostringstream result;
     uint elementCount = scheme.size();
@@ -28,7 +30,7 @@ string SchemePrinter::horizontalPrint(const deque<ReverseElement>& scheme)
     uint n = 0;
     if(elementCount)
     {
-        n = scheme[0].getInputCount();
+        n = scheme.front().getInputCount();
     }
 
     uint stringCount = 2 * n - 1;
@@ -48,12 +50,11 @@ string SchemePrinter::horizontalPrint(const deque<ReverseElement>& scheme)
     }
 
     // middle
-    for(uint elementId  = 0; elementId < elementCount; ++elementId)
+    forcin(element, scheme)
     {
-        const ReverseElement& element = scheme[elementId];
-        word targetMask    = element.getTargetMask();
-        word controlMask   = element.getControlMask();
-        word inversionMask = element.getInversionMask();
+        word targetMask    = element->getTargetMask();
+        word controlMask   = element->getControlMask();
+        word inversionMask = element->getInversionMask();
         word elementMask   = targetMask | controlMask;
 
         uint positiveBitCount = countNonZeroBits(elementMask);
@@ -161,7 +162,8 @@ string SchemePrinter::horizontalPrint(const deque<ReverseElement>& scheme)
     return result.str();
 }
 
-string SchemePrinter::verticalPrint(const deque<ReverseElement>& scheme)
+template<typename Container>
+string SchemePrinter::verticalPrint(const Container& scheme)
 {
     ostringstream result;
     uint elementCount = scheme.size();
@@ -170,7 +172,7 @@ string SchemePrinter::verticalPrint(const deque<ReverseElement>& scheme)
     uint n = 0;
     if(elementCount)
     {
-        n = scheme[0].getInputCount();
+        n = scheme.front().getInputCount();
     }
 
     // beginning
@@ -198,12 +200,11 @@ string SchemePrinter::verticalPrint(const deque<ReverseElement>& scheme)
     
     connectionString << "\n";
 
-    for(uint elementId  = 0; elementId < elementCount; ++elementId)
+    forcin(element, scheme)
     {
-        const ReverseElement& element = scheme[elementId];
-        word targetMask    = element.getTargetMask();
-        word controlMask   = element.getControlMask();
-        word inversionMask = element.getInversionMask();
+        word targetMask    = element->getTargetMask();
+        word controlMask   = element->getControlMask();
+        word inversionMask = element->getInversionMask();
         word elementMask   = targetMask | controlMask;
 
         uint positiveBitCount = countNonZeroBits(elementMask);
