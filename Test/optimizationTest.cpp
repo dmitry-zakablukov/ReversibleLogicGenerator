@@ -34,6 +34,11 @@ Scheme getRd53_8of12_goodPart()
 
 Scheme getDuplicatesScheme()
 {
+    // ( )   ( )   (+)
+    // ( )( )( )( )   
+    //    (+)   (+)   
+    // (+)   (+)   ( )
+
     Scheme scheme;
     uint n = 4;
 
@@ -48,6 +53,11 @@ Scheme getDuplicatesScheme()
 
 Scheme getReduceConnectionsScheme()
 {
+    //    ( )   (0)(+)
+    // ( )(0)( )( )   
+    // (+)(+)   (+)( )
+    //       (+)      
+
     Scheme scheme;
     uint n = 4;
 
@@ -62,6 +72,11 @@ Scheme getReduceConnectionsScheme()
 
 Scheme getMergeScheme()
 {
+    //    ( )   (0)(+)
+    // ( )(0)( )(0)   
+    // (+)(+)   (+)( )
+    //       (+)      
+
     Scheme scheme;
     uint n = 4;
 
@@ -70,6 +85,35 @@ Scheme getMergeScheme()
     scheme.push_back( ReverseElement(n, mask(3, END), mask(1, END)) );
     scheme.push_back( ReverseElement(n, mask(2, END), mask(0, 1, END), mask(0, 1, END)) );
     scheme.push_back( ReverseElement(n, mask(0, END), mask(2, END)) );
+
+    return scheme;
+}
+
+Scheme getTransferScheme()
+{
+    // (+)( )(+) ( )(+)( )    (+)( ) ( )(+)(0)
+    // (0)   (0) ( )( )( ) ( )( )( ) ( )( )( )
+    // ( )( )( ) ( )   ( ) ( )   ( ) (0)(0)(0)
+    //    (+)    (+)   (+) (+)   (+) (+)   (+)
+
+    Scheme scheme;
+    uint n = 4;
+
+    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, END), mask(1, END)) );
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 2, END)) );
+    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, END), mask(1, END)) );
+    
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END)) );
+    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END)) );
+    
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(1, 2, END)) );
+    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END)) );
+    
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END), mask(2, END)) );
+    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, END), mask(2, END)) );
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END), mask(0, 2, END)) );
 
     return scheme;
 }
@@ -94,7 +138,8 @@ void testOptimization( int argc, const char* argv[] )
         //scheme = getRd53_8of12_goodPart();
         //scheme = getDuplicatesScheme();
         //scheme = getReduceConnectionsScheme();
-        scheme = getMergeScheme();
+        //scheme = getMergeScheme();
+        scheme = getTransferScheme();
         
         PostProcessor optimizer;
 

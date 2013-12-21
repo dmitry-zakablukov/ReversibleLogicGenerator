@@ -130,27 +130,53 @@ void swapElementsWithMerge(const ReverseElement& left, const ReverseElement& rig
     leftReplacement->push_back(element);
 }
 
-void swapElementsWithTransferOptimization(const ReverseElement& left, const ReverseElement& right,
+void swapElementsWithTransferOptimization(const ReverseElement& leftElement, const ReverseElement& rightElement,
     list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
 {
-    assert(selectForTransferOptimization(left, right),
+    assert(selectForTransferOptimization(leftElement, rightElement),
         string("swapElementsWithTransferOptimization(): wrong input elements"));
 
-    word leftTargetMask     =  left.getTargetMask();
-    word leftControlMask    =  left.getControlMask();
-    word leftInversionMask  =  left.getInversionMask();
-                            
-    word rightTargetMask    = right.getTargetMask();
-    word rightControlMask   = right.getControlMask();
-    word rightInversionMask = right.getInversionMask();
+    const ReverseElement*  left =  &leftElement;
+    const ReverseElement* right = &rightElement;
 
-    if(rightControlMask & leftTargetMask)
+    // unify swap
+    if(left->getControlMask() & right->getTargetMask())
     {
-        // fill left replacement
-        leftReplacement->push_back(right);
+        const ReverseElement* tempElement = right;
+        right = left;
+        left  = tempElement;
 
-        ReverseElement element = right;
+        list<ReverseElement>* tempReplacement = rightReplacement;
+        rightReplacement = leftReplacement;
+        leftReplacement  = tempReplacement;
+    }
 
+    word leftTargetMask     =  left->getTargetMask();
+    word leftControlMask    =  left->getControlMask();
+    word leftInversionMask  =  left->getInversionMask();
+                            
+    word rightTargetMask    = right->getTargetMask();
+    word rightControlMask   = right->getControlMask();
+    word rightInversionMask = right->getInversionMask();
+
+    // fill left replacement
+    if((leftControlMask | leftTargetMask) == rightControlMask
+        && leftInversionMask == (rightInversionMask & ~leftTargetMask))
+    {
+        // Case: (+01*)(001+), + -- target, 1 -- control, 0 -- control with inversion
+        // * -- not control
+        // Swap result: (101+)(+01*)
+        // Same for: (+01*)(101+)
+
+        ReverseElement element = *right;
+        element.setInversionMask(rightInversionMask ^ leftTargetMask);
+        leftReplacement->push_back(element);
+    }
+    else
+    {
+        leftReplacement->push_back(*right);
+
+        ReverseElement element = *right;
         word controlMask = ~leftTargetMask & (leftControlMask | rightControlMask);
         element.setControlMask(controlMask);
 
@@ -158,28 +184,10 @@ void swapElementsWithTransferOptimization(const ReverseElement& left, const Reve
         element.setInversionMask(inversionMask);
 
         leftReplacement->push_back(element);
-        
-        // fill right replacement
-        rightReplacement->push_back(left);
     }
-    else // leftControlMask & rightTargetMask
-    {
-        // fill left replacement
-        leftReplacement->push_back(right);
 
-        // fill right replacement
-        rightReplacement->push_back(left);
-
-        ReverseElement element = left;
-
-        word controlMask = ~rightTargetMask & (leftControlMask | rightControlMask);
-        element.setControlMask(controlMask);
-
-        word inversionMask = ~rightTargetMask & (leftInversionMask | rightInversionMask);
-        element.setInversionMask(inversionMask);
-
-        rightReplacement->push_back(element);
-    }
+    // fill right replacement
+    rightReplacement->push_back(*left);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -207,31 +215,16 @@ PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
     //// debug
     //return scheme;
 
-    ////// optimize inversions
-    ////optimizedScheme = optimizeInversions(optimizedScheme);
-
-    ////// merge optimization
-    ////lengthBefore = optimizedScheme.size();
-    ////lengthAfter  = uintUndefined;
-
-    ////lengthBefore = optimizedScheme.size();
-    ////lengthAfter  = uintUndefined;
-    ////while(lengthBefore != lengthAfter)
-    ////{
-    ////    lengthBefore = optimizedScheme.size();
-    ////    optimizedScheme = removeDuplicates(optimizedScheme);
-    ////    lengthAfter = optimizedScheme.size();
-    ////}
-
-    ////optimizedScheme = removeDuplicates(optimizedScheme);
+    //optimizedScheme = removeDuplicates(optimizedScheme);
 
     bool needOptimization = true;
     uint step = 0;
     while(needOptimization /*&& step < 1*/)
     {
+        needOptimization = false;
         optimizedScheme = mergeOptimization(optimizedScheme, &needOptimization);
 
-        bool additionalOptimized = true;
+        bool additionalOptimized = false;
         optimizedScheme = reduceConnectionsOptimization(optimizedScheme, &additionalOptimized);
         needOptimization = needOptimization || additionalOptimized;
 
@@ -241,65 +234,21 @@ PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
         ++step;
     }
 
-    //needOptimization = true;
-    //while(needOptimization)
-    //{
-    //    optimizedScheme = reduceConnectionsOptimization(optimizedScheme, &needOptimization);
-    //}
-
-    ////lengthBefore = optimizedScheme.size();
-    ////lengthAfter  = uintUndefined;
-    ////while(lengthBefore != lengthAfter)
-    ////{
-    ////    lengthBefore = optimizedScheme.size();
-    ////    optimizedScheme = removeDuplicates(optimizedScheme);
-    ////    lengthAfter = optimizedScheme.size();
-    ////}
-
-    ////needOptimization = true;
-    ////while(needOptimization)
-    ////{
-    ////    optimizedScheme = mergeOptimization(optimizedScheme, &needOptimization);
-    ////}
-
-    ////// remove duplicates
-    ////optimizedScheme = removeDuplicates(optimizedScheme);
-
     // final implementation
-    //implementation = self.__getFinalSchemeImplementation(optimizedScheme)
     Scheme implementation;
     implementation = optimizedScheme;
 
     implementation = getFullScheme(optimizedScheme);
 
-    ////lengthBefore = implementation.size();
-    ////lengthAfter  = uintUndefined;
-    ////while(lengthBefore != lengthAfter)
-    ////{
-    ////    lengthBefore = implementation.size();
-    ////    implementation = removeDuplicates(implementation);
-    ////    lengthAfter = implementation.size();
-    ////}
-
     needOptimization = true;
     //step = 0;
     while(needOptimization/* && step < 1*/)
     {
+        needOptimization = false;
         implementation = transferOptimization(implementation, &needOptimization);
         implementation = removeDuplicates(implementation);
         //++step;
     }    
-
-    ////implementation = getFullScheme(implementation);
-
-    ////lengthBefore = implementation.size();
-    ////lengthAfter  = uintUndefined;
-    ////while(lengthBefore != lengthAfter)
-    ////{
-    ////    lengthBefore = implementation.size();
-    ////    implementation = removeDuplicates(implementation);
-    ////    lengthAfter = implementation.size();
-    ////}
 
     return implementation;
 }
@@ -422,6 +371,21 @@ PostProcessor::Scheme PostProcessor::optimizeInversions(const Scheme& scheme)
     return applyOptimizations(scheme);
 }
 
+PostProcessor::Scheme PostProcessor::removeDuplicates(const Scheme& scheme)
+{
+    Scheme optimizedScheme = scheme;
+    int startIndex = 0;
+    bool repeat = true;
+
+    while(repeat)
+    {
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectEqual,
+            swapEqualElements, &repeat, false, true, &startIndex);
+    }
+
+    return optimizedScheme;
+}
+
 PostProcessor::Scheme PostProcessor::mergeOptimization(Scheme& scheme, bool* optimized /* = 0 */)
 {
     assert(optimized, string("Null 'optimized' pointer"));
@@ -460,6 +424,25 @@ PostProcessor::Scheme PostProcessor::reduceConnectionsOptimization( Scheme& sche
     return optimizedScheme;
 }
 
+PostProcessor::Scheme PostProcessor::transferOptimization(Scheme& scheme, bool* optimized /* = 0 */)
+{
+    assert(optimized, string("Null 'optimized' pointer"));
+    *optimized = false;
+
+    Scheme optimizedScheme = scheme;
+    bool repeat = true;
+
+    while(repeat)
+    {
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForTransferOptimization,
+            swapElementsWithTransferOptimization, &repeat, false, true);
+
+        *optimized = *optimized || repeat;
+    }
+
+    return optimizedScheme;
+}
+
 PostProcessor::Scheme PostProcessor::getFullScheme(const Scheme& scheme, bool heavyRight /*= true*/)
 {
     Scheme fullScheme;
@@ -477,21 +460,6 @@ PostProcessor::Scheme PostProcessor::getFullScheme(const Scheme& scheme, bool he
     return fullScheme;
 }
 
-PostProcessor::Scheme PostProcessor::removeDuplicates(const Scheme& scheme)
-{
-    Scheme optimizedScheme = scheme;
-    int startIndex = 0;
-    bool repeat = true;
-
-    while(repeat)
-    {
-        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectEqual,
-            swapEqualElements, &repeat, false, true, &startIndex);
-    }
-
-    return optimizedScheme;
-}
-
 PostProcessor::Scheme PostProcessor::getFinalSchemeImplementation(const Scheme& scheme)
 {
     Scheme implementation;
@@ -506,21 +474,6 @@ PostProcessor::Scheme PostProcessor::getFinalSchemeImplementation(const Scheme& 
     }
 
     return implementation;
-}
-
-PostProcessor::Scheme PostProcessor::transferOptimization(Scheme& scheme, bool* optimized /*= 0 */)
-{
-    Scheme optimizedScheme = scheme;
-    int startIndex = 0;
-    bool repeat = true;
-
-    while(repeat)
-    {
-        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForTransferOptimization,
-            swapElementsWithTransferOptimization, &repeat, false, true, &startIndex);
-    }
-
-    return optimizedScheme;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -679,6 +632,9 @@ bool PostProcessor::processReplacements(const Scheme& scheme,
         string("PostProcessor: too many elements in replacements"));
 
     // 3) find duplicates if needed
+    // TODO: always search to left and to right from replacement
+    // see getTransferScheme() test
+
     bool onlyOneReplacement  = false;
     bool someDuplicatesFound = false;
 
