@@ -126,47 +126,13 @@ bool ReverseElement::isSwitchable(const ReverseElement& another) const
     assert(isValid(), string("Reverse element is not valid"));
     assert(another.isValid(), string("Reverse element is not valid"));
 
-    bool switchable = false;
-
+    
     word anotherTargetMask  = another.getTargetMask();
     word anotherControlMask = another.getControlMask();
     word anotherInversionMask = another.getInversionMask();
 
-    if(!(anotherControlMask & targetMask) && !(controlMask & anotherTargetMask))
-    {
-        switchable = true;
-    }
-    else
-    {
-        word commonControlMask = controlMask & anotherControlMask;
-        if((inversionMask ^ anotherInversionMask) & commonControlMask)
-        {
-            // there is common control with different inversions
-            // so those elements are never work simultaneously
-            switchable = true;
-        }
-        else
-        {
-            // case: (+01*)(001+), + - target, 0 - has inversion, * - no control input
-            if((anotherControlMask & targetMask) && !(controlMask & anotherTargetMask))
-            {
-                if(controlMask == (anotherControlMask & ~targetMask)
-                    && (inversionMask | targetMask) == anotherInversionMask)
-                {
-                    switchable = true;
-                }
-            }
-            // case: (001+)(+01*), + - target, 0 - has inversion, * - no control input
-            else if((controlMask & anotherTargetMask) && !(anotherControlMask & targetMask))
-            {
-                if(anotherControlMask == (controlMask & ~anotherTargetMask)
-                    && (anotherInversionMask | anotherTargetMask) == inversionMask)
-                {
-                    switchable = true;
-                }
-            }
-        }
-    }
+    bool switchable = (!(anotherControlMask & targetMask) && !(controlMask & anotherTargetMask))
+        || ((inversionMask ^ anotherInversionMask) & controlMask & anotherControlMask);
 
     return switchable;
 }
