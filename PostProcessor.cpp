@@ -646,6 +646,7 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
             transferedLeftIndex, false, &leftProcessedReplacement);
 
         // search duplicates to right
+        // TODO: do this only for elements switchable with all elements in right replacement!
         list<ReverseElement> temp = leftProcessedReplacement;
         leftProcessedReplacement.resize(0);
 
@@ -667,6 +668,7 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
             transferedRightIndex, true, &rightProcessedReplacement);
 
         // search duplicates to left
+        // TODO: do this only for elements switchable with all elements in left replacement!
         list<ReverseElement> temp = rightProcessedReplacement;
         rightProcessedReplacement.resize(0);
 
