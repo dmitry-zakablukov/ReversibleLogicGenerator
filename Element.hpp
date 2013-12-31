@@ -41,6 +41,7 @@ public:
     bool isValid() const;
 
     bool isSwitchable(const ReverseElement& another) const;
+    bool isSwitchable(const list<ReverseElement>& elements) const;
 
     word getValue(word input) const;
 

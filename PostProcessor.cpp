@@ -642,16 +642,15 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
     {
         // search duplicates to left
         foundDuplicatesInLeftReplacement =
-            processDuplicatesInReplacement(scheme, leftReplacement, leftIndex,
+            processDuplicatesInReplacement(scheme, leftReplacement, 0, leftIndex,
             transferedLeftIndex, false, &leftProcessedReplacement);
 
         // search duplicates to right
-        // TODO: do this only for elements switchable with all elements in right replacement!
         list<ReverseElement> temp = leftProcessedReplacement;
         leftProcessedReplacement.resize(0);
 
         foundDuplicatesInLeftReplacement = 
-            processDuplicatesInReplacement(scheme, temp, rightIndex,
+            processDuplicatesInReplacement(scheme, temp, &rightReplacement, rightIndex,
             transferedRightIndex, true, &leftProcessedReplacement)
             || foundDuplicatesInLeftReplacement;
     }
@@ -664,16 +663,15 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
     {
         // search duplicates to right
         foundDuplicatesInRightReplacement =
-            processDuplicatesInReplacement(scheme, rightReplacement, rightIndex,
+            processDuplicatesInReplacement(scheme, rightReplacement, 0, rightIndex,
             transferedRightIndex, true, &rightProcessedReplacement);
 
         // search duplicates to left
-        // TODO: do this only for elements switchable with all elements in left replacement!
         list<ReverseElement> temp = rightProcessedReplacement;
         rightProcessedReplacement.resize(0);
 
         foundDuplicatesInRightReplacement =
-            processDuplicatesInReplacement(scheme, temp, leftIndex,
+            processDuplicatesInReplacement(scheme, temp, &leftProcessedReplacement, leftIndex,
             transferedRightIndex, false, &rightProcessedReplacement)
             || foundDuplicatesInRightReplacement;
     }
@@ -756,7 +754,8 @@ int PostProcessor::findDuplicateElementIndex(const OptScheme& scheme,
 }
 
 bool PostProcessor::processDuplicatesInReplacement(const OptScheme& scheme,
-    const list<ReverseElement>& replacement, int originalIndex,
+    const list<ReverseElement>& replacement,
+    const list<ReverseElement>* anotherReplacement, int originalIndex,
     int transferedIndex, bool searchToRight,
     list<ReverseElement>* processedReplacement)
 {
@@ -766,20 +765,26 @@ bool PostProcessor::processDuplicatesInReplacement(const OptScheme& scheme,
     forcin(iter, replacement)
     {
         const ReverseElement& element = *iter;
-
-        int duplicateIndex = findDuplicateElementIndex(scheme, element, transferedIndex,
-            searchToRight ? elementCount : -1, originalIndex);
-
-        if(duplicateIndex == -1)
+        if(anotherReplacement && !element.isSwitchable(*anotherReplacement))
         {
             processedReplacement->push_back(element);
         }
         else
         {
-            Optimizations& duplicateOptimization = getOptimization(duplicateIndex);
-            duplicateOptimization.remove = true;
+            int duplicateIndex = findDuplicateElementIndex(scheme, element, transferedIndex,
+                searchToRight ? elementCount : -1, originalIndex);
 
-            someDuplicatesFound = true;
+            if(duplicateIndex == -1)
+            {
+                processedReplacement->push_back(element);
+            }
+            else
+            {
+                Optimizations& duplicateOptimization = getOptimization(duplicateIndex);
+                duplicateOptimization.remove = true;
+
+                someDuplicatesFound = true;
+            }
         }
     }
 
