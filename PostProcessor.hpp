@@ -54,8 +54,8 @@ private:
 
     // Returns true if some duplicates were found in scheme and replacements
     bool processReplacements(const OptScheme& scheme,
-        int leftIndex, int transferedLeftIndex,
-        int rightIndex, int transferedRightIndex,
+        int leftIndex, int leftTransferedIndex,
+        int rightIndex, int rightTransferedIndex,
         const list<ReverseElement>& leftReplacement,
         const list<ReverseElement>& rightReplacement);
 

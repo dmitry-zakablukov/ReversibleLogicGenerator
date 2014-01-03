@@ -513,16 +513,16 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
             // 1) check right element with selection function
             if(selectionFunc(leftElement, rightElement))
             {
-                int transferedLeftIndex  = leftIndex;
-                int transferedRightIndex = rightIndex;
+                int leftTransferedIndex  = leftIndex;
+                int rightTransferedIndex = rightIndex;
 
                 // transfer elements if needed
-                if(transferedLeftIndex + 1 != transferedRightIndex)
+                if(leftTransferedIndex + 1 != rightTransferedIndex)
                 {
                     // transfer right element to left at maximum
-                    transferedRightIndex = getMaximumTransferIndex(scheme, rightElement, rightIndex, leftIndex);
+                    rightTransferedIndex = getMaximumTransferIndex(scheme, rightElement, rightIndex, leftIndex);
 
-                    if(transferedRightIndex != leftIndex + 1)
+                    if(rightTransferedIndex != leftIndex + 1)
                     {
                         // transfer left element to left at maximum (just once)
                         if(leftElementMaxTransferIndex == -1)
@@ -531,14 +531,14 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                                 leftIndex, elementCount - 1);
                         }
 
-                        transferedLeftIndex = leftElementMaxTransferIndex;
+                        leftTransferedIndex = leftElementMaxTransferIndex;
                     }
 
                     // compare indices
-                    if(transferedLeftIndex + 1 >= transferedRightIndex)
+                    if(leftTransferedIndex + 1 >= rightTransferedIndex)
                     {
                         // good right element, try to apply optimization
-                        transferedLeftIndex = transferedRightIndex - 1; // keep left element maximum left aligned
+                        leftTransferedIndex = rightTransferedIndex - 1; // keep left element maximum left aligned
                     }
                     else
                     {
@@ -553,8 +553,8 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                 swapFunc(leftElement, rightElement, &leftReplacement, &rightReplacement);
                 if(leftReplacement.size() || rightReplacement.size())
                 {
-                    bool duplicatesFound = processReplacements(scheme, leftIndex, transferedLeftIndex,
-                        rightIndex, transferedRightIndex, leftReplacement, rightReplacement);
+                    bool duplicatesFound = processReplacements(scheme, leftIndex, leftTransferedIndex,
+                        rightIndex, rightTransferedIndex, leftReplacement, rightReplacement);
 
                     schemeOptimized = !lessComplexityRequired || duplicatesFound;
                 }
@@ -618,8 +618,8 @@ int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
 }
 
 bool PostProcessor::processReplacements(const OptScheme& scheme,
-    int leftIndex, int transferedLeftIndex,
-    int rightIndex, int transferedRightIndex,
+    int leftIndex, int leftTransferedIndex,
+    int rightIndex, int rightTransferedIndex,
     const list<ReverseElement>& leftReplacement,
     const list<ReverseElement>& rightReplacement)
 {
@@ -643,7 +643,7 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
         // search duplicates to left
         foundDuplicatesInLeftReplacement =
             processDuplicatesInReplacement(scheme, leftReplacement, 0, leftIndex,
-            transferedLeftIndex, false, &leftProcessedReplacement);
+            leftTransferedIndex, false, &leftProcessedReplacement);
 
         // search duplicates to right
         list<ReverseElement> temp = leftProcessedReplacement;
@@ -651,7 +651,7 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
 
         foundDuplicatesInLeftReplacement = 
             processDuplicatesInReplacement(scheme, temp, &rightReplacement, rightIndex,
-            transferedRightIndex, true, &leftProcessedReplacement)
+            rightTransferedIndex, true, &leftProcessedReplacement)
             || foundDuplicatesInLeftReplacement;
     }
 
@@ -664,7 +664,7 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
         // search duplicates to right
         foundDuplicatesInRightReplacement =
             processDuplicatesInReplacement(scheme, rightReplacement, 0, rightIndex,
-            transferedRightIndex, true, &rightProcessedReplacement);
+            rightTransferedIndex, true, &rightProcessedReplacement);
 
         // search duplicates to left
         list<ReverseElement> temp = rightProcessedReplacement;
@@ -672,7 +672,7 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
 
         foundDuplicatesInRightReplacement =
             processDuplicatesInReplacement(scheme, temp, &leftProcessedReplacement, leftIndex,
-            transferedRightIndex, false, &rightProcessedReplacement)
+            rightTransferedIndex, false, &rightProcessedReplacement)
             || foundDuplicatesInRightReplacement;
     }
 
@@ -682,8 +682,8 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
     bool success = onlyOneReplacement || someDuplicatesFound;
     if(success)
     {
-        setReplacement(scheme,  leftProcessedReplacement,  leftIndex,  transferedLeftIndex);
-        setReplacement(scheme, rightProcessedReplacement, rightIndex, transferedRightIndex);
+        setReplacement(scheme,  leftProcessedReplacement,  leftIndex,  leftTransferedIndex);
+        setReplacement(scheme, rightProcessedReplacement, rightIndex, rightTransferedIndex);
     }
 
     return success;
