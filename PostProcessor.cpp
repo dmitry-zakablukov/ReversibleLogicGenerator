@@ -549,15 +549,16 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                         rightIndex, rightTransferedIndex, leftReplacement, rightReplacement);
 
                     optimizedScheme = removeDuplicates(testScheme);
+                    int optimizedSchemeSize = optimizedScheme.size();
 
                     // TODO: check if this second pass is needed at all
                     // debug: second pass turned off
                     //secondPassOptimizationFlag = false;
 
-                    if(secondPassOptimizationFlag)
+                    if(optimizedSchemeSize == elementCount && secondPassOptimizationFlag)
                     {
                         secondPassOptimizationFlag = false;
-                        complexityDelta = optimizedScheme.size() - scheme.size();
+                        complexityDelta = optimizedSchemeSize - elementCount;
 
                         bool tempFlag = false;
                         optimizedScheme = transferOptimization(optimizedScheme, &tempFlag);
