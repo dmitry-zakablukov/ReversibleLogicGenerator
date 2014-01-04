@@ -189,6 +189,7 @@ PostProcessor::OptimizationParams::OptimizationParams()
 PostProcessor::PostProcessor()
     : testScheme()
     , secondPassOptimizationFlag(true)
+    , complexityDelta(0)
 {
 }
 
@@ -551,18 +552,20 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
 
                     // TODO: check if this second pass is needed at all
                     // debug: second pass turned off
-                    secondPassOptimizationFlag = false;
+                    //secondPassOptimizationFlag = false;
 
                     if(secondPassOptimizationFlag)
                     {
                         secondPassOptimizationFlag = false;
+                        complexityDelta = optimizedScheme.size() - scheme.size();
 
                         bool tempFlag = false;
                         optimizedScheme = transferOptimization(optimizedScheme, &tempFlag);
+                        complexityDelta = 0;
                     }
 
                     int newElementCount = optimizedScheme.size();
-                    schemeOptimized = (newElementCount < elementCount)
+                    schemeOptimized = (newElementCount + complexityDelta < elementCount)
                         || (!lessComplexityRequired && newElementCount == elementCount);
 
                     //////////////////////////////////////////////////////////////////////////////

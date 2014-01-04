@@ -105,6 +105,8 @@ private:
     // inside transfer optimization, if less scheme complexity
     // is required
     bool secondPassOptimizationFlag;
+
+    int complexityDelta;
 };
 
 struct PostProcessor::OptimizationParams
