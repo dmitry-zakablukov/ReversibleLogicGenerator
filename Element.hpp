@@ -3,15 +3,6 @@
 namespace ReversibleLogic
 {
 
-struct FinalPair
-{
-    FinalPair();
-    FinalPair(word theTargetMask, word theControlMask);
-
-    word targetMask;
-    word controlMask;
-};
-
 class ReverseElement
 {
 public:

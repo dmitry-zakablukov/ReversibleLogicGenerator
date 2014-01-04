@@ -454,16 +454,4 @@ ReverseElement::getFinalImplementation() const
     return element;
 }
 
-FinalPair::FinalPair()
-    : targetMask(0)
-    , controlMask(0)
-{
-}
-
-FinalPair::FinalPair(word theTargetMask, word theControlMask)
-    : targetMask(theTargetMask)
-    , controlMask(theControlMask)
-{
-}
-
 }   // namespace ReversibleLogic
