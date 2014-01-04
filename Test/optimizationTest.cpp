@@ -136,6 +136,28 @@ Scheme getSecondPassScheme()
     return scheme;
 }
 
+Scheme getRd53()
+{
+    Scheme scheme;
+    uint n = 7;
+
+    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 3, END)) );
+    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 4, END)) );
+    scheme.push_back( ReverseElement(n, mask(6, END), mask(1, 2, 3, 4, END)) );
+    scheme.push_back( ReverseElement(n, mask(5, END), mask(1, 2, END)) );
+    scheme.push_back( ReverseElement(n, mask(1, END), mask(2, END)) );
+    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 3, 4, END)) );
+    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, END)) );
+    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
+    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 4, END)) );
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, END)) );
+    scheme.push_back( ReverseElement(n, mask(5, END), mask(3, 4, END)) );
+    scheme.push_back( ReverseElement(n, mask(4, END), mask(3, END)) );
+
+    return scheme;
+}
+
+
 void testOptimization( int argc, const char* argv[] )
 {
     const char strDefaultOutputFileName[] = "results.txt";
@@ -158,13 +180,17 @@ void testOptimization( int argc, const char* argv[] )
         //scheme = getReduceConnectionsScheme();
         //scheme = getMergeScheme();
         //scheme = getTransferScheme();
-        scheme = getSecondPassScheme();
+        //scheme = getSecondPassScheme();
+        scheme = getRd53();
         
         PostProcessor optimizer;
 
         uint elementCount = scheme.size();
 
-        outputFile << "Complexity before optimization: " << scheme.size() << '\n';
+        outputFile << "Complexity before optimization: " << scheme.size() << "\n\n";
+
+        string schemeString = SchemePrinter::schemeToString(scheme, true);
+        outputFile << schemeString << '\n';
 
         PostProcessor::OptScheme optimizedScheme(elementCount);
         for(uint index = 0; index < elementCount; ++index)
@@ -182,10 +208,9 @@ void testOptimization( int argc, const char* argv[] )
             scheme[index] = optimizedScheme[index];
         }
 
-        outputFile << "Complexity after optimization: " << scheme.size() << '\n';
+        outputFile << "Complexity after optimization: " << scheme.size() << "\n\n";
 
-        string schemeString = SchemePrinter::schemeToString(scheme, true);
-
+        schemeString = SchemePrinter::schemeToString(scheme, true);
         outputFile << schemeString;
 
         outputFile << "\n===============================================================\n";
