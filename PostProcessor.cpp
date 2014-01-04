@@ -562,7 +562,8 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                     }
 
                     int newElementCount = optimizedScheme.size();
-                    schemeOptimized = newElementCount < elementCount;
+                    schemeOptimized = (newElementCount < elementCount)
+                        || (!lessComplexityRequired && newElementCount == elementCount);
 
                     //////////////////////////////////////////////////////////////////////////////
                     ////// old strategy
