@@ -12,6 +12,11 @@ public:
     OptScheme optimize(const OptScheme& scheme);
 
 private:
+    enum
+    {
+        numMaxElementCountInReplacements = 3,
+    };
+
     struct OptimizationParams;
     typedef vector<OptimizationParams> Optimizations;
 
@@ -26,11 +31,12 @@ private:
     OptScheme removeDuplicates(const OptScheme& scheme);
 
     // (01)(11) -> *1
-    OptScheme mergeOptimization(OptScheme& scheme, bool* optimized = 0 );
+    OptScheme mergeOptimization(OptScheme& scheme, bool* optimized);
     // (01)(10) -> (*1)(1*)
-    OptScheme reduceConnectionsOptimization(OptScheme& scheme, bool* optimized = 0 );
+    OptScheme reduceConnectionsOptimization(OptScheme& scheme, bool* optimized);
 
-    OptScheme transferOptimization(OptScheme& scheme, bool* optimized = 0);
+    // Transfer optimization: two elements are swapped with producing new element
+    OptScheme transferOptimization(OptScheme& scheme, bool* optimized);
 
     OptScheme getFullScheme(const OptScheme& scheme, bool heavyRight = true);
     OptScheme getFinalSchemeImplementation(const OptScheme& scheme);
@@ -54,6 +60,14 @@ private:
 
     int getMaximumTransferIndex(const OptScheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex) const;
+
+    /// Inserts replacements to result scheme based on original scheme
+    void insertReplacements(const OptScheme& originalScheme,
+        OptScheme* resultScheme,
+        int leftIndex, int leftTransferedIndex,
+        int rightIndex, int rightTransferedIndex,
+        const list<ReverseElement>& leftReplacement,
+        const list<ReverseElement>& rightReplacement);
 
     // Returns true if some duplicates were found in scheme and replacements
     bool processReplacements(const OptScheme& scheme,
@@ -84,6 +98,13 @@ private:
 
     //OptimizationParams& getOptimization(uint index);
     //vector<OptimizationParams> optimizations;
+
+    OptScheme testScheme;
+
+    // this flag turns on and off second transfer optimization
+    // inside transfer optimization, if less scheme complexity
+    // is required
+    bool secondPassOptimizationFlag;
 };
 
 struct PostProcessor::OptimizationParams

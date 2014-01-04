@@ -160,31 +160,16 @@ void swapElementsWithTransferOptimization(const ReverseElement& leftElement, con
     word rightInversionMask = right->getInversionMask();
 
     // fill left replacement
-    if((leftControlMask | leftTargetMask) == rightControlMask
-        && leftInversionMask == (rightInversionMask & ~leftTargetMask))
-    {
-        // Case: (+01*)(001+), + -- target, 1 -- control, 0 -- control with inversion
-        // * -- not control
-        // Swap result: (101+)(+01*)
-        // Same for: (+01*)(101+)
+    leftReplacement->push_back(*right);
 
-        ReverseElement element = *right;
-        element.setInversionMask(rightInversionMask ^ leftTargetMask);
-        leftReplacement->push_back(element);
-    }
-    else
-    {
-        leftReplacement->push_back(*right);
+    ReverseElement element = *right;
+    word controlMask = ~leftTargetMask & (leftControlMask | rightControlMask);
+    element.setControlMask(controlMask);
 
-        ReverseElement element = *right;
-        word controlMask = ~leftTargetMask & (leftControlMask | rightControlMask);
-        element.setControlMask(controlMask);
+    word inversionMask = ~leftTargetMask & (leftInversionMask | rightInversionMask);
+    element.setInversionMask(inversionMask);
 
-        word inversionMask = ~leftTargetMask & (leftInversionMask | rightInversionMask);
-        element.setInversionMask(inversionMask);
-
-        leftReplacement->push_back(element);
-    }
+    leftReplacement->push_back(element);
 
     // fill right replacement
     rightReplacement->push_back(*left);
@@ -202,6 +187,8 @@ PostProcessor::OptimizationParams::OptimizationParams()
 }
 
 PostProcessor::PostProcessor()
+    : testScheme()
+    , secondPassOptimizationFlag(true)
 {
 }
 
@@ -262,6 +249,8 @@ void PostProcessor::prepareSchemeForOptimization(const OptScheme& scheme,
     {
         (*optimizations)[index] = OptimizationParams();
     }
+
+    testScheme.reserve(elementCount + numMaxElementCountInReplacements);
 }
 
 PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& scheme,
@@ -383,7 +372,7 @@ PostProcessor::OptScheme PostProcessor::removeDuplicates(const OptScheme& scheme
     return optimizedScheme;
 }
 
-PostProcessor::OptScheme PostProcessor::mergeOptimization(OptScheme& scheme, bool* optimized /* = 0 */)
+PostProcessor::OptScheme PostProcessor::mergeOptimization(OptScheme& scheme, bool* optimized)
 {
     assert(optimized, string("Null 'optimized' pointer"));
     *optimized = false;
@@ -402,7 +391,7 @@ PostProcessor::OptScheme PostProcessor::mergeOptimization(OptScheme& scheme, boo
     return optimizedScheme;
 }
 
-PostProcessor::OptScheme PostProcessor::reduceConnectionsOptimization( OptScheme& scheme, bool* optimized /*= 0 */ )
+PostProcessor::OptScheme PostProcessor::reduceConnectionsOptimization( OptScheme& scheme, bool* optimized)
 {
     assert(optimized, string("Null 'optimized' pointer"));
     *optimized = false;
@@ -421,7 +410,7 @@ PostProcessor::OptScheme PostProcessor::reduceConnectionsOptimization( OptScheme
     return optimizedScheme;
 }
 
-PostProcessor::OptScheme PostProcessor::transferOptimization(OptScheme& scheme, bool* optimized /* = 0 */)
+PostProcessor::OptScheme PostProcessor::transferOptimization(OptScheme& scheme, bool* optimized)
 {
     assert(optimized, string("Null 'optimized' pointer"));
     *optimized = false;
@@ -483,12 +472,13 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
     bool lessComplexityRequired, int* startIndex /* = 0 */)
 {
     Optimizations optimizations;
-    prepareSchemeForOptimization(scheme, &optimizations);
+    OptScheme optimizedScheme;
 
     bool schemeOptimized = false;
-
     int elementCount = scheme.size();
-    
+
+    prepareSchemeForOptimization(scheme, &optimizations);
+
     // find left element
     for(int leftIndex = startIndex ? *startIndex : 0;
         !schemeOptimized && leftIndex < elementCount - 1; ++leftIndex)
@@ -551,11 +541,41 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                 swapFunc(leftElement, rightElement, &leftReplacement, &rightReplacement);
                 if(leftReplacement.size() || rightReplacement.size())
                 {
-                    bool duplicatesFound = processReplacements(scheme, &optimizations,
-                        leftIndex, leftTransferedIndex, rightIndex, rightTransferedIndex,
-                        leftReplacement, rightReplacement);
+                    //////////////////////////////////////////////////////////////////////////
+                    // new strategy here
+                    //////////////////////////////////////////////////////////////////////////
+                    insertReplacements(scheme, &testScheme, leftIndex, leftTransferedIndex,
+                        rightIndex, rightTransferedIndex, leftReplacement, rightReplacement);
 
-                    schemeOptimized = !lessComplexityRequired || duplicatesFound;
+                    optimizedScheme = removeDuplicates(testScheme);
+
+                    // TODO: check if this second pass is needed at all
+                    // debug: second pass turned off
+                    secondPassOptimizationFlag = false;
+
+                    if(secondPassOptimizationFlag)
+                    {
+                        secondPassOptimizationFlag = false;
+
+                        bool tempFlag = false;
+                        optimizedScheme = transferOptimization(optimizedScheme, &tempFlag);
+                    }
+
+                    int newElementCount = optimizedScheme.size();
+                    schemeOptimized = newElementCount < elementCount;
+
+                    //////////////////////////////////////////////////////////////////////////////
+                    ////// old strategy
+                    //////////////////////////////////////////////////////////////////////////////
+                    ////bool duplicatesFound = processReplacements(scheme, &optimizations,
+                    ////    leftIndex, leftTransferedIndex, rightIndex, rightTransferedIndex,
+                    ////    leftReplacement, rightReplacement);
+
+                    ////schemeOptimized = !lessComplexityRequired || duplicatesFound;
+                    ////if(schemeOptimized)
+                    ////{
+                    ////    optimizedScheme = applyOptimizations(scheme, optimizations);
+                    ////}
                 }
                 else
                 {
@@ -567,6 +587,7 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                     rightOptimization.remove = true;
 
                     schemeOptimized = true;
+                    optimizedScheme = applyOptimizations(scheme, optimizations);
                 }
             }
         }
@@ -577,7 +598,12 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
         *optimizationSucceeded = schemeOptimized;
     }
 
-    return applyOptimizations(scheme, optimizations);
+    if(!schemeOptimized)
+    {
+        optimizedScheme = scheme;
+    }
+
+    return optimizedScheme;
 }
 
 int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
@@ -616,6 +642,65 @@ int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
     return index;
 }
 
+void PostProcessor::insertReplacements(const OptScheme& originalScheme,
+    OptScheme* resultScheme,
+    int leftIndex, int leftTransferedIndex,
+    int rightIndex, int rightTransferedIndex,
+    const list<ReverseElement>& leftReplacement,
+    const list<ReverseElement>& rightReplacement )
+{
+    // check input parameters
+    assert(resultScheme, string("PostProcessor: resultScheme == 0"));
+
+    assert(leftIndex <= leftTransferedIndex,
+        string("PostProcessor: wrong left index for replacements insertion"));
+
+    assert(rightIndex >= rightTransferedIndex,
+        string("PostProcessor: wrong right index for replacements insertion"));
+
+    assert(leftTransferedIndex + 1 == rightTransferedIndex,
+        string("PostProcessor: leftTransferedIndex + 1 != rightTransferedIndex"))
+
+    int elementCount = originalScheme.size();
+    uint leftReplacementSize  =  leftReplacement.size();
+    uint rightReplacementSize = rightReplacement.size();
+
+    // check element count in left and right replacement
+    assert(leftReplacementSize + rightReplacementSize <= numMaxElementCountInReplacements,
+        string("PostProcessor: too many elements in replacements"));
+
+    resultScheme->reserve(elementCount + numMaxElementCountInReplacements);
+    resultScheme->resize(0);
+
+    // insert all elements until leftTransferedIndex
+    for(int index = 0; index <= leftTransferedIndex; ++index)
+    {
+        if(index == leftIndex)
+        {
+            continue;
+        }
+
+        const ReverseElement& element = originalScheme[index];
+        resultScheme->push_back(element);
+    }
+
+    // insert replacements
+    resultScheme->insert(resultScheme->end(),  leftReplacement.cbegin(),  leftReplacement.cend());
+    resultScheme->insert(resultScheme->end(), rightReplacement.cbegin(), rightReplacement.cend());
+
+    // insert rest elements
+    for(int index = rightTransferedIndex; index < elementCount; ++index)
+    {
+        if(index == rightIndex)
+        {
+            continue;
+        }
+
+        const ReverseElement& element = originalScheme[index];
+        resultScheme->push_back(element);
+    }
+}
+
 bool PostProcessor::processReplacements(const OptScheme& scheme,
     Optimizations* optimizations,
     int leftIndex, int leftTransferedIndex,
@@ -627,8 +712,8 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
     checkReplacement(leftReplacement);
     checkReplacement(rightReplacement);
 
-    // 2) check element count in left and right replacement less than 4
-    assert(leftReplacement.size() + rightReplacement.size() < 4,
+    // 2) check element count in left and right replacement
+    assert(leftReplacement.size() + rightReplacement.size() <= numMaxElementCountInReplacements,
         string("PostProcessor: too many elements in replacements"));
 
     // 3) find duplicates if needed
