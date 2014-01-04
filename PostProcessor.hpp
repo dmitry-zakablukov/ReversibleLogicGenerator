@@ -12,8 +12,11 @@ public:
     OptScheme optimize(const OptScheme& scheme);
 
 private:
-    void prepareSchemeForOptimization(const OptScheme& scheme);
-    OptScheme applyOptimizations(const OptScheme& scheme);
+    struct OptimizationParams;
+    typedef vector<OptimizationParams> Optimizations;
+
+    void prepareSchemeForOptimization(const OptScheme& scheme, Optimizations* optimizations);
+    OptScheme applyOptimizations(const OptScheme& scheme, const Optimizations& optimizations);
 
     // Optimize CNOTs and CCNOTs with inversions
     uint findInversedElementsSequence(const OptScheme& scheme, uint startPosition);
@@ -54,6 +57,7 @@ private:
 
     // Returns true if some duplicates were found in scheme and replacements
     bool processReplacements(const OptScheme& scheme,
+        Optimizations* optimizations,
         int leftIndex, int leftTransferedIndex,
         int rightIndex, int rightTransferedIndex,
         const list<ReverseElement>& leftReplacement,
@@ -63,6 +67,7 @@ private:
 
     // Returns true if some duplicates were found in scheme and specified replacement
     bool processDuplicatesInReplacement(const OptScheme& scheme,
+        Optimizations* optimizations,
         const list<ReverseElement>& replacement,
         const list<ReverseElement>* anotherReplacement,
         int originalIndex, int transferedIndex, bool searchToRight,
@@ -73,18 +78,17 @@ private:
     int findDuplicateElementIndex(const OptScheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex, int skipIndex) const;
 
-    void setReplacement(const OptScheme& scheme, list<ReverseElement>& replacement,
+    void setReplacement(const OptScheme& scheme, Optimizations* optimizations,
+        list<ReverseElement>& replacement,
         int originalIndex, int transferedIndex);
 
-    struct Optimizations;
-    Optimizations& getOptimization(uint index);
-
-    vector<Optimizations> optimizations;
+    //OptimizationParams& getOptimization(uint index);
+    //vector<OptimizationParams> optimizations;
 };
 
-struct PostProcessor::Optimizations
+struct PostProcessor::OptimizationParams
 {
-    Optimizations();
+    OptimizationParams();
 
     bool inversions;
     bool heavyRight;

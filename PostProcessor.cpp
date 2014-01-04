@@ -191,7 +191,7 @@ void swapElementsWithTransferOptimization(const ReverseElement& leftElement, con
 }
 
 //////////////////////////////////////////////////////////////////////////
-PostProcessor::Optimizations::Optimizations()
+PostProcessor::OptimizationParams::OptimizationParams()
     : inversions(false)
     , heavyRight(false)
     , remove(false)
@@ -202,7 +202,6 @@ PostProcessor::Optimizations::Optimizations()
 }
 
 PostProcessor::PostProcessor()
-    : optimizations()
 {
 }
 
@@ -253,23 +252,20 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     return implementation;
 }
 
-PostProcessor::Optimizations& PostProcessor::getOptimization(uint index)
-{
-    return optimizations[index];
-}
-
-void PostProcessor::prepareSchemeForOptimization(const OptScheme& scheme)
+void PostProcessor::prepareSchemeForOptimization(const OptScheme& scheme,
+    Optimizations* optimizations)
 {
     uint elementCount = scheme.size();
-    optimizations.resize(elementCount);
+    optimizations->resize(elementCount);
 
     for(uint index = 0; index < elementCount; ++index)
     {
-        optimizations[index] = Optimizations();
+        (*optimizations)[index] = OptimizationParams();
     }
 }
 
-PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& scheme)
+PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& scheme,
+    const Optimizations& optimizations)
 {
     uint elementCount = scheme.size();
     OptScheme optimizedScheme;
@@ -277,7 +273,7 @@ PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& sche
 
     for(uint index = 0; index < elementCount; ++index)
     {
-        const Optimizations& optimization = optimizations[index];
+        const OptimizationParams& optimization = optimizations[index];
         if(!optimization.remove)
         {
             // replace element by another elements
@@ -339,7 +335,8 @@ uint PostProcessor::findInversedElementsSequence(const OptScheme& scheme, uint s
 
 PostProcessor::OptScheme PostProcessor::optimizeInversions(const OptScheme& scheme)
 {
-    prepareSchemeForOptimization(scheme);
+    Optimizations optimizations;
+    prepareSchemeForOptimization(scheme, &optimizations);
 
     uint elementCount = scheme.size();
     for(uint index = 0; index < elementCount; ++index)
@@ -358,7 +355,7 @@ PostProcessor::OptScheme PostProcessor::optimizeInversions(const OptScheme& sche
                 uint optIndex = index;
                 while(sequenceLength--)
                 {
-                    Optimizations& optimization = optimizations[optIndex];
+                    OptimizationParams& optimization = optimizations[optIndex];
                     optimization.asis = false;
                     optimization.inversions = true;
 
@@ -368,7 +365,7 @@ PostProcessor::OptScheme PostProcessor::optimizeInversions(const OptScheme& sche
         }
     }
 
-    return applyOptimizations(scheme);
+    return applyOptimizations(scheme, optimizations);
 }
 
 PostProcessor::OptScheme PostProcessor::removeDuplicates(const OptScheme& scheme)
@@ -485,7 +482,8 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
     bool* optimizationSucceeded, bool searchPairFromEnd,
     bool lessComplexityRequired, int* startIndex /* = 0 */)
 {
-    prepareSchemeForOptimization(scheme);
+    Optimizations optimizations;
+    prepareSchemeForOptimization(scheme, &optimizations);
 
     bool schemeOptimized = false;
 
@@ -553,18 +551,19 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                 swapFunc(leftElement, rightElement, &leftReplacement, &rightReplacement);
                 if(leftReplacement.size() || rightReplacement.size())
                 {
-                    bool duplicatesFound = processReplacements(scheme, leftIndex, leftTransferedIndex,
-                        rightIndex, rightTransferedIndex, leftReplacement, rightReplacement);
+                    bool duplicatesFound = processReplacements(scheme, &optimizations,
+                        leftIndex, leftTransferedIndex, rightIndex, rightTransferedIndex,
+                        leftReplacement, rightReplacement);
 
                     schemeOptimized = !lessComplexityRequired || duplicatesFound;
                 }
                 else
                 {
                     // just remove left and right elements from scheme
-                    Optimizations& leftOptimization = optimizations[leftIndex];
+                    OptimizationParams& leftOptimization = optimizations[leftIndex];
                     leftOptimization.remove = true;
 
-                    Optimizations& rightOptimization = optimizations[rightIndex];
+                    OptimizationParams& rightOptimization = optimizations[rightIndex];
                     rightOptimization.remove = true;
 
                     schemeOptimized = true;
@@ -578,7 +577,7 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
         *optimizationSucceeded = schemeOptimized;
     }
 
-    return applyOptimizations(scheme);
+    return applyOptimizations(scheme, optimizations);
 }
 
 int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
@@ -618,6 +617,7 @@ int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
 }
 
 bool PostProcessor::processReplacements(const OptScheme& scheme,
+    Optimizations* optimizations,
     int leftIndex, int leftTransferedIndex,
     int rightIndex, int rightTransferedIndex,
     const list<ReverseElement>& leftReplacement,
@@ -642,15 +642,17 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
     {
         // search duplicates to left
         foundDuplicatesInLeftReplacement =
-            processDuplicatesInReplacement(scheme, leftReplacement, 0, leftIndex,
-            leftTransferedIndex, false, &leftProcessedReplacement);
+            processDuplicatesInReplacement(scheme, optimizations,
+            leftReplacement, 0, leftIndex, leftTransferedIndex,
+            false, &leftProcessedReplacement);
 
         // search duplicates to right
         list<ReverseElement> temp = leftProcessedReplacement;
         leftProcessedReplacement.resize(0);
 
         foundDuplicatesInLeftReplacement = 
-            processDuplicatesInReplacement(scheme, temp, &rightReplacement, rightIndex,
+            processDuplicatesInReplacement(scheme, optimizations,
+            temp, &rightReplacement, rightIndex,
             rightTransferedIndex, true, &leftProcessedReplacement)
             || foundDuplicatesInLeftReplacement;
     }
@@ -663,15 +665,17 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
     {
         // search duplicates to right
         foundDuplicatesInRightReplacement =
-            processDuplicatesInReplacement(scheme, rightReplacement, 0, rightIndex,
-            rightTransferedIndex, true, &rightProcessedReplacement);
+            processDuplicatesInReplacement(scheme, optimizations,
+            rightReplacement, 0, rightIndex, rightTransferedIndex,
+            true, &rightProcessedReplacement);
 
         // search duplicates to left
         list<ReverseElement> temp = rightProcessedReplacement;
         rightProcessedReplacement.resize(0);
 
         foundDuplicatesInRightReplacement =
-            processDuplicatesInReplacement(scheme, temp, &leftProcessedReplacement, leftIndex,
+            processDuplicatesInReplacement(scheme, optimizations,
+            temp, &leftProcessedReplacement, leftIndex,
             rightTransferedIndex, false, &rightProcessedReplacement)
             || foundDuplicatesInRightReplacement;
     }
@@ -682,8 +686,8 @@ bool PostProcessor::processReplacements(const OptScheme& scheme,
     bool success = onlyOneReplacement || someDuplicatesFound;
     if(success)
     {
-        setReplacement(scheme,  leftProcessedReplacement,  leftIndex,  leftTransferedIndex);
-        setReplacement(scheme, rightProcessedReplacement, rightIndex, rightTransferedIndex);
+        setReplacement(scheme, optimizations,  leftProcessedReplacement,  leftIndex,  leftTransferedIndex);
+        setReplacement(scheme, optimizations, rightProcessedReplacement, rightIndex, rightTransferedIndex);
     }
 
     return success;
@@ -754,6 +758,7 @@ int PostProcessor::findDuplicateElementIndex(const OptScheme& scheme,
 }
 
 bool PostProcessor::processDuplicatesInReplacement(const OptScheme& scheme,
+    Optimizations* optimizations,
     const list<ReverseElement>& replacement,
     const list<ReverseElement>* anotherReplacement, int originalIndex,
     int transferedIndex, bool searchToRight,
@@ -780,7 +785,7 @@ bool PostProcessor::processDuplicatesInReplacement(const OptScheme& scheme,
             }
             else
             {
-                Optimizations& duplicateOptimization = getOptimization(duplicateIndex);
+                OptimizationParams& duplicateOptimization = (*optimizations)[duplicateIndex];
                 duplicateOptimization.remove = true;
 
                 someDuplicatesFound = true;
@@ -792,6 +797,7 @@ bool PostProcessor::processDuplicatesInReplacement(const OptScheme& scheme,
 }
 
 void PostProcessor::setReplacement(const OptScheme& scheme,
+    Optimizations* optimizations,
     list<ReverseElement>& replacement,
     int originalIndex, int transferedIndex)
 {
@@ -800,7 +806,7 @@ void PostProcessor::setReplacement(const OptScheme& scheme,
     {
         // all replacement elements were removed as duplicates,
         // so remove original element from scheme
-        Optimizations& targetOptimization = getOptimization(originalIndex);
+        OptimizationParams& targetOptimization = (*optimizations)[originalIndex];
         targetOptimization.remove = true;
     }
     else
@@ -808,7 +814,7 @@ void PostProcessor::setReplacement(const OptScheme& scheme,
         if(originalIndex == transferedIndex)
         {
             // element wasn't transfered, just replace it
-            Optimizations& targetOptimization = getOptimization(originalIndex);
+            OptimizationParams& targetOptimization = (*optimizations)[originalIndex];
             targetOptimization.replace      = true;
 
             vector<ReverseElement> replacementVector;
@@ -818,14 +824,14 @@ void PostProcessor::setReplacement(const OptScheme& scheme,
         else
         {
             // remove original element
-            Optimizations& targetOptimization = getOptimization(originalIndex);
+            OptimizationParams& targetOptimization = (*optimizations)[originalIndex];
             targetOptimization.remove = true;
 
             // replace element with transfered index with itself plus replacement
             const ReverseElement& transferedElement = scheme[transferedIndex];
             replacement.insert(replacement.begin(), transferedElement);
 
-            Optimizations& transferedOptimization = getOptimization(transferedIndex);
+            OptimizationParams& transferedOptimization = (*optimizations)[transferedIndex];
             transferedOptimization.replace      = true;
 
             vector<ReverseElement> replacementVector;
