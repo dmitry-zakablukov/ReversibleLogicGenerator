@@ -126,22 +126,29 @@ bool ReverseElement::isSwitchable(const ReverseElement& another) const
     assert(isValid(), string("Reverse element is not valid"));
     assert(another.isValid(), string("Reverse element is not valid"));
 
-    bool switchable = true;
-
     word anotherTargetMask  = another.getTargetMask();
     word anotherControlMask = another.getControlMask();
     word anotherInversionMask = another.getInversionMask();
 
-    if((targetMask & anotherControlMask)
-            || (controlMask & anotherTargetMask))
+    bool switchable = (!(anotherControlMask & targetMask) && !(controlMask & anotherTargetMask))
+        || ((inversionMask ^ anotherInversionMask) & controlMask & anotherControlMask);
+
+    return switchable;
+}
+
+bool ReverseElement::isSwitchable(const list<ReverseElement>& elements) const
+{
+    assert(isValid(), string("Reverse element is not valid"));
+
+    bool switchable = true;
+    forcin(element, elements)
     {
-        word differentInversionsMask = inversionMask ^ anotherInversionMask;
-        switchable = differentInversionsMask &&
-            (controlMask & anotherControlMask & differentInversionsMask) != 0;
-
-        differentInversionsMask = 0;
+        if(!isSwitchable(*element))
+        {
+            switchable = false;
+            break;
+        }
     }
-
     return switchable;
 }
 
@@ -445,18 +452,6 @@ ReverseElement::getFinalImplementation() const
 
     ReverseElement element(n, targetMask, controlMask);
     return element;
-}
-
-FinalPair::FinalPair()
-    : targetMask(0)
-    , controlMask(0)
-{
-}
-
-FinalPair::FinalPair(word theTargetMask, word theControlMask)
-    : targetMask(theTargetMask)
-    , controlMask(theControlMask)
-{
 }
 
 }   // namespace ReversibleLogic

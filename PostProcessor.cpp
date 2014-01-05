@@ -3,7 +3,180 @@
 namespace ReversibleLogic
 {
 
-PostProcessor::Optimizations::Optimizations()
+//////////////////////////////////////////////////////////////////////////
+// Selection functions
+//////////////////////////////////////////////////////////////////////////
+bool selectEqual(const ReverseElement& left, const ReverseElement& right)
+{
+    return left == right;
+}
+
+bool selectForReduceConnectionsOptimization(const ReverseElement& left,
+    const ReverseElement& right)
+{
+    // (01)(10) -> (*1)(1*)
+
+    bool result = false;
+    if(left.getTargetMask() == right.getTargetMask()
+        && left.getControlMask() == right.getControlMask())
+    {
+        word  leftInversionMask =  left.getInversionMask();
+        word rightInversionMask = right.getInversionMask();
+
+        word diffInversionMask = leftInversionMask ^ rightInversionMask;
+        word controlValue = leftInversionMask & diffInversionMask;
+
+        result = (countNonZeroBits(diffInversionMask) == 2
+            && countNonZeroBits(controlValue) == 1);
+    }
+
+    return result;
+}
+
+bool selectForMergeOptimization(const ReverseElement& left,
+    const ReverseElement& right)
+{
+    // (01)(11) -> (*1)
+
+    bool result = false;
+    if(left.getTargetMask() == right.getTargetMask()
+        && left.getControlMask() == right.getControlMask())
+    {
+        word  leftInversionMask =  left.getInversionMask();
+        word rightInversionMask = right.getInversionMask();
+
+        word diffInversionMask = leftInversionMask ^ rightInversionMask;
+        result = (countNonZeroBits(diffInversionMask) == 1);
+    }
+
+    return result;
+}
+
+bool selectForTransferOptimization(const ReverseElement& left,
+    const ReverseElement& right)
+{
+    word leftTargetMask   =  left.getTargetMask();
+    word leftControlMask  =  left.getControlMask();
+
+    word rightTargetMask  = right.getTargetMask();
+    word rightControlMask = right.getControlMask();
+
+    bool result = false;
+    if(!left.isSwitchable(right))
+    {
+        // (left_target in right_controls) xor (right_target in left_controls)
+        result = ((rightControlMask & leftTargetMask) != 0) ^ ((leftControlMask & rightTargetMask) != 0);
+    }
+
+    return result;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Swap functions
+//////////////////////////////////////////////////////////////////////////
+void swapEqualElements(const ReverseElement& left, const ReverseElement& right,
+    list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
+{
+    assert(selectEqual(left, right), string("swapEqualElements(): wrong input elements"));
+
+    // leave replacements empty
+    leftReplacement->resize(0);
+    rightReplacement->resize(0);
+}
+
+void swapElementsWithConnectionReduction(const ReverseElement& left, const ReverseElement& right,
+    list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
+{
+    assert(selectForReduceConnectionsOptimization(left, right),
+        string("swapElementsWithConnectionReduction(): wrong input elements"));
+
+    word  leftInversionMask =  left.getInversionMask();
+    word rightInversionMask = right.getInversionMask();
+    word diffInversionMask  = leftInversionMask ^ rightInversionMask;
+
+    // important! fill only left replacement
+    ReverseElement newLeft = left;
+    word clearMask = diffInversionMask & leftInversionMask;
+
+    newLeft.setControlMask(left.getControlMask() & ~clearMask);
+    newLeft.setInversionMask(leftInversionMask & ~clearMask);
+
+    leftReplacement->push_back(newLeft);
+
+    ReverseElement newRight = right;
+    clearMask = diffInversionMask & rightInversionMask;
+
+    newRight.setControlMask(right.getControlMask() & ~clearMask);
+    newRight.setInversionMask(rightInversionMask & ~clearMask);
+
+    leftReplacement->push_back(newRight);
+}
+
+void swapElementsWithMerge(const ReverseElement& left, const ReverseElement& right,
+    list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
+{
+    assert(selectForMergeOptimization(left, right),
+        string("swapElementsWithMerge(): wrong input elements"));
+
+    word inversionMask = left.getInversionMask();
+    word controlMask   = left.getControlMask();
+    word diffInversionMask  = inversionMask ^ right.getInversionMask();
+
+    // important! fill only left replacement
+    ReverseElement element = left;
+    element.setInversionMask(inversionMask & ~diffInversionMask);
+    element.setControlMask(controlMask & ~diffInversionMask);
+
+    leftReplacement->push_back(element);
+}
+
+void swapElementsWithTransferOptimization(const ReverseElement& leftElement, const ReverseElement& rightElement,
+    list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
+{
+    assert(selectForTransferOptimization(leftElement, rightElement),
+        string("swapElementsWithTransferOptimization(): wrong input elements"));
+
+    const ReverseElement*  left =  &leftElement;
+    const ReverseElement* right = &rightElement;
+
+    // unify swap
+    if(left->getControlMask() & right->getTargetMask())
+    {
+        const ReverseElement* tempElement = right;
+        right = left;
+        left  = tempElement;
+
+        list<ReverseElement>* tempReplacement = rightReplacement;
+        rightReplacement = leftReplacement;
+        leftReplacement  = tempReplacement;
+    }
+
+    word leftTargetMask     =  left->getTargetMask();
+    word leftControlMask    =  left->getControlMask();
+    word leftInversionMask  =  left->getInversionMask();
+                            
+    word rightTargetMask    = right->getTargetMask();
+    word rightControlMask   = right->getControlMask();
+    word rightInversionMask = right->getInversionMask();
+
+    // fill left replacement
+    leftReplacement->push_back(*right);
+
+    ReverseElement element = *right;
+    word controlMask = ~leftTargetMask & (leftControlMask | rightControlMask);
+    element.setControlMask(controlMask);
+
+    word inversionMask = ~leftTargetMask & (leftInversionMask | rightInversionMask);
+    element.setInversionMask(inversionMask);
+
+    leftReplacement->push_back(element);
+
+    // fill right replacement
+    rightReplacement->push_back(*left);
+}
+
+//////////////////////////////////////////////////////////////////////////
+PostProcessor::OptimizationParams::OptimizationParams()
     : inversions(false)
     , heavyRight(false)
     , remove(false)
@@ -14,145 +187,83 @@ PostProcessor::Optimizations::Optimizations()
 }
 
 PostProcessor::PostProcessor()
-    : optimizations()
+    : testScheme()
+    , secondPassOptimizationFlag(true)
+    , complexityDelta(0)
 {
 }
 
-PostProcessor::Scheme PostProcessor::optimize(const Scheme& scheme)
+PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
 {
-    Scheme optimizedScheme = scheme;
+    OptScheme optimizedScheme = scheme;
     uint lengthBefore = uintUndefined;
     uint lengthAfter  = uintUndefined;
+    
+    //// debug
+    //return scheme;
 
-    return scheme;
-
-    ////// optimize inversions
-    ////optimizedScheme = optimizeInversions(optimizedScheme);
-
-    ////// merge optimization
-    ////lengthBefore = optimizedScheme.size();
-    ////lengthAfter  = uintUndefined;
-
-    ////lengthBefore = optimizedScheme.size();
-    ////lengthAfter  = uintUndefined;
-    ////while(lengthBefore != lengthAfter)
-    ////{
-    ////    lengthBefore = optimizedScheme.size();
-    ////    optimizedScheme = removeDuplicates(optimizedScheme);
-    ////    lengthAfter = optimizedScheme.size();
-    ////}
-
-    ////optimizedScheme = removeDuplicates(optimizedScheme);
+    //optimizedScheme = removeDuplicates(optimizedScheme);
 
     bool needOptimization = true;
-    while(needOptimization)
+    uint step = 0;
+    while(needOptimization /*&& step < 1*/)
     {
-        optimizedScheme = mergeOptimization(optimizedScheme, false, &needOptimization);
+        needOptimization = false;
+        optimizedScheme = mergeOptimization(optimizedScheme, &needOptimization);
+
         bool additionalOptimized = false;
-        optimizedScheme = mergeOptimization(optimizedScheme, true, &additionalOptimized);
-
+        optimizedScheme = reduceConnectionsOptimization(optimizedScheme, &additionalOptimized);
         needOptimization = needOptimization || additionalOptimized;
-        additionalOptimized = true;
-        while(additionalOptimized)
-        {
-            optimizedScheme = reduceConnectionsOptimization(optimizedScheme, &additionalOptimized);
-        }
 
+        optimizedScheme = transferOptimization(optimizedScheme, &additionalOptimized);
         needOptimization = needOptimization || additionalOptimized;
+
+        ++step;
     }
 
-    //needOptimization = true;
-    //while(needOptimization)
-    //{
-    //    optimizedScheme = reduceConnectionsOptimization(optimizedScheme, &needOptimization);
-    //}
-
-    ////lengthBefore = optimizedScheme.size();
-    ////lengthAfter  = uintUndefined;
-    ////while(lengthBefore != lengthAfter)
-    ////{
-    ////    lengthBefore = optimizedScheme.size();
-    ////    optimizedScheme = removeDuplicates(optimizedScheme);
-    ////    lengthAfter = optimizedScheme.size();
-    ////}
-
-    ////needOptimization = true;
-    ////while(needOptimization)
-    ////{
-    ////    optimizedScheme = mergeOptimization(optimizedScheme, &needOptimization);
-    ////}
-
-    ////// remove duplicates
-    ////optimizedScheme = removeDuplicates(optimizedScheme);
-
     // final implementation
-    //implementation = self.__getFinalSchemeImplementation(optimizedScheme)
-    Scheme implementation;
+    OptScheme implementation;
     implementation = optimizedScheme;
 
     implementation = getFullScheme(optimizedScheme);
 
-    ////lengthBefore = implementation.size();
-    ////lengthAfter  = uintUndefined;
-    ////while(lengthBefore != lengthAfter)
-    ////{
-    ////    lengthBefore = implementation.size();
-    ////    implementation = removeDuplicates(implementation);
-    ////    lengthAfter = implementation.size();
-    ////}
-
     needOptimization = true;
-    uint startPos = 0;
-    //uint step = 0;
+    //step = 0;
     while(needOptimization/* && step < 1*/)
     {
-        startPos = 0;
-        implementation = transferOptimization(implementation, &startPos, false, &needOptimization);
-        bool additionalOptimized = false;
-        startPos = 0;
-        implementation = transferOptimization(implementation, &startPos, true, &additionalOptimized);
-
-        needOptimization = needOptimization || additionalOptimized;
-
-
+        needOptimization = false;
+        implementation = transferOptimization(implementation, &needOptimization);
         implementation = removeDuplicates(implementation);
         //++step;
     }    
 
-    ////implementation = getFullScheme(implementation);
-
-    ////lengthBefore = implementation.size();
-    ////lengthAfter  = uintUndefined;
-    ////while(lengthBefore != lengthAfter)
-    ////{
-    ////    lengthBefore = implementation.size();
-    ////    implementation = removeDuplicates(implementation);
-    ////    lengthAfter = implementation.size();
-    ////}
-
     return implementation;
 }
 
-void PostProcessor::prepareSchemeForOptimization(const Scheme& scheme)
+void PostProcessor::prepareSchemeForOptimization(const OptScheme& scheme,
+    Optimizations* optimizations)
 {
     uint elementCount = scheme.size();
-    optimizations.resize(elementCount);
+    optimizations->resize(elementCount);
 
     for(uint index = 0; index < elementCount; ++index)
     {
-        optimizations[index] = Optimizations();
+        (*optimizations)[index] = OptimizationParams();
     }
+
+    testScheme.reserve(elementCount + numMaxElementCountInReplacements);
 }
 
-PostProcessor::Scheme PostProcessor::applyOptimizations(const Scheme& scheme)
+PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& scheme,
+    const Optimizations& optimizations)
 {
     uint elementCount = scheme.size();
-    Scheme optimizedScheme;
+    OptScheme optimizedScheme;
     optimizedScheme.reserve(elementCount);
 
     for(uint index = 0; index < elementCount; ++index)
     {
-        const Optimizations& optimization = optimizations[index];
+        const OptimizationParams& optimization = optimizations[index];
         if(!optimization.remove)
         {
             // replace element by another elements
@@ -186,7 +297,7 @@ PostProcessor::Scheme PostProcessor::applyOptimizations(const Scheme& scheme)
     return optimizedScheme;
 }
 
-uint PostProcessor::findInversedElementsSequence(const Scheme& scheme, uint startPosition)
+uint PostProcessor::findInversedElementsSequence(const OptScheme& scheme, uint startPosition)
 {
     uint sequenceLength = 1;
     uint elementCount = scheme.size();
@@ -212,9 +323,10 @@ uint PostProcessor::findInversedElementsSequence(const Scheme& scheme, uint star
     return sequenceLength;
 }
 
-PostProcessor::Scheme PostProcessor::optimizeInversions(const Scheme& scheme)
+PostProcessor::OptScheme PostProcessor::optimizeInversions(const OptScheme& scheme)
 {
-    prepareSchemeForOptimization(scheme);
+    Optimizations optimizations;
+    prepareSchemeForOptimization(scheme, &optimizations);
 
     uint elementCount = scheme.size();
     for(uint index = 0; index < elementCount; ++index)
@@ -233,7 +345,7 @@ PostProcessor::Scheme PostProcessor::optimizeInversions(const Scheme& scheme)
                 uint optIndex = index;
                 while(sequenceLength--)
                 {
-                    Optimizations& optimization = optimizations[optIndex];
+                    OptimizationParams& optimization = optimizations[optIndex];
                     optimization.asis = false;
                     optimization.inversions = true;
 
@@ -243,176 +355,84 @@ PostProcessor::Scheme PostProcessor::optimizeInversions(const Scheme& scheme)
         }
     }
 
-    return applyOptimizations(scheme);
+    return applyOptimizations(scheme, optimizations);
 }
 
-PostProcessor::Scheme PostProcessor::mergeOptimization(Scheme& scheme,
-    bool reverse, bool* optimized /* = 0 */)
+PostProcessor::OptScheme PostProcessor::removeDuplicates(const OptScheme& scheme)
+{
+    OptScheme optimizedScheme = scheme;
+    int startIndex = 0;
+    bool repeat = true;
+
+    while(repeat)
+    {
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectEqual,
+            swapEqualElements, &repeat, false, true, &startIndex);
+    }
+
+    return optimizedScheme;
+}
+
+PostProcessor::OptScheme PostProcessor::mergeOptimization(OptScheme& scheme, bool* optimized)
 {
     assert(optimized, string("Null 'optimized' pointer"));
     *optimized = false;
 
-    prepareSchemeForOptimization(scheme);
+    OptScheme optimizedScheme = scheme;
+    bool repeat = true;
 
-    uint elementCount = scheme.size();
-
-    uint startIndex = (reverse ? elementCount - 1 : 0);
-    uint stopIndex  = (reverse ? -1 : elementCount);
-    uint step = (reverse ? -1 : 1);
-
-    for(uint firstIndex = startIndex; firstIndex != stopIndex; firstIndex += step)
+    while(repeat)
     {
-        Optimizations& firstOptimization = optimizations[firstIndex];
-        if(!firstOptimization.asis)
-        {
-            continue;
-        }
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForMergeOptimization,
+            swapElementsWithMerge, &repeat, false, false);
 
-        ReverseElement& firstElement = scheme[firstIndex];
-        for(uint secondIndex = firstIndex + step; secondIndex != stopIndex; secondIndex += step)
-        {
-            ReverseElement& secondElement = scheme[secondIndex];
-            Optimizations& secondOptimization = optimizations[secondIndex];
-
-            if(!firstElement.isSwitchable(secondElement))
-            {
-                break;
-            }
-
-            if(!secondOptimization.asis)
-            {
-                continue;
-            }
-
-            if(firstElement.getTargetMask() == secondElement.getTargetMask()
-                && firstElement.getControlMask() == secondElement.getControlMask())
-            {
-                word firstInversionMask  =  firstElement.getInversionMask();
-                word secondInversionMask = secondElement.getInversionMask();
-
-                word differentInversionMask = firstInversionMask ^ secondInversionMask;
-
-                uint differentInvesionBitsCount = countNonZeroBits(differentInversionMask);
-                if(differentInvesionBitsCount == 1)
-                {
-                    // (01)(11) -> (1)
-
-                    word secondControlMask = secondElement.getControlMask();
-                    assert((differentInversionMask & secondControlMask), string("Internal error"));
-
-                    secondControlMask ^= differentInversionMask;
-                    secondElement.setControlMask(secondControlMask);
-
-                    if(differentInversionMask & secondInversionMask)
-                    {
-                        secondInversionMask ^= differentInversionMask;
-                        secondElement.setInversionMask(secondInversionMask);
-                    }
-
-                    firstOptimization.remove = true;
-                    firstOptimization.asis  = false;
-                    secondOptimization.asis = false;
-
-                    *optimized = true;
-                    break;
-                }
-            }
-        }
+        *optimized = *optimized || repeat;
     }
 
-    return applyOptimizations(scheme);
+    return optimizedScheme;
 }
 
-PostProcessor::Scheme PostProcessor::reduceConnectionsOptimization( Scheme& scheme, bool* optimized /*= 0 */ )
+PostProcessor::OptScheme PostProcessor::reduceConnectionsOptimization( OptScheme& scheme, bool* optimized)
 {
     assert(optimized, string("Null 'optimized' pointer"));
     *optimized = false;
 
-    prepareSchemeForOptimization(scheme);
+    OptScheme optimizedScheme = scheme;
+    bool repeat = true;
 
-    uint elementCount = scheme.size();
-    for(uint firstIndex = 0; firstIndex < elementCount; ++firstIndex)
+    while(repeat)
     {
-        Optimizations& firstOptimization = optimizations[firstIndex];
-        if(!firstOptimization.asis)
-        {
-            continue;
-        }
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForReduceConnectionsOptimization,
+            swapElementsWithConnectionReduction, &repeat, false, false);
 
-        ReverseElement& firstElement = scheme[firstIndex];
-        for(uint secondIndex = firstIndex + 1; secondIndex < elementCount; ++secondIndex)
-        {
-            ReverseElement& secondElement = scheme[secondIndex];
-            Optimizations& secondOptimization = optimizations[secondIndex];
-
-            if(!firstElement.isSwitchable(secondElement))
-            {
-                break;
-            }
-
-            if(!secondOptimization.asis)
-            {
-                continue;
-            }
-
-            if(firstElement.getTargetMask() == secondElement.getTargetMask()
-                && firstElement.getControlMask() == secondElement.getControlMask())
-            {
-                word firstInversionMask  =  firstElement.getInversionMask();
-                word secondInversionMask = secondElement.getInversionMask();
-
-                word differentInversionMask = firstInversionMask ^ secondInversionMask;
-
-                uint differentInvesionBitsCount = countNonZeroBits(differentInversionMask);
-                if(differentInvesionBitsCount == 2)
-                {
-                    // (01)(10) -> (*1)(1*)
-
-                    uint firstRemovePosition = findPositiveBitPosition(differentInversionMask);
-                    word firstRemoveMask = 1 << firstRemovePosition;
-
-                    uint secondRemovePosition =
-                        findPositiveBitPosition(differentInversionMask, firstRemovePosition + 1);
-                    word secondRemoveMask = 1 << secondRemovePosition;
-                    word removeMask = firstRemoveMask ^ secondRemoveMask;
-
-                    if((firstInversionMask & removeMask) != removeMask
-                        && (secondInversionMask & removeMask) != removeMask )
-                    {
-                        // change first
-                        word firstControlMask = firstElement.getControlMask();
-                        firstControlMask &= ~(firstInversionMask & removeMask);
-                        firstElement.setControlMask(firstControlMask);
-
-                        firstInversionMask &= ~removeMask;
-                        firstElement.setInversionMask(firstInversionMask);
-
-                        firstOptimization.asis  = false;
-
-                        // change second
-                        word secondControlMask = secondElement.getControlMask();
-                        secondControlMask &= ~(secondInversionMask & removeMask);
-                        secondElement.setControlMask(secondControlMask);
-
-                        secondInversionMask &= ~removeMask;
-                        secondElement.setInversionMask(secondInversionMask);
-
-                        secondOptimization.asis = false;
-
-                        *optimized = true;
-                        break;
-                    }
-                }
-            }
-        }
+        *optimized = *optimized || repeat;
     }
 
-    return applyOptimizations(scheme);
+    return optimizedScheme;
 }
 
-PostProcessor::Scheme PostProcessor::getFullScheme(const Scheme& scheme, bool heavyRight /*= true*/)
+PostProcessor::OptScheme PostProcessor::transferOptimization(OptScheme& scheme, bool* optimized)
 {
-    Scheme fullScheme;
+    assert(optimized, string("Null 'optimized' pointer"));
+    *optimized = false;
+
+    OptScheme optimizedScheme = scheme;
+    bool repeat = true;
+
+    while(repeat)
+    {
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForTransferOptimization,
+            swapElementsWithTransferOptimization, &repeat, false, true);
+
+        *optimized = *optimized || repeat;
+    }
+
+    return optimizedScheme;
+}
+
+PostProcessor::OptScheme PostProcessor::getFullScheme(const OptScheme& scheme, bool heavyRight /*= true*/)
+{
+    OptScheme fullScheme;
     uint elementCount = scheme.size();
 
     for(uint index = 0; index < elementCount; ++index)
@@ -427,43 +447,9 @@ PostProcessor::Scheme PostProcessor::getFullScheme(const Scheme& scheme, bool he
     return fullScheme;
 }
 
-PostProcessor::Scheme PostProcessor::removeDuplicates(const Scheme& scheme)
+PostProcessor::OptScheme PostProcessor::getFinalSchemeImplementation(const OptScheme& scheme)
 {
-    prepareSchemeForOptimization(scheme);
-
-    uint elementCount = scheme.size();
-    for(uint firstIndex = 0; firstIndex < elementCount; ++firstIndex)
-    {
-        Optimizations& firstOptimization = optimizations[firstIndex];
-        if(firstOptimization.remove)
-        {
-            continue;
-        }
-
-        const ReverseElement& firstElement = scheme[firstIndex];
-        for(uint secondIndex = firstIndex + 1; secondIndex < elementCount; ++secondIndex)
-        {
-            const ReverseElement& secondElement = scheme[secondIndex];
-            if(firstElement == secondElement)
-            {
-                firstOptimization.remove = true;
-                optimizations[secondIndex].remove = true;
-                break;
-            }
-            else if(!firstElement.isSwitchable(secondElement))
-            {
-
-                break;
-            }
-        }
-    }
-
-    return applyOptimizations(scheme);
-}
-
-PostProcessor::Scheme PostProcessor::getFinalSchemeImplementation(const Scheme& scheme)
-{
-    Scheme implementation;
+    OptScheme implementation;
     
     uint elementCount = scheme.size();
     implementation.resize(elementCount);
@@ -477,216 +463,236 @@ PostProcessor::Scheme PostProcessor::getFinalSchemeImplementation(const Scheme& 
     return implementation;
 }
 
-PostProcessor::Scheme PostProcessor::transferOptimization(Scheme& scheme, uint* startPos,
-    bool reverse, bool* optimized /*= 0 */)
+//////////////////////////////////////////////////////////////////////////
+// Main optimization tactic implementation
+//////////////////////////////////////////////////////////////////////////
+
+PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& scheme,
+    SelectionFunc selectionFunc, SwapFunc swapFunc,
+    bool* optimizationSucceeded, bool searchPairFromEnd,
+    bool lessComplexityRequired, int* startIndex /* = 0 */)
 {
-    assert(optimized, string("Null 'optimized' pointer"));
-    *optimized = false;
+    Optimizations optimizations;
+    OptScheme optimizedScheme;
 
-    uint elementCount = scheme.size();
-    if(elementCount < 3 || *startPos > elementCount - 3)
+    bool schemeOptimized = false;
+    int elementCount = scheme.size();
+
+    prepareSchemeForOptimization(scheme, &optimizations);
+
+    // find left element
+    for(int leftIndex = startIndex ? *startIndex : 0;
+        !schemeOptimized && leftIndex < elementCount - 1; ++leftIndex)
     {
-        // this optimization doesn't work on 2 or less elements
-        return scheme;
-    }
-
-    prepareSchemeForOptimization(scheme);
-
-    uint startIndex = (reverse ? elementCount - 1 - *startPos : *startPos);
-    uint stopIndex  = (reverse ? 0 : elementCount - 1);
-    uint step = (reverse ? -1 : 1);
-
-    bool found = false;
-    for(uint firstIndex = startIndex; firstIndex != stopIndex; firstIndex += step, ++*startPos)
-    {
-        ReverseElement& firstElement = scheme[firstIndex];
-        assert(firstElement.getInversionMask() == 0,
-            string("There should be no inversions for transfer optimization"));
-
-        uint secondIndex = firstIndex + step;
-        while(secondIndex != stopIndex)
+        if(startIndex)
         {
-            ReverseElement& secondElement = scheme[secondIndex];
-            if(!firstElement.isSwitchable(secondElement))
-            {
-                break;
-            }
-
-            secondIndex += step;
+            *startIndex = leftIndex;
         }
 
-        word firstTargetMask  = firstElement.getTargetMask();
-        word firstControlMask = firstElement.getControlMask();
+        int leftElementMaxTransferIndex = -1; // for optimization
+        const ReverseElement& leftElement = scheme[leftIndex];
 
-        uint targetIndex = secondIndex;
-        while(targetIndex != stopIndex + step)
+        // find right element
+        for(int rightIndex = (searchPairFromEnd ? elementCount - 1 : leftIndex + 1);
+            !schemeOptimized && (searchPairFromEnd ? rightIndex > leftIndex : rightIndex < elementCount);
+            rightIndex += (searchPairFromEnd ? -1 : 1))
         {
-            ReverseElement& targetElement = scheme[targetIndex];
-            assert(targetElement.getInversionMask() == 0,
-                string("There should be no inversions for transfer optimization"));
+            const ReverseElement& rightElement = scheme[rightIndex];
 
-            // check if second element could be transfered to first element
-            if(targetIndex != secondIndex)
+            // 1) check right element with selection function
+            if(selectionFunc(leftElement, rightElement))
             {
-                uint index = targetIndex - step;
-                while(index != firstIndex)
+                int leftTransferedIndex  = leftIndex;
+                int rightTransferedIndex = rightIndex;
+
+                // transfer elements if needed
+                if(leftTransferedIndex + 1 != rightTransferedIndex)
                 {
-                    ReverseElement& element = scheme[index];
-                    if(!targetElement.isSwitchable(element))
+                    // transfer right element to left at maximum
+                    rightTransferedIndex = getMaximumTransferIndex(scheme, rightElement, rightIndex, leftIndex);
+
+                    if(rightTransferedIndex != leftIndex + 1)
                     {
-                        break;
-                    }
-
-                    index -= step;
-                }
-
-                if(index != firstIndex)
-                {
-                    break;
-                }
-            }
-
-            word targetTargetMask  = targetElement.getTargetMask();
-            word targetControlMask = targetElement.getControlMask();
-
-            if((firstTargetMask & targetControlMask) && !(targetTargetMask & firstControlMask))
-            {
-                uint n = max(firstElement.getInputCount(), targetElement.getInputCount());
-                ReverseElement newElement(n, targetTargetMask,
-                    firstControlMask | (targetControlMask ^ firstTargetMask));
-
-                // search forward for copy of this element
-                for(uint thirdIndex = secondIndex; thirdIndex != stopIndex + step; thirdIndex += step)
-                {
-                    ReverseElement& thirdElement = scheme[thirdIndex];
-                    if(newElement == thirdElement)
-                    {
-                        if(targetIndex == secondIndex)
+                        // transfer left element to left at maximum (just once)
+                        if(leftElementMaxTransferIndex == -1)
                         {
-                            optimizations[firstIndex ].remove = true;
-                            optimizations[thirdIndex ].remove = true;
-
-                            Optimizations& secondOptimization = optimizations[secondIndex];
-                            secondOptimization.replace = true;
-
-                            vector<ReverseElement>& replacement = secondOptimization.replacement;
-                            replacement.resize(2);
-                            if(reverse)
-                            {
-                                replacement[0] = firstElement;
-                                replacement[1] = targetElement;
-                            }
-                            else
-                            {
-                                replacement[0] = targetElement;
-                                replacement[1] = firstElement;
-                            }
-                        }
-                        else
-                        {
-                            if(secondIndex != thirdIndex)
-                            {
-                                optimizations[firstIndex ].remove = true;
-                                optimizations[targetIndex].remove = true;
-                                optimizations[thirdIndex ].remove = true;
-
-                                Optimizations& secondOptimization = optimizations[secondIndex];
-                                secondOptimization.replace = true;
-
-                                vector<ReverseElement>& replacement = secondOptimization.replacement;
-                                replacement.resize(3);
-                                if(reverse)
-                                {
-                                    replacement[0] = scheme[secondIndex];
-                                    replacement[1] = firstElement;
-                                    replacement[2] = targetElement;
-                                }
-                                else
-                                {
-                                    replacement[0] = targetElement;
-                                    replacement[1] = firstElement;
-                                    replacement[2] = scheme[secondIndex];
-                                }
-                            }
-                            else
-                            {
-                                optimizations[firstIndex ].remove = true;
-                                optimizations[targetIndex].remove = true;
-
-                                Optimizations& secondOptimization = optimizations[secondIndex];
-                                secondOptimization.replace = true;
-
-                                vector<ReverseElement>& replacement = secondOptimization.replacement;
-                                replacement.resize(2);
-                                replacement[0] = targetElement;
-                                replacement[1] = firstElement;
-                            }
+                            leftElementMaxTransferIndex = getMaximumTransferIndex(scheme, leftElement,
+                                leftIndex, elementCount - 1);
                         }
 
-                        *optimized = true;
-                        found = true;
-                        break;
+                        leftTransferedIndex = leftElementMaxTransferIndex;
                     }
-                    else if(newElement.isSwitchable(thirdElement))
+
+                    // compare indices
+                    if(leftTransferedIndex + 1 >= rightTransferedIndex)
                     {
-                        continue;
+                        // good right element, try to apply optimization
+                        leftTransferedIndex = rightTransferedIndex - 1; // keep left element maximum left aligned
                     }
                     else
                     {
-                        break;
+                        continue;
                     }
                 }
 
-                ////if(!found)
-                ////{
-                ////    // search backward for copy of this element
-                ////    for(uint thirdIndex = targetIndex - step; thirdIndex != firstIndex; thirdIndex -= step)
-                ////    {
-                ////        ReverseElement& thirdElement = scheme[thirdIndex];
-                ////        if(newElement == thirdElement)
-                ////        {
-                ////            Optimizations& firstOptimization = optimizations[firstIndex];
-                ////            firstOptimization.replace = true;
+                // 2) swap left and right elements
+                list<ReverseElement> leftReplacement;
+                list<ReverseElement> rightReplacement;
 
-                ////            vector<ReverseElement>& replacement = firstOptimization.replacement;
-                ////            replacement.resize(2);
-                ////            replacement[0] = targetElement;
-                ////            replacement[1] = firstElement;
+                swapFunc(leftElement, rightElement, &leftReplacement, &rightReplacement);
+                if(leftReplacement.size() || rightReplacement.size())
+                {
+                    insertReplacements(scheme, &testScheme, leftIndex, leftTransferedIndex,
+                        rightIndex, rightTransferedIndex, leftReplacement, rightReplacement);
 
-                ////            optimizations[targetIndex].remove = true;
-                ////            optimizations[thirdIndex ].remove = true;
+                    optimizedScheme = removeDuplicates(testScheme);
+                    int optimizedSchemeSize = optimizedScheme.size();
 
-                ////            *optimized = true;
-                ////            found = true;
-                ////            break;
-                ////        }
-                ////        else if(newElement.isSwitchable(thirdElement))
-                ////        {
-                ////            continue;
-                ////        }
-                ////        else
-                ////        {
-                ////            break;
-                ////        }
-                ////    }
-                ////}
+                    if(lessComplexityRequired)
+                    {
+                        if(optimizedSchemeSize == elementCount
+                            && secondPassOptimizationFlag)
+                        {
+                            secondPassOptimizationFlag = false;
+                            complexityDelta = optimizedSchemeSize - elementCount;
+
+                            bool tempFlag = false;
+                            optimizedScheme = transferOptimization(optimizedScheme, &tempFlag);
+
+                            complexityDelta = 0;
+                            secondPassOptimizationFlag = false;
+                        }
+
+                        int newElementCount = optimizedScheme.size();
+                        schemeOptimized = (newElementCount + complexityDelta < elementCount);
+                    }
+                    else
+                    {
+                        schemeOptimized = true;
+                    }
+                }
+                else
+                {
+                    // just remove left and right elements from scheme
+                    OptimizationParams& leftOptimization = optimizations[leftIndex];
+                    leftOptimization.remove = true;
+
+                    OptimizationParams& rightOptimization = optimizations[rightIndex];
+                    rightOptimization.remove = true;
+
+                    schemeOptimized = true;
+                    optimizedScheme = applyOptimizations(scheme, optimizations);
+                }
             }
-
-            if(found)
-            {
-                break;
-            }
-
-            targetIndex += step;
-        }
-
-        if(found)
-        {
-            break;
         }
     }
 
-    return applyOptimizations(scheme);
+    if(optimizationSucceeded)
+    {
+        *optimizationSucceeded = schemeOptimized;
+    }
+
+    if(!schemeOptimized)
+    {
+        optimizedScheme = scheme;
+    }
+
+    return optimizedScheme;
+}
+
+int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
+    const ReverseElement& target, int startIndex, int stopIndex) const
+{
+    int elementCount = scheme.size();
+
+    assert(startIndex >= 0 && startIndex < elementCount,
+        string("PostProcessor: invalid start index for getMaximumTransferIndex()"));
+
+    assert(stopIndex >= 0 && stopIndex < elementCount,
+        string("PostProcessor: invalid stop index for getMaximumTransferIndex()"));
+
+    int step = 1;
+    if(startIndex > stopIndex)
+    {
+        // from right to left
+        step = -1;
+    }
+
+    int index = startIndex;
+    while(index != stopIndex)
+    {
+        const ReverseElement& neighborElement = scheme[index];
+
+        // stop search if not switchable
+        if(!target.isSwitchable(neighborElement))
+        {
+            break;
+        }
+
+        index += step;
+    }
+
+    index -= step; // target element can be in previous position, not in the last
+    return index;
+}
+
+void PostProcessor::insertReplacements(const OptScheme& originalScheme,
+    OptScheme* resultScheme,
+    int leftIndex, int leftTransferedIndex,
+    int rightIndex, int rightTransferedIndex,
+    const list<ReverseElement>& leftReplacement,
+    const list<ReverseElement>& rightReplacement )
+{
+    // check input parameters
+    assert(resultScheme, string("PostProcessor: resultScheme == 0"));
+
+    assert(leftIndex <= leftTransferedIndex,
+        string("PostProcessor: wrong left index for replacements insertion"));
+
+    assert(rightIndex >= rightTransferedIndex,
+        string("PostProcessor: wrong right index for replacements insertion"));
+
+    assert(leftTransferedIndex + 1 == rightTransferedIndex,
+        string("PostProcessor: leftTransferedIndex + 1 != rightTransferedIndex"))
+
+    int elementCount = originalScheme.size();
+    uint leftReplacementSize  =  leftReplacement.size();
+    uint rightReplacementSize = rightReplacement.size();
+
+    // check element count in left and right replacement
+    assert(leftReplacementSize + rightReplacementSize <= numMaxElementCountInReplacements,
+        string("PostProcessor: too many elements in replacements"));
+
+    resultScheme->reserve(elementCount + numMaxElementCountInReplacements);
+    resultScheme->resize(0);
+
+    // insert all elements until leftTransferedIndex
+    for(int index = 0; index <= leftTransferedIndex; ++index)
+    {
+        if(index == leftIndex)
+        {
+            continue;
+        }
+
+        const ReverseElement& element = originalScheme[index];
+        resultScheme->push_back(element);
+    }
+
+    // insert replacements
+    resultScheme->insert(resultScheme->end(),  leftReplacement.cbegin(),  leftReplacement.cend());
+    resultScheme->insert(resultScheme->end(), rightReplacement.cbegin(), rightReplacement.cend());
+
+    // insert rest elements
+    for(int index = rightTransferedIndex; index < elementCount; ++index)
+    {
+        if(index == rightIndex)
+        {
+            continue;
+        }
+
+        const ReverseElement& element = originalScheme[index];
+        resultScheme->push_back(element);
+    }
 }
 
 }   // namespace ReversibleLogic

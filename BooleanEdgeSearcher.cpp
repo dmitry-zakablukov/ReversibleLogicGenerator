@@ -164,11 +164,10 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
 
     // calculate frequency of all entries according to the edge
     word mask = ~(edge->starsMask);
-    forcin(iter, *inputSet)
+    forcin(transp, *inputSet)
     {
-        const ReversibleLogic::Transposition& transp = *iter;
-        word x = transp.getX();
-        word y = transp.getY();
+        word x = transp->getX();
+        word y = transp->getY();
 
         assert(x < maxEntriesCount, string("Invalid x value in input set"));
         assert(y < maxEntriesCount, string("Invalid y value in input set"));
@@ -224,15 +223,14 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::getEdgeSub
     word baseMask  = edge.getBaseMask(n);
 
     shared_ptr<list<Transposition>> subset(new list<Transposition>);
-    forcin(iter, *transpositions)
+    forcin(transp, *transpositions)
     {
-        const Transposition& transp = *iter;
-        word x = transp.getX();
+        word x = transp->getX();
 
         word value = x & baseMask;
         if(value == baseValue)
         {
-            subset->push_back(transp);
+            subset->push_back(*transp);
         }
     }
 

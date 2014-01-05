@@ -4,4 +4,8 @@
 #include <fstream>
 
 // libraries
-#include "../../SchemeGenerator(2.0)/std.hpp"
+#include "../../SchemeGenerator/std.hpp"
+
+#include "common.h"
+#include "synthesisTest.h"
+#include "optimizationTest.h"

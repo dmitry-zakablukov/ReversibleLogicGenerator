@@ -115,16 +115,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="common.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="optimizationTest.cpp" />
     <ClCompile Include="std.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="synthesisTest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common.h" />
+    <ClInclude Include="optimizationTest.h" />
     <ClInclude Include="std.hpp" />
+    <ClInclude Include="synthesisTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SchemeGenerator.vcxproj">

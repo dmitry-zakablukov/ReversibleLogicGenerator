@@ -41,13 +41,13 @@
     <ClCompile Include="PostProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SchemePrinter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BooleanEdgeSearcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PartialGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,6 +86,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BooleanEdgeSearcher.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PartialGenerator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PartialResultParams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SchemePrinterImpl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

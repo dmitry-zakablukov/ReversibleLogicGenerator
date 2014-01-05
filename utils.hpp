@@ -1,5 +1,7 @@
 #pragma once
 
+typedef vector<word> PermutationTable;
+
 class AssertionError: public exception
 {
 public:
@@ -20,6 +22,10 @@ private:
 
 #define forin(name, collection) for(auto (name) = (collection).begin(); (name) != (collection).end(); ++(name))
 #define forcin(name, collection) for(auto (name) = (collection).cbegin(); (name) != (collection).cend(); ++(name))
+
+// reversed
+#define forrin(name, collection) for(auto (name) = (collection).rbegin(); (name) != (collection).rend(); ++(name))
+#define forrcin(name, collection) for(auto (name) = (collection).crbegin(); (name) != (collection).crend(); ++(name))
 
 uint countNonZeroBits(word value);
 uint findPositiveBitPosition(word value, uint startPos = 0);
@@ -82,5 +88,15 @@ inline void bufferize(vector<T>& container)
     if(!(size & ~(numBufferSize - 1)))
     {
         container.reserve(size + numBufferSize);
+    }
+}
+
+template<typename T>
+inline void toVector(const list<T>& container, vector<T>* output)
+{
+    output->reserve(container.size());
+    forcin(iter, container)
+    {
+        output->push_back(*iter);
     }
 }

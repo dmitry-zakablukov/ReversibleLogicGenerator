@@ -8,39 +8,79 @@ class PostProcessor
 public:
     PostProcessor();
 
-    typedef vector<ReverseElement> Scheme;
-    Scheme optimize(const Scheme& scheme);
+    typedef vector<ReverseElement> OptScheme;
+    OptScheme optimize(const OptScheme& scheme);
 
 private:
-    void prepareSchemeForOptimization(const Scheme& scheme);
-    Scheme applyOptimizations(const Scheme& scheme);
+    enum
+    {
+        numMaxElementCountInReplacements = 3,
+    };
+
+    struct OptimizationParams;
+    typedef vector<OptimizationParams> Optimizations;
+
+    void prepareSchemeForOptimization(const OptScheme& scheme, Optimizations* optimizations);
+    OptScheme applyOptimizations(const OptScheme& scheme, const Optimizations& optimizations);
 
     // Optimize CNOTs and CCNOTs with inversions
-    uint findInversedElementsSequence(const Scheme& scheme, uint startPosition);
-    Scheme optimizeInversions(const Scheme& scheme);
-
-    // (01)(11) -> *1
-    Scheme mergeOptimization(Scheme& scheme, bool reverse, bool* optimized = 0 );
-    // (01)(10) -> (*1)(1*)
-    Scheme reduceConnectionsOptimization(Scheme& scheme, bool* optimized = 0 );
-
-    Scheme getFullScheme(const Scheme& scheme, bool heavyRight = true);
-
-    Scheme transferOptimization(Scheme& scheme, uint* startPos,
-        bool reverse, bool* optimized = 0);
+    uint findInversedElementsSequence(const OptScheme& scheme, uint startPosition);
+    OptScheme optimizeInversions(const OptScheme& scheme);
 
     // Remove duplicates elements
-    Scheme removeDuplicates(const Scheme& scheme);
+    OptScheme removeDuplicates(const OptScheme& scheme);
 
-    Scheme getFinalSchemeImplementation(const Scheme& scheme);
+    // (01)(11) -> *1
+    OptScheme mergeOptimization(OptScheme& scheme, bool* optimized);
+    // (01)(10) -> (*1)(1*)
+    OptScheme reduceConnectionsOptimization(OptScheme& scheme, bool* optimized);
 
-    struct Optimizations;
-    vector<Optimizations> optimizations;
+    // Transfer optimization: two elements are swapped with producing new element
+    OptScheme transferOptimization(OptScheme& scheme, bool* optimized);
+
+    OptScheme getFullScheme(const OptScheme& scheme, bool heavyRight = true);
+    OptScheme getFinalSchemeImplementation(const OptScheme& scheme);
+
+    // Selection function should return true if and only if right element fits to
+    // right element in terms of optimization
+    typedef bool (*SelectionFunc)(const ReverseElement& left, const ReverseElement& right);
+
+    // Swap function should return in leftReplacement list of elements for replacement after
+    // left and right element would be swapped. Same for rightReplacement list.
+    // left  element are definitely not in  leftReplacement and may be in rigthReplacement
+    // right element are definitely not in rightReplacement and may be in  leftReplacement
+    typedef void (*SwapFunc)(const ReverseElement& left, const ReverseElement& right,
+        list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement);
+
+    // Returns true in optimizationSucceeded param if optimization tactics
+    // succeeded and result scheme has less gate complexity
+    OptScheme tryOptimizationTactics(const OptScheme& scheme, SelectionFunc selectionFunc, SwapFunc swapFunc,
+        bool* optimizationSucceeded, bool searchPairFromEnd,
+        bool lessComplexityRequired, int* startIndex = 0);
+
+    int getMaximumTransferIndex(const OptScheme& scheme, const ReverseElement& target,
+        int startIndex, int stopIndex) const;
+
+    /// Inserts replacements to result scheme based on original scheme
+    void insertReplacements(const OptScheme& originalScheme,
+        OptScheme* resultScheme,
+        int leftIndex, int leftTransferedIndex,
+        int rightIndex, int rightTransferedIndex,
+        const list<ReverseElement>& leftReplacement,
+        const list<ReverseElement>& rightReplacement);
+
+    // this flag turns on and off second transfer optimization
+    // inside transfer optimization, if less scheme complexity
+    // is required
+    bool secondPassOptimizationFlag;
+
+    OptScheme testScheme;
+    int complexityDelta;
 };
 
-struct PostProcessor::Optimizations
+struct PostProcessor::OptimizationParams
 {
-    Optimizations();
+    OptimizationParams();
 
     bool inversions;
     bool heavyRight;

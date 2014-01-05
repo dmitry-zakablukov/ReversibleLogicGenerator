@@ -12,6 +12,7 @@
 #include <vector>
 #include <tuple>
 #include <set>
+#include <unordered_set>
 #include <map>
 #include <unordered_map>
 #include <functional>
@@ -53,5 +54,8 @@ typedef size_t uint;
 #include "PermutationUtils.hpp"
 #include "PostProcessor.hpp"
 #include "SchemePrinter.hpp"
+#include "SchemePrinterImpl.hpp"
 #include "BooleanEdgeSearcher.hpp"
+#include "PartialResultParams.h"
+#include "PartialGenerator.hpp"
 #include "Generator.hpp"

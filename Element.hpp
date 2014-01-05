@@ -3,15 +3,6 @@
 namespace ReversibleLogic
 {
 
-struct FinalPair
-{
-    FinalPair();
-    FinalPair(word theTargetMask, word theControlMask);
-
-    word targetMask;
-    word controlMask;
-};
-
 class ReverseElement
 {
 public:
@@ -41,6 +32,7 @@ public:
     bool isValid() const;
 
     bool isSwitchable(const ReverseElement& another) const;
+    bool isSwitchable(const list<ReverseElement>& elements) const;
 
     word getValue(word input) const;
 
@@ -62,5 +54,7 @@ private:
     word controlMask;
     word inversionMask;
 };
+
+typedef deque<ReverseElement> Scheme;
 
 }   // namespace ReversibleLogic
