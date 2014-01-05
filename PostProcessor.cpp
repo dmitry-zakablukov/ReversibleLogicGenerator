@@ -542,47 +542,34 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                 swapFunc(leftElement, rightElement, &leftReplacement, &rightReplacement);
                 if(leftReplacement.size() || rightReplacement.size())
                 {
-                    //////////////////////////////////////////////////////////////////////////
-                    // new strategy here
-                    //////////////////////////////////////////////////////////////////////////
                     insertReplacements(scheme, &testScheme, leftIndex, leftTransferedIndex,
                         rightIndex, rightTransferedIndex, leftReplacement, rightReplacement);
 
                     optimizedScheme = removeDuplicates(testScheme);
                     int optimizedSchemeSize = optimizedScheme.size();
 
-                    // TODO: check if this second pass is needed at all
-                    // debug: second pass turned off
-                    //secondPassOptimizationFlag = false;
-
-                    if(lessComplexityRequired
-                        && optimizedSchemeSize == elementCount
-                        && secondPassOptimizationFlag)
+                    if(lessComplexityRequired)
                     {
-                        secondPassOptimizationFlag = false;
-                        complexityDelta = optimizedSchemeSize - elementCount;
+                        if(optimizedSchemeSize == elementCount
+                            && secondPassOptimizationFlag)
+                        {
+                            secondPassOptimizationFlag = false;
+                            complexityDelta = optimizedSchemeSize - elementCount;
 
-                        bool tempFlag = false;
-                        optimizedScheme = transferOptimization(optimizedScheme, &tempFlag);
-                        complexityDelta = 0;
+                            bool tempFlag = false;
+                            optimizedScheme = transferOptimization(optimizedScheme, &tempFlag);
+
+                            complexityDelta = 0;
+                            secondPassOptimizationFlag = false;
+                        }
+
+                        int newElementCount = optimizedScheme.size();
+                        schemeOptimized = (newElementCount + complexityDelta < elementCount);
                     }
-
-                    int newElementCount = optimizedScheme.size();
-                    schemeOptimized = (newElementCount + complexityDelta < elementCount)
-                        || (!lessComplexityRequired && newElementCount == elementCount);
-
-                    //////////////////////////////////////////////////////////////////////////////
-                    ////// old strategy
-                    //////////////////////////////////////////////////////////////////////////////
-                    ////bool duplicatesFound = processReplacements(scheme, &optimizations,
-                    ////    leftIndex, leftTransferedIndex, rightIndex, rightTransferedIndex,
-                    ////    leftReplacement, rightReplacement);
-
-                    ////schemeOptimized = !lessComplexityRequired || duplicatesFound;
-                    ////if(schemeOptimized)
-                    ////{
-                    ////    optimizedScheme = applyOptimizations(scheme, optimizations);
-                    ////}
+                    else
+                    {
+                        schemeOptimized = true;
+                    }
                 }
                 else
                 {
@@ -705,231 +692,6 @@ void PostProcessor::insertReplacements(const OptScheme& originalScheme,
 
         const ReverseElement& element = originalScheme[index];
         resultScheme->push_back(element);
-    }
-}
-
-bool PostProcessor::processReplacements(const OptScheme& scheme,
-    Optimizations* optimizations,
-    int leftIndex, int leftTransferedIndex,
-    int rightIndex, int rightTransferedIndex,
-    const list<ReverseElement>& leftReplacement,
-    const list<ReverseElement>& rightReplacement)
-{
-    // 1) check replacements
-    checkReplacement(leftReplacement);
-    checkReplacement(rightReplacement);
-
-    // 2) check element count in left and right replacement
-    assert(leftReplacement.size() + rightReplacement.size() <= numMaxElementCountInReplacements,
-        string("PostProcessor: too many elements in replacements"));
-
-    // 3) find duplicates if needed
-    bool someDuplicatesFound = false;
-
-    // left replacement processing
-    list<ReverseElement> leftProcessedReplacement;
-    bool foundDuplicatesInLeftReplacement = false;
-
-    if(leftReplacement.size())
-    {
-        // search duplicates to left
-        foundDuplicatesInLeftReplacement =
-            processDuplicatesInReplacement(scheme, optimizations,
-            leftReplacement, 0, leftIndex, leftTransferedIndex,
-            false, &leftProcessedReplacement);
-
-        // search duplicates to right
-        list<ReverseElement> temp = leftProcessedReplacement;
-        leftProcessedReplacement.resize(0);
-
-        foundDuplicatesInLeftReplacement = 
-            processDuplicatesInReplacement(scheme, optimizations,
-            temp, &rightReplacement, rightIndex,
-            rightTransferedIndex, true, &leftProcessedReplacement)
-            || foundDuplicatesInLeftReplacement;
-    }
-
-    // right replacement processing
-    list<ReverseElement> rightProcessedReplacement;
-    bool foundDuplicatesInRightReplacement = false;
-
-    if(rightReplacement.size())
-    {
-        // search duplicates to right
-        foundDuplicatesInRightReplacement =
-            processDuplicatesInReplacement(scheme, optimizations,
-            rightReplacement, 0, rightIndex, rightTransferedIndex,
-            true, &rightProcessedReplacement);
-
-        // search duplicates to left
-        list<ReverseElement> temp = rightProcessedReplacement;
-        rightProcessedReplacement.resize(0);
-
-        foundDuplicatesInRightReplacement =
-            processDuplicatesInReplacement(scheme, optimizations,
-            temp, &leftProcessedReplacement, leftIndex,
-            rightTransferedIndex, false, &rightProcessedReplacement)
-            || foundDuplicatesInRightReplacement;
-    }
-
-    someDuplicatesFound = foundDuplicatesInLeftReplacement || foundDuplicatesInRightReplacement;
-    bool onlyOneReplacement  = !leftReplacement.size() || !rightReplacement.size();
-
-    bool success = onlyOneReplacement || someDuplicatesFound;
-    if(success)
-    {
-        setReplacement(scheme, optimizations,  leftProcessedReplacement,  leftIndex,  leftTransferedIndex);
-        setReplacement(scheme, optimizations, rightProcessedReplacement, rightIndex, rightTransferedIndex);
-    }
-
-    return success;
-}
-
-void PostProcessor::checkReplacement(const list<ReverseElement>& replacement)
-{
-    uint elementCount = replacement.size();
-    if(elementCount > 1)
-    {
-        const ReverseElement& firstElement = replacement.front();
-        word targetMask = firstElement.getTargetMask();
-
-        forcin(element, replacement)
-        {
-            word mask = element->getTargetMask();
-            assert(mask == targetMask, string("PostProcessor: invalid replacement list"));
-        }
-    }
-}
-
-int PostProcessor::findDuplicateElementIndex(const OptScheme& scheme,
-    const ReverseElement& target, int startIndex, int stopIndex, int skipIndex) const
-{
-    int elementCount = scheme.size();
-
-    assert(startIndex >= 0 && startIndex < elementCount,
-        string("PostProcessor: invalid start index for findDuplicateElementIndex()"));
-
-    assert(stopIndex >= -1 && stopIndex <= elementCount,
-        string("PostProcessor: invalid stop index for findDuplicateElementIndex()"));
-
-    int step = 1;
-    if(startIndex > stopIndex)
-    {
-        // from right to left
-        step = -1;
-    }
-
-    int index = startIndex;
-    bool found = false;
-
-    while(index != stopIndex)
-    {
-        if(index != skipIndex)
-        {
-            const ReverseElement& neighborElement = scheme[index];
-
-            // stop search if neighbor element is duplicate of target element
-            if(target == neighborElement)
-            {
-                found = true;
-                break;
-            }
-
-            // stop search if not switchable
-            if(!target.isSwitchable(neighborElement))
-            {
-                break;
-            }
-        }
-
-        index += step;
-    }
-
-    int resultIndex = (found ? index : -1);
-    return resultIndex;
-}
-
-bool PostProcessor::processDuplicatesInReplacement(const OptScheme& scheme,
-    Optimizations* optimizations,
-    const list<ReverseElement>& replacement,
-    const list<ReverseElement>* anotherReplacement, int originalIndex,
-    int transferedIndex, bool searchToRight,
-    list<ReverseElement>* processedReplacement)
-{
-    bool someDuplicatesFound = false;
-
-    int elementCount = scheme.size();
-    forcin(iter, replacement)
-    {
-        const ReverseElement& element = *iter;
-        if(anotherReplacement && !element.isSwitchable(*anotherReplacement))
-        {
-            processedReplacement->push_back(element);
-        }
-        else
-        {
-            int duplicateIndex = findDuplicateElementIndex(scheme, element, transferedIndex,
-                searchToRight ? elementCount : -1, originalIndex);
-
-            if(duplicateIndex == -1)
-            {
-                processedReplacement->push_back(element);
-            }
-            else
-            {
-                OptimizationParams& duplicateOptimization = (*optimizations)[duplicateIndex];
-                duplicateOptimization.remove = true;
-
-                someDuplicatesFound = true;
-            }
-        }
-    }
-
-    return someDuplicatesFound;
-}
-
-void PostProcessor::setReplacement(const OptScheme& scheme,
-    Optimizations* optimizations,
-    list<ReverseElement>& replacement,
-    int originalIndex, int transferedIndex)
-{
-    int elementCount = replacement.size();
-    if(!elementCount)
-    {
-        // all replacement elements were removed as duplicates,
-        // so remove original element from scheme
-        OptimizationParams& targetOptimization = (*optimizations)[originalIndex];
-        targetOptimization.remove = true;
-    }
-    else
-    {
-        if(originalIndex == transferedIndex)
-        {
-            // element wasn't transfered, just replace it
-            OptimizationParams& targetOptimization = (*optimizations)[originalIndex];
-            targetOptimization.replace      = true;
-
-            vector<ReverseElement> replacementVector;
-            toVector(replacement, &replacementVector);
-            targetOptimization.replacement = replacementVector;
-        }
-        else
-        {
-            // remove original element
-            OptimizationParams& targetOptimization = (*optimizations)[originalIndex];
-            targetOptimization.remove = true;
-
-            // replace element with transfered index with itself plus replacement
-            const ReverseElement& transferedElement = scheme[transferedIndex];
-            replacement.insert(replacement.begin(), transferedElement);
-
-            OptimizationParams& transferedOptimization = (*optimizations)[transferedIndex];
-            transferedOptimization.replace      = true;
-
-            vector<ReverseElement> replacementVector;
-            toVector(replacement, &replacementVector);
-            transferedOptimization.replacement = replacementVector;
-        }
     }
 }
 

@@ -69,43 +69,12 @@ private:
         const list<ReverseElement>& leftReplacement,
         const list<ReverseElement>& rightReplacement);
 
-    // Returns true if some duplicates were found in scheme and replacements
-    bool processReplacements(const OptScheme& scheme,
-        Optimizations* optimizations,
-        int leftIndex, int leftTransferedIndex,
-        int rightIndex, int rightTransferedIndex,
-        const list<ReverseElement>& leftReplacement,
-        const list<ReverseElement>& rightReplacement);
-
-    void checkReplacement(const list<ReverseElement>& replacement);
-
-    // Returns true if some duplicates were found in scheme and specified replacement
-    bool processDuplicatesInReplacement(const OptScheme& scheme,
-        Optimizations* optimizations,
-        const list<ReverseElement>& replacement,
-        const list<ReverseElement>* anotherReplacement,
-        int originalIndex, int transferedIndex, bool searchToRight,
-        list<ReverseElement>* processedReplacement);
-
-    // Returns index of duplicate element in specified range of indices
-    // or -1 if not found
-    int findDuplicateElementIndex(const OptScheme& scheme, const ReverseElement& target,
-        int startIndex, int stopIndex, int skipIndex) const;
-
-    void setReplacement(const OptScheme& scheme, Optimizations* optimizations,
-        list<ReverseElement>& replacement,
-        int originalIndex, int transferedIndex);
-
-    //OptimizationParams& getOptimization(uint index);
-    //vector<OptimizationParams> optimizations;
-
-    OptScheme testScheme;
-
     // this flag turns on and off second transfer optimization
     // inside transfer optimization, if less scheme complexity
     // is required
     bool secondPassOptimizationFlag;
 
+    OptScheme testScheme;
     int complexityDelta;
 };
 
