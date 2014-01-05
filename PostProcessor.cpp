@@ -555,7 +555,9 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                     // debug: second pass turned off
                     //secondPassOptimizationFlag = false;
 
-                    if(optimizedSchemeSize == elementCount && secondPassOptimizationFlag)
+                    if(lessComplexityRequired
+                        && optimizedSchemeSize == elementCount
+                        && secondPassOptimizationFlag)
                     {
                         secondPassOptimizationFlag = false;
                         complexityDelta = optimizedSchemeSize - elementCount;
