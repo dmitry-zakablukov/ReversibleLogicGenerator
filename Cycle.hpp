@@ -34,10 +34,6 @@ public:
 
     operator string() const;
 
-    // Get next transposition which will be first in decomposition
-    // this transposition minimize sum of Hamming distances for all cycle
-    Transposition getNextDisjointTransposition();
-
     shared_ptr<list<Transposition>> getBestTranspositionsForDisjoint();
 
     shared_ptr<Cycle> multiplyByTranspositions(shared_ptr<list<Transposition>> transpositions,
@@ -51,10 +47,6 @@ private:
     /// Returns index modulo element count
     uint modIndex(uint index) const;
     uint modIndex(uint index, uint mod) const;
-
-    // Find next best transposition,
-    // which minimize sum of Hamming distances for all cycle
-    void findBestDisjointIndex();
 
     // Calculates sum of Hamming distances for all cycle
     void calculateDistancesSum();

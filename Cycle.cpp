@@ -143,13 +143,6 @@ bool Cycle::has(const Transposition& target) const
                 break;
             }
         }
-
-        //Transposition transp = getTranspositionByPosition(index);
-        //if(transp == target)
-        //{
-        //    result = true;
-        //    break;
-        //}
     }
 
     if(xPos != uintUndefined && yPos != uintUndefined)
@@ -217,60 +210,6 @@ uint Cycle::modIndex(uint index, uint mod) const
     return resIndex;
 }
 
-Transposition Cycle::getNextDisjointTransposition()
-{
-    uint elementCount = length();
-    if(elementCount == 2) //simple transposition
-    {
-        disjointTransp.setX(elements[0]);
-        disjointTransp.setY(elements[1]);
-    }
-    else //there are more than 2 elements
-    {
-        findBestDisjointIndex();
-    }
-
-    return disjointTransp;
-}
-
-void Cycle::findBestDisjointIndex()
-{
-    uint elementCount = length();
-    assert(elementCount > 2, string("Disjoint transposition can't be found for 2 elements"));
-
-    if(distnancesSum == uintUndefined)
-    {
-        // this is the first call
-        calculateDistancesSum();
-    }
-
-    // find disjoint index for which transposition will get the minimum of distances sum
-    disjointIndex = 0;
-    uint minSum = uintUndefined;
-
-    for(uint index = 0; index < elementCount; ++index)
-    {
-        //(x, y, w, ...)
-        uint sum = distnancesSum;
-        sum += countNonZeroBits(elements[index] ^ elements[modIndex(index + 2)]);     //distance between x and w
-        sum -= countNonZeroBits(elements[modIndex(index + 1)] ^ elements[modIndex(index + 2)]); //distance between y and w
-
-        if(sum < minSum)
-        {
-            disjointIndex = index;
-            newDistancesSum = sum;
-        }
-    }
-
-    // now make disjoint transposition
-    disjointTransp.setX(elements[disjointIndex]);
-    disjointTransp.setY(elements[modIndex(disjointIndex + 1)]);
-
-    // debug
-    printf("Disjoint diff: 0x%X\n", disjointTransp.getDiff());
-    getBestTranspositionsForDisjoint();
-}
-
 void Cycle::calculateDistancesSum()
 {
     distnancesSum = 0;
@@ -297,18 +236,9 @@ shared_ptr<list<Transposition>> Cycle::getBestTranspositionsForDisjoint()
 
         firstTranspositions = shared_ptr<list<Transposition>>(new list<Transposition>);
         firstTranspositions->push_back(Transposition(x, y));
-
-        //restElements.resize(0);
-        //newDistancesSum = 0;
     }
     else if(elementCount > 2)
     {
-        //if(distnancesSum == uintUndefined)
-        //{
-        //    // this is the first call
-        //    calculateDistancesSum();
-        //}
-
         calculateDistancesSum();
 
         unordered_map<word, uint> sums;
@@ -340,7 +270,7 @@ shared_ptr<list<Transposition>> Cycle::getBestTranspositionsForDisjoint()
             }
         }
 
-        // comment this for testing the best strategy
+        // bugbug: comment this for testing the best strategy
         //bestFirstDiff = findBestDiff(sums);
 
         firstTranspositions = getTranspositionsByDiff(bestFirstDiff);
@@ -420,17 +350,6 @@ shared_ptr<list<Transposition>> Cycle::getTranspositionsByDiff(word diff)
         {
             // save found transposition to result
             result->push_back(Transposition(x, y));
-
-            //// calculate new distance sum
-            //word z = elements[modIndex(index + 2)];
-            //word dxz = x ^ z;
-            //word dyz = y ^ z;
-
-            //newDistancesSum += countNonZeroBits(dxz);
-            //newDistancesSum -= countNonZeroBits(dyz);
-
-            //// remove element from vector of rest elements
-            //removeElement(&restElements, modIndex(restIndex + 1, restElements.size()));
         }
         else
         {
