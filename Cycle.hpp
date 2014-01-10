@@ -34,6 +34,9 @@ public:
 
     operator string() const;
 
+    void prepareForDisjoint(word diff = 0);
+    shared_ptr<list<Transposition>> disjoint(bool isLeftMultiplication);
+
     shared_ptr<list<Transposition>> getBestTranspositionsForDisjoint();
 
     shared_ptr<Cycle> multiplyByTranspositions(shared_ptr<list<Transposition>> transpositions,
@@ -42,6 +45,10 @@ public:
     /// @targetElements - elements from transpositions (x and y)
     shared_ptr<Cycle> multiplyByTranspositions(const unordered_set<word>& targetElements,
         word diff, bool isLeftMultiplication) const;
+
+protected:
+    void disjoint(bool isLeftMultiplication, shared_ptr<list<Transposition>> transpositions,
+        list<shared_ptr<Cycle>>* restCycles);
 
 private:
     /// Returns index modulo element count
@@ -61,11 +68,39 @@ private:
     uint distnancesSum;
     uint newDistancesSum;
 
-    Transposition disjointTransp;
-    uint disjointIndex;
-
     shared_ptr<list<Transposition>> firstTranspositions;
     vector<word> restElements;
+
+    // generator 4.0 optimization
+    struct DisjointParams
+    {
+        uint index;     // index of element in cycle
+        uint step;      // distance in elements between this element and another one
+        word diff;      // difference between this element and another one
+
+        int  leftSum;   // sum of new Hamming distances if this element will be disjoint point as left product
+        int  rightSum;  // sum of new Hamming distances if this element will be disjoint point as right product
+    };
+
+    typedef unordered_map<word, vector<DisjointParams>> DisjointParamsMap;
+
+    void fillDisjointParams(DisjointParamsMap* disjointParams, word targetDiff);
+    void getAdditionalSumForDisjointPoint(uint index, uint step,
+        DisjointParams* params);
+
+    DisjointParams findBestDisjointPoint(const DisjointParamsMap& disjointParams);
+
+    bool hasDisjointPoint;
+    DisjointParams bestParams;
+
+    struct DisjointResult
+    {
+        shared_ptr<list<Transposition>> transpositions;
+        list<shared_ptr<Cycle>> restCycles;
+    };
+
+    DisjointResult leftDisjointResult;
+    DisjointResult rightDisjointResult;
 };
 
 }   // namespace ReversibleLogic

@@ -8,8 +8,6 @@ Cycle::Cycle()
     , finalized(false)
     , distnancesSum(uintUndefined)
     , newDistancesSum(uintUndefined)
-    , disjointTransp()
-    , disjointIndex(0)
     , firstTranspositions()
     , restElements()
 {
@@ -20,8 +18,6 @@ Cycle::Cycle(vector<word>&& source)
     , finalized(false)
     , distnancesSum(uintUndefined)
     , newDistancesSum(uintUndefined)
-    , disjointTransp()
-    , disjointIndex(0)
     , firstTranspositions()
     , restElements()
 {
@@ -434,6 +430,296 @@ shared_ptr<Cycle> Cycle::multiplyByTranspositions(
     }
 
     return resultCycle;
+}
+
+void Cycle::prepareForDisjoint(word diff /*= 0*/)
+{
+    DisjointParamsMap disjointParams;
+    fillDisjointParams(&disjointParams, diff);
+
+    bestParams = findBestDisjointPoint(disjointParams);
+}
+
+void Cycle::fillDisjointParams(DisjointParamsMap* disjointParams, word targetDiff)
+{
+    uint elementCount = length();
+    uint stepCount = elementCount / 2;
+
+    disjointParams->clear();
+
+    word minDiff = elements[0] ^ elements[1];
+    uint minDiffWeight = countNonZeroBits(minDiff);
+
+    for(uint step = 1; step <= stepCount; ++step)
+    {
+        uint maxIndex = elementCount;
+        if(!(elementCount & 1) && step == stepCount)
+        {
+            // avoid pair duplicates
+            maxIndex /= 2;
+        }
+
+        for(uint index = 0; index < maxIndex; ++index)
+        {
+            word x = elements[index];
+            word y = elements[modIndex(index + step)];
+
+            word diff = x ^ y;
+            uint diffWeight = uintUndefined;
+
+            if(!targetDiff)
+            {
+                diffWeight = countNonZeroBits(diff);
+
+                if(diffWeight < minDiffWeight)
+                {
+                    disjointParams->clear();
+                    minDiffWeight = diffWeight;
+                }
+            }
+
+            if(diffWeight == minDiffWeight || diff == targetDiff)
+            {
+                DisjointParams params = {index, step, diff, 0, 0};
+                getAdditionalSumForDisjointPoint(index, step, &params);
+
+                const uint numBufferSizeStep = 64;
+
+                vector<DisjointParams>& paramsByDiff = (*disjointParams)[diff];
+                bufferize(paramsByDiff, numBufferSizeStep);
+                paramsByDiff.push_back(params);
+            }
+        }
+    }
+}
+
+void Cycle::getAdditionalSumForDisjointPoint(uint index, uint step,
+    DisjointParams* params)
+{
+    int sum = 0;
+
+    word x = elements[index];
+    word y = elements[modIndex(index + step)];
+    word w = 0;
+
+    // if this would be left product
+    sum = 0;
+    
+    w = elements[modIndex(index + 1)];
+    sum += countNonZeroBits(y ^ w);
+
+    w = elements[modIndex(index + step + 1)];
+    sum += countNonZeroBits(x ^ w);
+
+    params->leftSum = sum;
+
+    // if this would be right product
+    uint elementCount = length();
+    sum = 0;
+
+    w = elements[modIndex(index + elementCount - 1)];
+    sum += countNonZeroBits(w ^ y);
+
+    w = elements[modIndex(index + step - 1)];
+    sum += countNonZeroBits(w ^ x);
+
+    params->rightSum = sum;
+}
+
+Cycle::DisjointParams Cycle::findBestDisjointPoint(const DisjointParamsMap& disjointParams)
+{
+    // first find the longest vector in map
+    uint maxLength = 0;
+    const vector<DisjointParams>* longestVector = 0;
+    hasDisjointPoint = false;
+
+    forcin(iter, disjointParams)
+    {
+        const vector<DisjointParams>& vectorCandidate = iter->second;
+        uint elementCount = vectorCandidate.size();
+
+        if(elementCount > maxLength)
+        {
+            maxLength = elementCount;
+            longestVector = &vectorCandidate;
+        }
+    }
+
+    // after that find in the longest vector disjoint params with the biggest step field
+    DisjointParams result;
+    
+if(longestVector)
+    {
+        uint maxStep = 0;
+
+        forcin(params, *longestVector)
+        {
+            uint step = params->step;
+            if(step > maxStep)
+            {
+                maxStep = step;
+                result = *params;
+                hasDisjointPoint = true;
+            }
+        }
+    }
+
+    if(hasDisjointPoint)
+    {
+        // normalize result
+        uint elementCount = elements.size();
+        uint xIndex = result.index;
+        uint yIndex = modIndex(xIndex + result.step);
+
+        if(yIndex < xIndex)
+        {
+            result.index = yIndex;
+            result.step = xIndex - yIndex;
+        }
+    }
+
+    return result;
+}
+
+shared_ptr<list<Transposition>> Cycle::disjoint(bool isLeftMultiplication)
+{
+    bool makeDisjoint = true;
+    shared_ptr<list<Transposition>> result;
+
+    // first check saved results
+    if(isLeftMultiplication)
+    {
+        if(leftDisjointResult.transpositions)
+        {
+            result = leftDisjointResult.transpositions;
+            makeDisjoint = false;
+        }
+    }
+    else
+    {
+        if(rightDisjointResult.transpositions)
+        {
+            result = rightDisjointResult.transpositions;
+            makeDisjoint = false;
+        }
+    }
+
+    // make disjoint if necessary
+    if(makeDisjoint)
+    {
+        shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
+        list<shared_ptr<Cycle>>* restCycles = 0;
+
+        if(isLeftMultiplication)
+        {
+            result = leftDisjointResult.transpositions = transpositions;
+            restCycles = &leftDisjointResult.restCycles;
+        }
+        else
+        {
+            result = rightDisjointResult.transpositions = transpositions;
+            restCycles = &rightDisjointResult.restCycles;
+        }
+
+        disjoint(isLeftMultiplication, transpositions, restCycles);
+
+        // debug
+        cout << '\n' << (string)*this << " = ";
+        if(isLeftMultiplication)
+        {
+            forcin(transp, *transpositions)
+            {
+                cout << (string)*transp;
+            }
+        }
+        forcin(iter, *restCycles)
+        {
+            Cycle& cycle = **iter;
+            cout << (string)cycle;
+        }
+        if(!isLeftMultiplication)
+        {
+            forcin(transp, *transpositions)
+            {
+                cout << (string)*transp;
+            }
+        }
+    }
+
+    return result;
+}
+
+void Cycle::disjoint(bool isLeftMultiplication,
+    shared_ptr<list<Transposition>> transpositions,
+    list<shared_ptr<Cycle>>* restCycles)
+{
+    if(!hasDisjointPoint)
+    {
+        shared_ptr<Cycle> cycle(new Cycle(*this));
+        restCycles->push_back(cycle);
+    }
+    else
+    {
+        uint elementCount = length();
+        list<shared_ptr<Cycle>> cycles;
+
+        uint xIndex = bestParams.index;
+        uint yIndex = xIndex + bestParams.step;
+        transpositions->push_back(Transposition(elements[xIndex], elements[yIndex]));
+
+        if(bestParams.step != 1)
+        {
+            vector<word> temp;
+            temp.resize(bestParams.step);
+
+            if(isLeftMultiplication)
+            {
+                // (x_{i+1}...x_{j-1} x_{j}}
+                memcpy(temp.data(), elements.data() + xIndex + 1, bestParams.step * sizeof(word));
+            }
+            else
+            {
+                // (x_{i} x_{i+1}...x_{j-1}}
+                memcpy(temp.data(), elements.data() + xIndex, bestParams.step * sizeof(word));
+            }
+
+            shared_ptr<Cycle> cycle(new Cycle(move(temp)));
+            cycles.push_back(cycle);
+        }
+
+        // check for boundary conditions
+        if(elementCount > 2 && elementCount - bestParams.step > 1 )
+        {
+            vector<word> temp;
+            temp.resize(elementCount - bestParams.step);
+
+            if(isLeftMultiplication)
+            {
+                // (x_{1}...x_{i-1} x_{i} x_{j+1}...x_{n}}
+                memcpy(temp.data(), elements.data(), (xIndex + 1) * sizeof(word));
+                memcpy(temp.data() + xIndex + 1, elements.data() + yIndex + 1,
+                    (elementCount - yIndex - 1) * sizeof(word));
+            }
+            else
+            {
+                // (x_{1}...x_{i-1} x_{j} x_{j+1}...x_{n}}
+                memcpy(temp.data(), elements.data(), xIndex * sizeof(word));
+                memcpy(temp.data() + xIndex, elements.data() + yIndex,
+                    (elementCount - yIndex) * sizeof(word));
+            }
+
+            shared_ptr<Cycle> cycle(new Cycle(move(temp)));
+            cycles.push_back(cycle);
+        }
+
+        // recursion
+        forin(iter, cycles)
+        {
+            Cycle& cycle = **iter;
+            cycle.prepareForDisjoint(bestParams.diff);
+            cycle.disjoint(isLeftMultiplication, transpositions, restCycles);
+        }
+    }
 }
 
 }   // namespace ReversibleLogic

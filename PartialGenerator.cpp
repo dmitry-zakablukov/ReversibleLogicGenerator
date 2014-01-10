@@ -10,12 +10,10 @@ PartialGenerator::PartialGenerator()
     , transpToCycleIndexMap()
     , diffToEdgeMap()
 {
-
 }
 
 PartialGenerator::~PartialGenerator()
 {
-
 }
 
 void PartialGenerator::setPermutation(Permutation thePermutation, uint inputCount)
@@ -29,6 +27,13 @@ void PartialGenerator::setPermutation(Permutation thePermutation, uint inputCoun
 void PartialGenerator::prepareForGeneration()
 {
     assert(!permutation.isEmpty(), string("PartialGenerator: preparation for empty permutation"));
+
+    forin(cycle, permutation)
+    {
+        (*cycle)->prepareForDisjoint();
+        (*cycle)->disjoint(true);
+        (*cycle)->disjoint(false);
+    }
 
     fillDistancesMap();
     computeEdges();

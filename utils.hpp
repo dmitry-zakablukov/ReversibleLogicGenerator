@@ -80,14 +80,12 @@ bool found(const deque<T>& container, T element)
 }
 
 template<typename T>
-inline void bufferize(vector<T>& container)
+inline void bufferize(vector<T>& container, uint bufferSize = 1024)
 {
-    const uint numBufferSize = 1024;
-
     uint size = container.capacity();
-    if(!(size & ~(numBufferSize - 1)))
+    if(!(size & ~(bufferSize - 1)))
     {
-        container.reserve(size + numBufferSize);
+        container.reserve(size + bufferSize);
     }
 }
 
