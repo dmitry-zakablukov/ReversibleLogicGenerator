@@ -7,7 +7,6 @@ PartialGenerator::PartialGenerator()
     : permutation()
     , n(uintUndefined)
     , distMap()
-    , transpToCycleIndexMap()
     , diffToEdgeMap()
 {
 }
@@ -16,41 +15,44 @@ PartialGenerator::~PartialGenerator()
 {
 }
 
-void PartialGenerator::setPermutation(Permutation thePermutation, uint inputCount)
+void PartialGenerator::setPermutation(Permutation* thePermutation, uint inputCount,
+    bool isLeftMultiplication)
 {
     permutation = thePermutation;
     n = inputCount;
+    leftMultiplicationFlag = isLeftMultiplication;
 
     assert(n != uintUndefined, string("PartialGenerator: input count not defined"));
 }
 
 void PartialGenerator::prepareForGeneration()
 {
-    assert(!permutation.isEmpty(), string("PartialGenerator: preparation for empty permutation"));
+    assert(!permutation->isEmpty(), string("PartialGenerator: preparation for empty permutation"));
 
-    forin(cycle, permutation)
+    shared_ptr<list<Transposition>> transpositions = getTranspositions();
+    if(!transpositions || !transpositions->size())
     {
-        (*cycle)->prepareForDisjoint();
-        (*cycle)->disjoint(true);
-        (*cycle)->disjoint(false);
-    }
-
-    fillDistancesMap();
-    computeEdges();
-
-    sortDistanceKeys();
-
-    // get partial result
-    word key = distKeys.front();
-    auto& candidates = distMap[key];
-
-    if(candidates->size() > 1)
-    {
-        processSameDiffTranspositions(candidates);
+        partialResultParams.type = tNone;
     }
     else
     {
-        processCommonTranspositions();
+        fillDistancesMap(transpositions);
+        computeEdges();
+
+        sortDistanceKeys();
+
+        // get partial result
+        word key = distKeys.front();
+        auto& candidates = distMap[key];
+
+        if(candidates->size() > 1)
+        {
+            processSameDiffTranspositions(candidates);
+        }
+        else
+        {
+            processCommonTranspositions();
+        }
     }
 }
 
@@ -59,30 +61,48 @@ PartialResultParams PartialGenerator::getPartialResultParams() const
     return partialResultParams;
 }
 
-void PartialGenerator::fillDistancesMap()
+shared_ptr<list<Transposition>> PartialGenerator::getTranspositions()
+{
+    shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
+    partialResultParams.restCyclesDistanceSum = 0;
+
+    forin(iter, *permutation)
+    {
+        Cycle& cycle = **iter;
+        uint cycleDistancesSum = 0;
+
+        shared_ptr<list<Transposition>> cycleTranspositions =
+            cycle.disjoint(leftMultiplicationFlag, &cycleDistancesSum);
+
+        if(cycleTranspositions)
+        {
+            transpositions->insert(transpositions->end(),
+                cycleTranspositions->cbegin(), cycleTranspositions->cend());
+
+            partialResultParams.restCyclesDistanceSum += cycleDistancesSum;
+        }
+    }
+
+    if(transpositions && transpositions->size() == 1)
+    {
+        assert(permutation->length() == 1,
+            string("PartialGenerator::getTranspositions() failed because my DNA"));
+
+        shared_ptr<Cycle> cycle = permutation->getCycle(0);
+        cycle->completeDisjoint(leftMultiplicationFlag, transpositions);
+    }
+
+    return transpositions;
+}
+
+void PartialGenerator::fillDistancesMap(shared_ptr<list<Transposition>> transpositions)
 {
     decltype(distMap) emptyMap;
     distMap = emptyMap;
 
-    word vectorSize = 1 << n;
-
-    uint cycleCount = permutation.length();
-    for(uint cycleIndex = 0; cycleIndex < cycleCount; ++cycleIndex)
+    forcin(iter, *transpositions)
     {
-        auto cycle = permutation.getCycle(cycleIndex);
-        shared_ptr<list<Transposition>> transpositions = cycle->getBestTranspositionsForDisjoint();
-
-        forcin(iter, *transpositions)
-        {
-            addTranspToDistMap(*iter);
-        }
-
-        uint elementCount = cycle->length();
-        for(uint elementIndex = 0; elementIndex < elementCount; ++elementIndex)
-        {
-            const word& element = (*cycle)[elementIndex];
-            transpToCycleIndexMap[element] = cycleIndex;
-        }
+        addTranspToDistMap(*iter);
     }
 }
 
@@ -433,28 +453,7 @@ void PartialGenerator::processCommonTranspositions()
     transpositionsToSynthesize->push_back(secondTransp);
 }
 
-bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
-{
-    assert(transpositionsToSynthesize->size(),
-        string("PartialGenerator: can't tell the difference for empty partial result"));
-
-    bool isDiffer = false;
-    forcin(target, *transpositionsToSynthesize)
-    {
-        uint parentCycleIndex = transpToCycleIndexMap.at(target->getX());
-        shared_ptr<Cycle> parentCycle = permutation.getCycle(parentCycleIndex);
-
-        if(parentCycle->length() > 2)
-        {
-            isDiffer = true;
-            break;
-        }
-    }
-
-    return isDiffer;
-}
-
-Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication)
+Permutation PartialGenerator::getResidualPermutation()
 {
     // 1) remember all elements in transpositions to remove
     unordered_set<word> targetElements;
@@ -464,50 +463,32 @@ Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication)
         targetElements.insert(transp->getY());
     }
 
-    // 2) remember all cycle indices which should be reduced
-    // and difference for this cycle
-    unordered_set<uint> cycleIndicesToReduce;
-    unordered_map<uint, word> cycleIndexToDiff;
-
-    forcin(transp, *transpositionsToSynthesize)
-    {
-        uint cycleIndex = transpToCycleIndexMap[transp->getX()];
-        if(!cycleIndicesToReduce.count(cycleIndex))
-        {
-            cycleIndicesToReduce.insert(cycleIndex);
-            cycleIndexToDiff[cycleIndex] = transp->getDiff();
-        }
-    }
-
-    // 3) loop on cycles and reduce them if needed
-    uint cycleCount = permutation.length();
-
+    // 2) loop on cycles and reduce them if needed
     vector<shared_ptr<Cycle>> newCycles;
-    newCycles.reserve(cycleCount);
+    const uint numBufferSize = 16;
 
+    uint cycleCount = permutation->length();
     for(uint index = 0; index < cycleCount; ++index)
     {
-        shared_ptr<Cycle> nextCycle = permutation.getCycle(index);
+        shared_ptr<Cycle> nextCycle = permutation->getCycle(index);
+        bool hasNewCycles = false;
 
-        if(cycleIndicesToReduce.count(index))
+        list<shared_ptr<Cycle>> restCycles =
+            nextCycle->multiplyByTranspositions(targetElements, leftMultiplicationFlag,
+            &hasNewCycles);
+
+        if(hasNewCycles)
         {
-            word diff = cycleIndexToDiff[index];
-
-            shared_ptr<Cycle> reducedCycle =
-                nextCycle->multiplyByTranspositions(targetElements, diff, isLeftMultiplication);
-
-            if(reducedCycle && reducedCycle->length())
-            {
-                newCycles.push_back(reducedCycle);
-            }
+            bufferize(newCycles, numBufferSize);
+            newCycles.insert(newCycles.end(), restCycles.cbegin(), restCycles.cend());
         }
-        else if(nextCycle->length())
+        else
         {
+            bufferize(newCycles, numBufferSize);
             newCycles.push_back(nextCycle);
         }
     }
 
-    // 4) create residual permutation based on new cycles
     Permutation residualPermutation(newCycles);
     return residualPermutation;
 }

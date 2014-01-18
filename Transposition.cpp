@@ -124,6 +124,21 @@ Transposition::operator string() const
     return stream.str();
 }
 
+word Transposition::getOutput(word input) const
+{
+    word output = input;
+    if(output == x)
+    {
+        output = y;
+    }
+    else if(output == y)
+    {
+        output = x;
+    }
+
+    return output;
+}
+
 //////////////////////////////////////////////
 // TransposPair class
 //////////////////////////////////////////////

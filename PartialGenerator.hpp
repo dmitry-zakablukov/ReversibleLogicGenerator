@@ -11,26 +11,23 @@ public:
     PartialGenerator();
     ~PartialGenerator();
 
-    void setPermutation(Permutation thePermutation, uint inputCount);
+    void setPermutation(Permutation* thePermutation, uint inputCount,
+        bool isLeftMultiplication);
     void prepareForGeneration();
 
     PartialResultParams getPartialResultParams() const;
 
-    /// Returns false if left and right multiplication by partial result
-    /// would produce the same residual permutation
-    bool isLeftAndRightMultiplicationDiffers() const;
-
-    /// @isLeftMultiplication - parameter, for which true means that
-    /// residual permutation would be left multiplied by partial result
-    /// i.e. (partial_result) * (residual_permutation) for isLeftMultiplication == true
-    /// and  (residual_permutation) * (partial_result) for isLeftMultiplication == false
-    Permutation getResidualPermutation(bool isLeftMultiplication);
+    /// Returns residual permutation, which would be left multiplied by partial result
+    /// i.e. (partial_result) * (residual_permutation) if leftMultiplicationFlag == true
+    /// and  (residual_permutation) * (partial_result) for leftMultiplicationFlag == false
+    Permutation getResidualPermutation();
 
     // TODO: return shared_ptr
     deque<ReverseElement> implementPartialResult();
 
 private:
-    void fillDistancesMap();
+    shared_ptr<list<Transposition>> getTranspositions();
+    void fillDistancesMap(shared_ptr<list<Transposition>> transpositions);
 
     // Edge optimization
     void computeEdges();
@@ -54,13 +51,13 @@ private:
     deque<ReverseElement> implementPairOfTranspositions();
     deque<ReverseElement> implementSingleTransposition(const Transposition& transp);
 
-    Permutation permutation;
+    Permutation* permutation;
     uint n;
+    bool leftMultiplicationFlag;
 
     unordered_map<word, shared_ptr<list<Transposition>> > distMap;
     list<word> distKeys;
 
-    unordered_map<word, uint> transpToCycleIndexMap;
     unordered_map<word, BooleanEdge> diffToEdgeMap;
 
     PartialResultParams partialResultParams;

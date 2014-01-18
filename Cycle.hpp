@@ -34,21 +34,37 @@ public:
 
     operator string() const;
 
+    // Returns new value for input if it is in cycle
+    // i.e. output = elements[i+1] if input == elements[i]
+    word getOutput(word input) const;
+
     void prepareForDisjoint(word diff = 0);
-    shared_ptr<list<Transposition>> disjoint(bool isLeftMultiplication);
+
+    shared_ptr<list<Transposition>> disjoint(bool isLeftMultiplication,
+        uint* restCyclesDistanceSum);
+
+    // This method finds best pair for @transp in rest cycles
+    // Should be called only if there is only one transposition in result
+    void completeDisjoint(bool isLeftMultiplication,
+        shared_ptr<list<Transposition>> result);
+
+    uint getDistancesSum() const;
 
     shared_ptr<list<Transposition>> getBestTranspositionsForDisjoint();
 
-    shared_ptr<Cycle> multiplyByTranspositions(shared_ptr<list<Transposition>> transpositions,
-        bool isLeftMultiplication) const;
-
     /// @targetElements - elements from transpositions (x and y)
-    shared_ptr<Cycle> multiplyByTranspositions(const unordered_set<word>& targetElements,
-        word diff, bool isLeftMultiplication) const;
+    /// Returns list of new cycles if all transpositions from
+    /// disjoint result are in multiplication and sets flag
+    /// in @hasNewCycles in that case
+    list<shared_ptr<Cycle>> multiplyByTranspositions(
+        const unordered_set<word>& targetElements,
+        bool isLeftMultiplication, bool* hasNewCycles);
 
 protected:
     void disjoint(bool isLeftMultiplication, shared_ptr<list<Transposition>> transpositions,
         list<shared_ptr<Cycle>>* restCycles);
+
+    Transposition findBestPair(const Transposition& transp, uint* complexity);
 
 private:
     /// Returns index modulo element count
@@ -90,6 +106,15 @@ private:
 
     DisjointParams findBestDisjointPoint(const DisjointParamsMap& disjointParams);
 
+    list<shared_ptr<Cycle>> getRestCycles(bool isLeftMultiplication);
+
+    void getCyclesAfterMultiplication(bool isLeftMultiplication,
+        shared_ptr<list<Transposition>> transpositions,
+        const list<shared_ptr<Cycle>>& cycles, list<shared_ptr<Cycle>>* result);
+
+    word getOutput(word input, shared_ptr<list<Transposition>> transpositions) const;
+    word getOutput(word input, const list<shared_ptr<Cycle>>& cycles) const;
+
     bool hasDisjointPoint;
     DisjointParams bestParams;
 
@@ -97,10 +122,20 @@ private:
     {
         shared_ptr<list<Transposition>> transpositions;
         list<shared_ptr<Cycle>> restCycles;
+        uint restCyclesDistanceSum;
     };
 
     DisjointResult leftDisjointResult;
     DisjointResult rightDisjointResult;
+
+    enum MultiplicationType
+    {
+        mtNone = 0,         // cycle was not multiplied by any transpositions
+        mtLeftMultiplied,   // cycle was left multiplied by transpositions
+        mtRightMultiplied,  // cycle was right multiplied by transpositions
+    };
+
+    MultiplicationType previousMultiplicationType;
 };
 
 }   // namespace ReversibleLogic

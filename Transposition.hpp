@@ -33,6 +33,10 @@ public:
     // Returns true if transposition has specified value
     bool has(word value) const;
 
+    // Returns new value for input if it is in transposition
+    // i.e. input == x, then output = y and vice versa
+    word getOutput(word input) const;
+
     bool operator ==(const Transposition& another) const;
     bool operator !=(const Transposition& another) const;
 

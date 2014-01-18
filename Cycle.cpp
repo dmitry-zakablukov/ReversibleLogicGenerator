@@ -10,6 +10,7 @@ Cycle::Cycle()
     , newDistancesSum(uintUndefined)
     , firstTranspositions()
     , restElements()
+    , previousMultiplicationType(mtNone)
 {
 }
 
@@ -20,6 +21,7 @@ Cycle::Cycle(vector<word>&& source)
     , newDistancesSum(uintUndefined)
     , firstTranspositions()
     , restElements()
+    , previousMultiplicationType(mtNone)
 {
     uint elementCount = length();
     if(elements[0] == elements[elementCount - 1])
@@ -190,6 +192,46 @@ Cycle::operator string() const
     return result.str();
 }
 
+word Cycle::getOutput(word input) const
+{
+    word output = input;
+    
+    uint elementCount = length();
+    for(uint index = 0; index < elementCount; ++index)
+    {
+        word x = elements[index];
+        if(input == x)
+        {
+            output = elements[modIndex(index + 1)];
+        }
+    }
+
+    return output;
+}
+
+word Cycle::getOutput(word input, shared_ptr<list<Transposition>> transpositions) const
+{
+    word output = input;
+    forcin(iter, *transpositions)
+    {
+        output = iter->getOutput(output);
+    }
+
+    return output;
+}
+
+word Cycle::getOutput(word input, const list<shared_ptr<Cycle>>& cycles) const
+{
+    word output = input;
+    forcin(iter, cycles)
+    {
+        const Cycle& cycle = **iter;
+        output = cycle.getOutput(output);
+    }
+
+    return output;
+}
+
 uint Cycle::modIndex(uint index) const
 {
     uint elementCount = length();
@@ -356,80 +398,118 @@ shared_ptr<list<Transposition>> Cycle::getTranspositionsByDiff(word diff)
     return result;
 }
 
-shared_ptr<Cycle> Cycle::multiplyByTranspositions(
-    shared_ptr<list<Transposition>> transpositions,
-    bool isLeftMultiplication) const
+list<shared_ptr<Cycle>> Cycle::multiplyByTranspositions(
+    const unordered_set<word>& targetElements, bool isLeftMultiplication,
+    bool* hasNewCycles)
 {
-    // remember all elements in transpositions to remove
-    // and difference for them
-    word diff = transpositions->front().getDiff();
+    *hasNewCycles = false;
+    list<shared_ptr<Cycle>> restCycles;
 
-    unordered_set<word> targetElements;
-    forcin(transp, *transpositions)
+    DisjointResult* disjointResult = (isLeftMultiplication ? &leftDisjointResult : &rightDisjointResult);
+
+    bool multipliedFlag = false;
+    shared_ptr<list<Transposition>> transpositions = disjointResult->transpositions;
+
+    for(auto iter = transpositions->begin(); iter != transpositions->end(); )
     {
-        targetElements.insert(transp->getX());
-        targetElements.insert(transp->getY());
-    }
+        Transposition& transp = *iter;
+        word x = transp.getX();
 
-    return multiplyByTranspositions(targetElements, diff, isLeftMultiplication);
-}
-
-shared_ptr<Cycle> Cycle::multiplyByTranspositions(
-    const unordered_set<word>& targetElements, word diff, bool isLeftMultiplication) const
-{
-    // 1) create new vector of elements
-    uint elementCount = length();
-
-    vector<word> resultElements;
-    resultElements.reserve(elementCount);
-
-    // 2) fill this vector
-    bool copyNeeded = true;
-    if(elementCount == 2 && targetElements.count(elements[0]))
-    {
-        // whole cycle need to be removed
-        copyNeeded = false;
-    }
-
-    if(copyNeeded)
-    {
-        for(uint index = 0; index < elementCount; ++index)
+        if(targetElements.count(x))
         {
-            const word& first  = elements[index];
-            const word& second = elements[modIndex(index + 1)];
-
-            if(targetElements.count(first))
-            {
-                if(targetElements.count(second) && ((first ^ second) == diff))
-                {
-                    if(isLeftMultiplication)
-                    {
-                        resultElements.push_back(first);
-                    }
-                    else
-                    {
-                        resultElements.push_back(second);
-                    }
-
-                    // skip second element
-                    ++index;
-                }
-            }
-            else
-            {
-                resultElements.push_back(first);
-            }
+            iter = transpositions->erase(iter);
+            multipliedFlag = true;
+        }
+        else
+        {
+            ++iter;
         }
     }
 
-    // 3) create result cycle
-    shared_ptr<Cycle> resultCycle = 0;
-    if(resultElements.size())
+    if(multipliedFlag)
     {
-        resultCycle = shared_ptr<Cycle>(new Cycle(move(resultElements)));
+        *hasNewCycles = true;
+        restCycles = getRestCycles(isLeftMultiplication);
     }
 
-    return resultCycle;
+    return restCycles;
+}
+
+list<shared_ptr<Cycle>> Cycle::getRestCycles(bool isLeftMultiplication)
+{
+    DisjointResult* disjointResult = (isLeftMultiplication ? &leftDisjointResult : &rightDisjointResult);
+    shared_ptr<list<Transposition>> transpositions = disjointResult->transpositions;
+    const list<shared_ptr<Cycle>> restCycles = disjointResult->restCycles;
+
+    list<shared_ptr<Cycle>> newCycles;
+    getCyclesAfterMultiplication(isLeftMultiplication, transpositions, restCycles, &newCycles);
+
+    return newCycles;
+}
+
+void Cycle::getCyclesAfterMultiplication(bool isLeftMultiplication,
+    shared_ptr<list<Transposition>> transpositions,
+    const list<shared_ptr<Cycle>>& cycles, list<shared_ptr<Cycle>>* result)
+{
+    if(!transpositions->size())
+    {
+        *result = cycles;
+    }
+    else
+    {
+        // multiply transpositions on rest cycles
+
+        unordered_set<word> visitedElements;
+        shared_ptr<Cycle> nextCycle(new Cycle());
+
+        uint elementCount = length();
+        for(uint index = 0; index < elementCount; ++index)
+        {
+            word x = elements[index];
+            if(!visitedElements.count(x))
+            {
+                while(!nextCycle->isFinal())
+                {
+                    word y = x;
+                    if(isLeftMultiplication)
+                    {
+                        y = getOutput(y, transpositions);
+                        y = getOutput(y, cycles);
+                    }
+                    else
+                    {
+                        y = getOutput(y, cycles);
+                        y = getOutput(y, transpositions);
+                    }
+
+                    if(nextCycle->isEmpty())
+                    {
+                        nextCycle->append(x);
+                    }
+                    nextCycle->append(y);
+
+                    visitedElements.insert(x);
+                    x = y;
+                }
+
+                uint cycleLength = nextCycle->length();
+
+                // skip fixed point
+                if(cycleLength > 1)
+                {
+                    result->push_back(nextCycle);
+                }
+
+                nextCycle = shared_ptr<Cycle>(new Cycle());
+            }
+        }
+
+        assert(visitedElements.size() == elementCount,
+            string("Cycle::getCyclesAfterMultiplication() failed because not all elements processed"));
+
+        assert(!nextCycle->length(),
+            string("Cycle::getCyclesAfterMultiplication() failed because of last cycle"));
+    }
 }
 
 void Cycle::prepareForDisjoint(word diff /*= 0*/)
@@ -438,12 +518,26 @@ void Cycle::prepareForDisjoint(word diff /*= 0*/)
     fillDisjointParams(&disjointParams, diff);
 
     bestParams = findBestDisjointPoint(disjointParams);
+
+    //// debug
+    //forcin(iter, disjointParams)
+    //{
+    //    word dist = iter->first;
+    //    auto v = iter->second;
+
+    //    cout << "diff = " << dist << ", count = " << v.size() << '\n';
+    //}
+
+    //cout << "choosing diff = " << bestParams.diff << '\n';
 }
 
 void Cycle::fillDisjointParams(DisjointParamsMap* disjointParams, word targetDiff)
 {
     uint elementCount = length();
     uint stepCount = elementCount / 2;
+
+    // debug
+    stepCount = 1;
 
     disjointParams->clear();
 
@@ -547,15 +641,16 @@ Cycle::DisjointParams Cycle::findBestDisjointPoint(const DisjointParamsMap& disj
 
     // after that find in the longest vector disjoint params with the biggest step field
     DisjointParams result;
-    
-if(longestVector)
+    if(longestVector)
     {
         uint maxStep = 0;
 
+        maxStep = uintUndefined;
         forcin(params, *longestVector)
         {
             uint step = params->step;
-            if(step > maxStep)
+            //if(step > maxStep)
+            if(step < maxStep)
             {
                 maxStep = step;
                 result = *params;
@@ -581,7 +676,8 @@ if(longestVector)
     return result;
 }
 
-shared_ptr<list<Transposition>> Cycle::disjoint(bool isLeftMultiplication)
+shared_ptr<list<Transposition>> Cycle::disjoint(bool isLeftMultiplication,
+    uint* restCyclesDistanceSum)
 {
     bool makeDisjoint = true;
     shared_ptr<list<Transposition>> result;
@@ -589,17 +685,29 @@ shared_ptr<list<Transposition>> Cycle::disjoint(bool isLeftMultiplication)
     // first check saved results
     if(isLeftMultiplication)
     {
-        if(leftDisjointResult.transpositions)
+        if(previousMultiplicationType == mtRightMultiplied)
+        {
+            result = 0;
+            makeDisjoint = false;
+        }
+        else if(leftDisjointResult.transpositions)
         {
             result = leftDisjointResult.transpositions;
+            *restCyclesDistanceSum = leftDisjointResult.restCyclesDistanceSum;
             makeDisjoint = false;
         }
     }
     else
     {
-        if(rightDisjointResult.transpositions)
+        if(previousMultiplicationType == mtLeftMultiplied)
+        {
+            result = 0;
+            makeDisjoint = false;
+        }
+        else if(rightDisjointResult.transpositions)
         {
             result = rightDisjointResult.transpositions;
+            *restCyclesDistanceSum = rightDisjointResult.restCyclesDistanceSum;
             makeDisjoint = false;
         }
     }
@@ -609,41 +717,54 @@ shared_ptr<list<Transposition>> Cycle::disjoint(bool isLeftMultiplication)
     {
         shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
         list<shared_ptr<Cycle>>* restCycles = 0;
+        uint* distancesSum = 0;
 
         if(isLeftMultiplication)
         {
             result = leftDisjointResult.transpositions = transpositions;
             restCycles = &leftDisjointResult.restCycles;
+            distancesSum = &leftDisjointResult.restCyclesDistanceSum;
         }
         else
         {
             result = rightDisjointResult.transpositions = transpositions;
             restCycles = &rightDisjointResult.restCycles;
+            distancesSum = &rightDisjointResult.restCyclesDistanceSum;
         }
 
         disjoint(isLeftMultiplication, transpositions, restCycles);
 
-        // debug
-        cout << '\n' << (string)*this << " = ";
-        if(isLeftMultiplication)
-        {
-            forcin(transp, *transpositions)
-            {
-                cout << (string)*transp;
-            }
-        }
+        // calculate distances sum
+        *distancesSum = 0;
         forcin(iter, *restCycles)
         {
             Cycle& cycle = **iter;
-            cout << (string)cycle;
+            *distancesSum += cycle.getDistancesSum();
         }
-        if(!isLeftMultiplication)
-        {
-            forcin(transp, *transpositions)
-            {
-                cout << (string)*transp;
-            }
-        }
+
+        *restCyclesDistanceSum = *distancesSum;
+
+        //// debug
+        //cout << '\n' << (string)*this << " = ";
+        //if(isLeftMultiplication)
+        //{
+        //    forcin(transp, *transpositions)
+        //    {
+        //        cout << (string)*transp;
+        //    }
+        //}
+        //forcin(iter, *restCycles)
+        //{
+        //    Cycle& cycle = **iter;
+        //    cout << (string)cycle;
+        //}
+        //if(!isLeftMultiplication)
+        //{
+        //    forcin(transp, *transpositions)
+        //    {
+        //        cout << (string)*transp;
+        //    }
+        //}
     }
 
     return result;
@@ -720,6 +841,111 @@ void Cycle::disjoint(bool isLeftMultiplication,
             cycle.disjoint(isLeftMultiplication, transpositions, restCycles);
         }
     }
+}
+
+void Cycle::completeDisjoint(bool isLeftMultiplication,
+    shared_ptr<list<Transposition>> result)
+{
+    assert(result && result->size() == 1,
+        string("Cycle::completeDisjoint() called with wrong result"));
+
+    const Transposition& transp = result->front();
+
+    DisjointResult* disjointResult = (isLeftMultiplication ? &leftDisjointResult : &rightDisjointResult);
+    list<shared_ptr<Cycle>>& restCycles = disjointResult->restCycles;
+
+    assert(restCycles.size() == 1, string("Cycle::completeDisjoint() one cycle expected but failed"));
+    Cycle& cycle = *(restCycles.front());
+
+    uint complexity = uintUndefined;
+    Transposition secondTransp = cycle.findBestPair(transp, &complexity);
+
+    // push transposition to result
+    result->push_back(secondTransp);
+
+    // push transposition to cycle transpositions
+    disjointResult->transpositions->push_back(secondTransp);
+
+    // transform rest cycles to exclude
+    shared_ptr<list<Transposition>> shortTransposition(new list<Transposition>);
+    shortTransposition->push_back(secondTransp);
+
+    list<shared_ptr<Cycle>> newCycles;
+    getCyclesAfterMultiplication(isLeftMultiplication, shortTransposition,
+        restCycles, &newCycles);
+
+    disjointResult->restCycles = newCycles;
+}
+
+Transposition Cycle::findBestPair(const Transposition& transp, uint* complexity)
+{
+    word targetX = transp.getX();
+    word targetY = transp.getY();
+
+    uint elementCount = length();
+    uint stepCount = elementCount / 2;
+
+    uint minComplexity = uintUndefined;
+    Transposition secondTransp;
+
+    // debug
+    stepCount = 1;
+    for(uint step = 1; step <= stepCount; ++step)
+    {
+        uint maxIndex = elementCount;
+        if(!(elementCount & 1) && step == stepCount)
+        {
+            // avoid pair duplicates
+            maxIndex /= 2;
+        }
+
+        for(uint index = 0; index < maxIndex; ++index)
+        {
+            word x = elements[index];
+            word y = elements[modIndex(index + step)];
+
+            if(elementCount > 3 && transp.has(x) || transp.has(y))
+            {
+                // we search independent transpositions pair if possible
+                // for cycle with 3 elements only pair of dependent transpositions can be obtained
+                continue;
+            }
+
+            Transposition candidate(x, y);
+            uint complexity =
+                TransposPair(transp, candidate).getEstimateImplComplexity();
+            
+            if(complexity < minComplexity)
+            {
+                minComplexity = complexity;
+                secondTransp = candidate;
+            }
+        }
+    }
+
+    return secondTransp;
+}
+
+uint Cycle::getDistancesSum() const
+{
+    uint sum = 0;
+    uint elementCount = length();
+
+    for(uint index = 0; index < elementCount - 1; ++index)
+    {
+        word x = elements[index];
+        word y = elements[index + 1];
+        sum += countNonZeroBits(x ^ y);
+    }
+
+    if(elementCount > 2)
+    {
+        word x = elements[0];
+        word y = elements[elementCount - 1];
+        sum += countNonZeroBits(x ^ y);
+    }
+
+    return sum;
 }
 
 }   // namespace ReversibleLogic

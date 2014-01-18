@@ -38,14 +38,22 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
     Scheme scheme;
     Scheme::iterator targetIter = scheme.end();
 
-    shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
-    partialGenerator->setPermutation(permutation, n);
-    partialGenerator->prepareForGeneration();
-
-    while(partialGenerator)
+    while(!permutation.isEmpty())
     {
-        partialGenerator = reducePermutation(partialGenerator, permutation, n, &scheme, &targetIter);
+        assert(permutation.isEven(), string("Permutation parity violation found"));
+
+        prepareCyclesInPermutation(&permutation);
+        reducePermutation(&permutation, n, &scheme, &targetIter);
     }
+
+    //shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
+    //partialGenerator->setPermutation(permutation, n);
+    //partialGenerator->prepareForGeneration();
+
+    //while(partialGenerator)
+    //{
+    //    partialGenerator = reducePermutation(partialGenerator, permutation, n, &scheme, &targetIter);
+    //}
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -112,59 +120,100 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
 {
     shared_ptr<PartialGenerator> restGenerator = 0;
 
-    bool isLeftAndRightMultiplicationDiffers = partialGenerator->isLeftAndRightMultiplicationDiffers();
-    if(isLeftAndRightMultiplicationDiffers)
+    //bool isLeftAndRightMultiplicationDiffers = partialGenerator->isLeftAndRightMultiplicationDiffers();
+    //if(isLeftAndRightMultiplicationDiffers)
+    //{
+    //    // get left choice
+    //    Permutation leftMultipliedPermutation  = partialGenerator->getResidualPermutation(true);
+
+    //    shared_ptr<PartialGenerator> leftGenerator(new PartialGenerator());
+    //    leftGenerator->setPermutation(leftMultipliedPermutation, n, true);
+    //    leftGenerator->prepareForGeneration();
+
+    //    // get right choice
+    //    Permutation rightMultipliedPermutation = partialGenerator->getResidualPermutation(false);
+
+    //    shared_ptr<PartialGenerator> rightGenerator(new PartialGenerator());
+    //    rightGenerator->setPermutation(rightMultipliedPermutation, n, false);
+    //    rightGenerator->prepareForGeneration();
+
+    //    // compare left and right choices and choose the best
+    //    PartialResultParams leftPartialResultParams  =  leftGenerator->getPartialResultParams();
+    //    PartialResultParams rightPartialResultParams = rightGenerator->getPartialResultParams();
+
+    //    bool isLeftBetter = isLeftChoiceBetter(leftPartialResultParams, rightPartialResultParams);
+
+    //    // for test purpose only
+    //    // isLeftBetter = false;
+    //    
+    //    if(isLeftBetter)
+    //    {
+    //        implementPartialResult(partialGenerator, true, scheme, targetIter);
+    //        restGenerator = leftGenerator;
+    //    }
+    //    else
+    //    {
+    //        implementPartialResult(partialGenerator, false, scheme, targetIter);
+    //        restGenerator = rightGenerator;
+    //    }
+    //}
+    //else
+    //{
+    //    implementPartialResult(partialGenerator, true, scheme, targetIter);
+
+    //    // get residual permutation and iterate on it
+    //    Permutation residualPermutation = partialGenerator->getResidualPermutation(true);
+
+    //    if(!residualPermutation.isEmpty())
+    //    {
+    //        restGenerator = shared_ptr<PartialGenerator>(new PartialGenerator());
+    //        restGenerator->setPermutation(residualPermutation, n, true);
+    //        restGenerator->prepareForGeneration();
+    //    }
+    //}
+
+    return restGenerator;
+}
+
+void Generator::reducePermutation(Permutation* permutation, uint n, Scheme* scheme, Scheme::iterator* targetIter)
+{
+    PartialGenerator leftGenerator;
+    PartialGenerator rightGenerator;
+    
+    PartialGenerator* generator = 0;
+    bool isLeftMultiplication = true;
+    
+    bool multiplicationDiffers = isLeftAndRightMultiplicationDiffers(permutation);
+    if(multiplicationDiffers)
     {
         // get left choice
-        Permutation leftMultipliedPermutation  = partialGenerator->getResidualPermutation(true);
-
-        shared_ptr<PartialGenerator> leftGenerator(new PartialGenerator());
-        leftGenerator->setPermutation(leftMultipliedPermutation, n);
-        leftGenerator->prepareForGeneration();
+        leftGenerator.setPermutation(permutation, n, true);
+        leftGenerator.prepareForGeneration();
+        PartialResultParams leftPartialResultParams = leftGenerator.getPartialResultParams();
 
         // get right choice
-        Permutation rightMultipliedPermutation = partialGenerator->getResidualPermutation(false);
-
-        shared_ptr<PartialGenerator> rightGenerator(new PartialGenerator());
-        rightGenerator->setPermutation(rightMultipliedPermutation, n);
-        rightGenerator->prepareForGeneration();
+        rightGenerator.setPermutation(permutation, n, false);
+        rightGenerator.prepareForGeneration();
+        PartialResultParams rightPartialResultParams = rightGenerator.getPartialResultParams();
 
         // compare left and right choices and choose the best
-        PartialResultParams leftPartialResultParams  =  leftGenerator->getPartialResultParams();
-        PartialResultParams rightPartialResultParams = rightGenerator->getPartialResultParams();
-
-        bool isLeftBetter = isLeftChoiceBetter(leftPartialResultParams, rightPartialResultParams);
+        isLeftMultiplication = isLeftChoiceBetter(leftPartialResultParams, rightPartialResultParams);
 
         // for test purpose only
         // isLeftBetter = false;
-        
-        if(isLeftBetter)
-        {
-            implementPartialResult(partialGenerator, true, scheme, targetIter);
-            restGenerator = leftGenerator;
-        }
-        else
-        {
-            implementPartialResult(partialGenerator, false, scheme, targetIter);
-            restGenerator = rightGenerator;
-        }
+        generator = (isLeftMultiplication ? &leftGenerator : &rightGenerator);
     }
     else
     {
-        implementPartialResult(partialGenerator, true, scheme, targetIter);
+        leftGenerator.setPermutation(permutation, n, true);
+        leftGenerator.prepareForGeneration();
+        PartialResultParams leftPartialResultParams = leftGenerator.getPartialResultParams();
 
-        // get residual permutation and iterate on it
-        Permutation residualPermutation = partialGenerator->getResidualPermutation(true);
-
-        if(!residualPermutation.isEmpty())
-        {
-            restGenerator = shared_ptr<PartialGenerator>(new PartialGenerator());
-            restGenerator->setPermutation(residualPermutation, n);
-            restGenerator->prepareForGeneration();
-        }
+        generator = &leftGenerator;
     }
 
-    return restGenerator;
+    implementPartialResult(generator, isLeftMultiplication, scheme, targetIter);
+    *permutation = generator->getResidualPermutation();
 }
 
 bool Generator::isLeftChoiceBetter(const PartialResultParams& leftPartialResultParams,
@@ -178,7 +227,15 @@ bool Generator::isLeftChoiceBetter(const PartialResultParams& leftPartialResultP
         {
         case tFullEdge:
         case tEdge:
-            isLeftBetter = leftPartialResultParams.params.edgeCapacity >= rightPartialResultParams.params.edgeCapacity;
+            if(leftPartialResultParams.params.edgeCapacity == rightPartialResultParams.params.edgeCapacity)
+            {
+                //isLeftBetter = (leftPartialResultParams.restCyclesDistanceSum <= rightPartialResultParams.restCyclesDistanceSum);
+                isLeftBetter = (leftPartialResultParams.restCyclesDistanceSum < rightPartialResultParams.restCyclesDistanceSum);
+            }
+            else
+            {
+                isLeftBetter = (leftPartialResultParams.params.edgeCapacity > rightPartialResultParams.params.edgeCapacity);
+            }
             break;
 
         case tSameDiffPair:
@@ -186,7 +243,15 @@ bool Generator::isLeftChoiceBetter(const PartialResultParams& leftPartialResultP
                 uint leftWeight  = countNonZeroBits( leftPartialResultParams.params.diff);
                 uint rightWeight = countNonZeroBits(rightPartialResultParams.params.diff);
 
-                isLeftBetter = leftWeight <= rightWeight;
+                if(leftWeight == rightWeight)
+                {
+                    //isLeftBetter = (leftPartialResultParams.restCyclesDistanceSum <= rightPartialResultParams.restCyclesDistanceSum);
+                    isLeftBetter = (leftPartialResultParams.restCyclesDistanceSum < rightPartialResultParams.restCyclesDistanceSum);
+                }
+                else
+                {
+                    isLeftBetter = (leftWeight < rightWeight);
+                }
             }
             break;
 
@@ -204,7 +269,15 @@ bool Generator::isLeftChoiceBetter(const PartialResultParams& leftPartialResultP
                 rightSum += countNonZeroBits(rightPartialResultParams.params.common.rightDiff);
                 rightSum += countNonZeroBits(rightPartialResultParams.params.common.distance );
 
-                isLeftBetter = leftSum <= rightSum;
+                if(leftSum == rightSum)
+                {
+                    //isLeftBetter = (leftPartialResultParams.restCyclesDistanceSum <= rightPartialResultParams.restCyclesDistanceSum);
+                    isLeftBetter = (leftPartialResultParams.restCyclesDistanceSum < rightPartialResultParams.restCyclesDistanceSum);
+                }
+                else
+                {
+                    isLeftBetter = (leftSum < rightSum);
+                }
             }
             break;
 
@@ -215,13 +288,13 @@ bool Generator::isLeftChoiceBetter(const PartialResultParams& leftPartialResultP
     }
     else
     {
-        isLeftBetter = leftPartialResultParams.type < rightPartialResultParams.type;
+        isLeftBetter = leftPartialResultParams.type > rightPartialResultParams.type;
     }
 
     return isLeftBetter;
 }
 
-void Generator::implementPartialResult(shared_ptr<PartialGenerator> partialGenerator,
+void Generator::implementPartialResult(PartialGenerator* partialGenerator,
     bool isLeftMultiplication, Scheme* scheme, Scheme::iterator* targetIter)
 {
     deque<ReverseElement> elements = partialGenerator->implementPartialResult();
@@ -313,6 +386,34 @@ bool Generator::checkSchemeAgainstPermutationVector(const Scheme& scheme, const 
     }
 
     return result;
+}
+
+void Generator::prepareCyclesInPermutation(Permutation* permutation)
+{
+    forin(iter, *permutation)
+    {
+        Cycle& cycle = **iter;
+        cycle.prepareForDisjoint();
+    }
+
+    //// debug
+    //cout << "Cycles in permutation prepared\n";
+}
+
+bool Generator::isLeftAndRightMultiplicationDiffers(const Permutation* permutation) const
+{
+    bool isDiffer = false;
+    forin(iter, *permutation)
+    {
+        const Cycle& cycle = **iter;
+        if(cycle.length() > 2)
+        {
+            isDiffer = true;
+            break;
+        }
+    }
+
+    return isDiffer;
 }
 
 }   // namespace ReversibleLogic

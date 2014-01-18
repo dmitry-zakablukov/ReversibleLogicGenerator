@@ -20,11 +20,20 @@ private:
     bool isLeftChoiceBetter(const PartialResultParams& leftPartialResultParams,
         const PartialResultParams& rightPartialResultParams);
 
-    void implementPartialResult(shared_ptr<PartialGenerator> partialGenerator,
+    void implementPartialResult(PartialGenerator* partialGenerator,
         bool isLeftMultiplication, Scheme* scheme, Scheme::iterator* targetIter);
 
     bool checkSchemeAgainstPermutationVector(const Scheme& scheme,
         const PermutationTable& table);
+
+    // generator 4.0 optimization
+    void prepareCyclesInPermutation(Permutation* permutation);
+
+    /// Returns false if left and right multiplication by partial result
+    /// would produce the same residual permutation
+    bool isLeftAndRightMultiplicationDiffers(const Permutation* permutation) const;
+
+    void reducePermutation(Permutation* permutation, uint n, Scheme* scheme, Scheme::iterator* targetIter);
 
     uint n;
     Permutation permutation;

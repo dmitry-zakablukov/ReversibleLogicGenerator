@@ -2,15 +2,17 @@
 
 enum PartialResultType
 {
-    tFullEdge = 0,
-    tEdge,
-    tSameDiffPair,
+    tNone = 0,
     tCommonPair,
+    tSameDiffPair,
+    tEdge,
+    tFullEdge,
 };
 
 struct PartialResultParams
 {
     PartialResultType type;
+    uint restCyclesDistanceSum;
 
     union
     {
