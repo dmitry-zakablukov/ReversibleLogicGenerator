@@ -390,10 +390,46 @@ bool Generator::checkSchemeAgainstPermutationVector(const Scheme& scheme, const 
 
 void Generator::prepareCyclesInPermutation(Permutation* permutation)
 {
+    // prepare all cycles in permutation for disjoint
+    unordered_map<word, uint> frequencyMap;
     forin(iter, *permutation)
     {
         Cycle& cycle = **iter;
-        cycle.prepareForDisjoint();
+        cycle.prepareForDisjoint(&frequencyMap);
+    }
+
+    // find most frequent diff
+    uint maxFreq = 0;
+    word bestDiff = 0;
+    uint bestDiffWeight = 0;
+
+    forcin(iter, frequencyMap)
+    {
+        word diff = iter->first;
+        uint count = iter->second;
+
+        if(count > maxFreq)
+        {
+            maxFreq = count;
+            bestDiff = diff;
+            bestDiffWeight = countNonZeroBits(bestDiff);
+        }
+        else if(maxFreq == count)
+        {
+            uint diffWeight = countNonZeroBits(diff);
+            if(diffWeight < bestDiffWeight)
+            {
+                bestDiffWeight = diffWeight;
+                bestDiff = diff;
+            }
+        }
+    }
+
+    // set best diff for all cycles in permutation
+    forin(iter, *permutation)
+    {
+        Cycle& cycle = **iter;
+        cycle.setDisjointDiff(bestDiff);
     }
 
     //// debug

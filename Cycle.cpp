@@ -512,23 +512,29 @@ void Cycle::getCyclesAfterMultiplication(bool isLeftMultiplication,
     }
 }
 
-void Cycle::prepareForDisjoint(word diff /*= 0*/)
+void Cycle::prepareForDisjoint(unordered_map<word, uint>* frequencyMap)
 {
-    DisjointParamsMap disjointParams;
+    prepareForDisjoint((word)0);
+
+    forcin(iter, disjointParams)
+    {
+        word diff = iter->first;
+        uint count = iter->second.size();
+
+        if(frequencyMap->count(diff))
+        {
+            (*frequencyMap)[diff] += count;
+        }
+        else
+        {
+            (*frequencyMap)[diff] = count;
+        }
+    }
+}
+
+void Cycle::prepareForDisjoint(word diff)
+{
     fillDisjointParams(&disjointParams, diff);
-
-    bestParams = findBestDisjointPoint(disjointParams);
-
-    //// debug
-    //forcin(iter, disjointParams)
-    //{
-    //    word dist = iter->first;
-    //    auto v = iter->second;
-
-    //    cout << "diff = " << dist << ", count = " << v.size() << '\n';
-    //}
-
-    //cout << "choosing diff = " << bestParams.diff << '\n';
 }
 
 void Cycle::fillDisjointParams(DisjointParamsMap* disjointParams, word targetDiff)
@@ -536,8 +542,8 @@ void Cycle::fillDisjointParams(DisjointParamsMap* disjointParams, word targetDif
     uint elementCount = length();
     uint stepCount = elementCount / 2;
 
-    // debug
-    stepCount = 1;
+    //// debug
+    //stepCount = min(stepCount, (uint)2);
 
     disjointParams->clear();
 
@@ -620,22 +626,46 @@ void Cycle::getAdditionalSumForDisjointPoint(uint index, uint step,
     params->rightSum = sum;
 }
 
-Cycle::DisjointParams Cycle::findBestDisjointPoint(const DisjointParamsMap& disjointParams)
+void Cycle::setDisjointDiff(word diff)
+{
+    bestParams = findBestDisjointPoint(disjointParams, diff);
+
+    //// debug
+    //forcin(iter, disjointParams)
+    //{
+    //    word dist = iter->first;
+    //    auto v = iter->second;
+
+    //    cout << "diff = " << dist << ", count = " << v.size() << '\n';
+    //}
+
+    //cout << "choosing diff = " << bestParams.diff << '\n';
+}
+
+Cycle::DisjointParams Cycle::findBestDisjointPoint(const DisjointParamsMap& disjointParams, word diff)
 {
     // first find the longest vector in map
-    uint maxLength = 0;
     const vector<DisjointParams>* longestVector = 0;
     hasDisjointPoint = false;
 
-    forcin(iter, disjointParams)
+    if(disjointParams.count(diff))
     {
-        const vector<DisjointParams>& vectorCandidate = iter->second;
-        uint elementCount = vectorCandidate.size();
-
-        if(elementCount > maxLength)
+        const vector<DisjointParams>& candidate = disjointParams.at(diff);
+        longestVector = &candidate;
+    }
+    else
+    {
+        uint maxLength = 0;
+        forcin(iter, disjointParams)
         {
-            maxLength = elementCount;
-            longestVector = &vectorCandidate;
+            const vector<DisjointParams>& vectorCandidate = iter->second;
+            uint elementCount = vectorCandidate.size();
+
+            if(elementCount > maxLength)
+            {
+                maxLength = elementCount;
+                longestVector = &vectorCandidate;
+            }
         }
     }
 
@@ -645,7 +675,9 @@ Cycle::DisjointParams Cycle::findBestDisjointPoint(const DisjointParamsMap& disj
     {
         uint maxStep = 0;
 
+        // debug
         maxStep = uintUndefined;
+
         forcin(params, *longestVector)
         {
             uint step = params->step;
@@ -837,7 +869,10 @@ void Cycle::disjoint(bool isLeftMultiplication,
         forin(iter, cycles)
         {
             Cycle& cycle = **iter;
+            
             cycle.prepareForDisjoint(bestParams.diff);
+            cycle.setDisjointDiff(bestParams.diff);
+
             cycle.disjoint(isLeftMultiplication, transpositions, restCycles);
         }
     }

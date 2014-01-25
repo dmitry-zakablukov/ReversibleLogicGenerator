@@ -199,8 +199,8 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     uint lengthBefore = uintUndefined;
     uint lengthAfter  = uintUndefined;
     
-    //// debug: generator 4.0 - test scheme synthesis
-    //return scheme;
+    // debug: generator 4.0 - test scheme synthesis
+    return scheme;
 
     //optimizedScheme = removeDuplicates(optimizedScheme);
 

@@ -38,7 +38,12 @@ public:
     // i.e. output = elements[i+1] if input == elements[i]
     word getOutput(word input) const;
 
-    void prepareForDisjoint(word diff = 0);
+    /// @frequencyMap - dictionary for calculation diff frequency throw all cycles
+    void prepareForDisjoint(unordered_map<word, uint>* frequencyMap);
+
+    /// @diff - target difference. If cycle hasn't this diff in disjointParams map,
+    /// then the most frequent diff is choosing for disjoint 
+    void setDisjointDiff(word diff);
 
     shared_ptr<list<Transposition>> disjoint(bool isLeftMultiplication,
         uint* restCyclesDistanceSum);
@@ -61,6 +66,8 @@ public:
         bool isLeftMultiplication, bool* hasNewCycles);
 
 protected:
+    void prepareForDisjoint(word diff);
+
     void disjoint(bool isLeftMultiplication, shared_ptr<list<Transposition>> transpositions,
         list<shared_ptr<Cycle>>* restCycles);
 
@@ -104,7 +111,7 @@ private:
     void getAdditionalSumForDisjointPoint(uint index, uint step,
         DisjointParams* params);
 
-    DisjointParams findBestDisjointPoint(const DisjointParamsMap& disjointParams);
+    DisjointParams findBestDisjointPoint(const DisjointParamsMap& disjointParams, word diff);
 
     list<shared_ptr<Cycle>> getRestCycles(bool isLeftMultiplication);
 
@@ -117,6 +124,8 @@ private:
 
     bool hasDisjointPoint;
     DisjointParams bestParams;
+
+    DisjointParamsMap disjointParams;
 
     struct DisjointResult
     {
