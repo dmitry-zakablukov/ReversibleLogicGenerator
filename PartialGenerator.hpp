@@ -13,19 +13,28 @@ public:
 
     void setPermutation(Permutation* thePermutation, uint inputCount,
         bool isLeftMultiplication);
-    void prepareForGeneration();
 
+    void setPermutation(const Permutation& thePermutation, uint inputCount);
+    const Permutation& getPermutation() const;
+
+    bool isLeftAndRightMultiplicationDiffers() const;
+
+    void prepareForGeneration();
     PartialResultParams getPartialResultParams() const;
 
     /// Returns residual permutation, which would be left multiplied by partial result
     /// i.e. (partial_result) * (residual_permutation) if leftMultiplicationFlag == true
     /// and  (residual_permutation) * (partial_result) for leftMultiplicationFlag == false
-    Permutation getResidualPermutation();
+    Permutation getResidualPermutation() const;
+    Permutation getResidualPermutation(bool isLeftMultiplication) const;
 
     // TODO: return shared_ptr
     deque<ReverseElement> implementPartialResult();
 
 private:
+    PartialResultParams getPartialResult(shared_ptr<list<Transposition>> transpositions,
+        word diff, const PartialResultParams& bestParams);
+
     shared_ptr<list<Transposition>> getTranspositions();
     void fillDistancesMap(shared_ptr<list<Transposition>> transpositions);
 
@@ -40,7 +49,7 @@ private:
     void processSameDiffTranspositions(shared_ptr<list<Transposition>> candidates);
     void processCommonTranspositions();
 
-    void findBestCandidates(shared_ptr<list<Transposition>> candidates);
+    shared_ptr<list<Transposition>> findBestCandidates(shared_ptr<list<Transposition>> candidates);
     void sortCandidates(shared_ptr<list<Transposition>> candidates);
 
     tuple<Transposition, uint>
@@ -51,7 +60,7 @@ private:
     deque<ReverseElement> implementPairOfTranspositions();
     deque<ReverseElement> implementSingleTransposition(const Transposition& transp);
 
-    Permutation* permutation;
+    Permutation permutation;
     uint n;
     bool leftMultiplicationFlag;
 

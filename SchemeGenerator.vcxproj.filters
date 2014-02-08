@@ -50,6 +50,9 @@
     <ClCompile Include="PartialGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PartialResultParams.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="std.hpp">
@@ -91,10 +94,10 @@
     <ClInclude Include="PartialGenerator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PartialResultParams.h">
+    <ClInclude Include="SchemePrinterImpl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SchemePrinterImpl.hpp">
+    <ClInclude Include="PartialResultParams.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

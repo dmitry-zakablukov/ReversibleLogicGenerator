@@ -14,19 +14,19 @@ public:
 private:
     tuple<uint, Permutation> getPermutation(const PermutationTable& table);
 
-    shared_ptr<PartialGenerator> reducePermutation(shared_ptr<PartialGenerator> partialGenerator,
-        const Permutation& permutation, uint n, Scheme* scheme, Scheme::iterator* targetIter);
-
-    bool isLeftChoiceBetter(const PartialResultParams& leftPartialResultParams,
-        const PartialResultParams& rightPartialResultParams);
-
     void implementPartialResult(PartialGenerator* partialGenerator,
+        bool isLeftMultiplication, Scheme* scheme, Scheme::iterator* targetIter);
+
+    void implementPartialResult(PartialGenerator& partialGenerator,
         bool isLeftMultiplication, Scheme* scheme, Scheme::iterator* targetIter);
 
     bool checkSchemeAgainstPermutationVector(const Scheme& scheme,
         const PermutationTable& table);
 
     // generator 4.0 optimization
+    shared_ptr<PartialGenerator> reducePermutation(shared_ptr<PartialGenerator> partialGenerator,
+        uint n, Scheme* scheme, Scheme::iterator* targetIter);
+
     void prepareCyclesInPermutation(Permutation* permutation);
 
     /// Returns false if left and right multiplication by partial result

@@ -1,18 +1,28 @@
 #pragma once
 
-enum PartialResultType
-{
-    tNone = 0,
-    tCommonPair,
-    tSameDiffPair,
-    tEdge,
-    tFullEdge,
-};
-
 struct PartialResultParams
 {
+    PartialResultParams();
+
+    bool isBetterThan( const PartialResultParams& another ) const;
+    bool operator<( const PartialResultParams& another ) const;
+
+    word getCoveredTranspositionsCount() const;
+
+    enum PartialResultType
+    {
+        tNone = 0,
+        tCommonPair,
+        tSameDiffPair,
+        tEdge,
+        tFullEdge,
+    };
+
     PartialResultType type;
     uint restCyclesDistanceSum;
+
+    shared_ptr<list<ReversibleLogic::Transposition>> transpositions;
+    BooleanEdge edge;
 
     union
     {
