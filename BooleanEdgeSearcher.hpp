@@ -31,10 +31,11 @@ public:
     ~BooleanEdgeSearcher();
 
     BooleanEdge findEdge();
-    shared_ptr<list<ReversibleLogic::Transposition>> getEdgeSubset(BooleanEdge edge, uint n); 
 
-    static shared_ptr<list<ReversibleLogic::Transposition>> getEdgeSubset(BooleanEdge edge, uint n,
+    static shared_ptr<list<ReversibleLogic::Transposition>> filterTranspositionsByEdge(BooleanEdge edge, uint n,
         shared_ptr<list<ReversibleLogic::Transposition>> transpositions);
+
+    shared_ptr<list<ReversibleLogic::Transposition>> getEdgeSubset(BooleanEdge edge, uint n);
 
 private:
     void validateInputSettings();

@@ -155,4 +155,125 @@ vector<shared_ptr<Cycle>>::const_iterator Permutation::end() const
     return cycles.cend();
 }
 
+Permutation Permutation::multiplyByTranspositions(
+    shared_ptr<list<Transposition>> transpositions, bool isLeftMultiplication) const
+{
+    vector<shared_ptr<Cycle>> newCycles;
+
+    // remember all elements in transpositions and in this permutation
+    unordered_set<word> storage;
+    forcin(iter, *transpositions)
+    {
+        const Transposition& transp = *iter;
+        word x = transp.getX();
+        word y = transp.getY();
+
+        if(storage.find(x) == storage.cend())
+        {
+            storage.insert(x);
+        }
+
+        if(storage.find(y) == storage.cend())
+        {
+            storage.insert(y);
+        }
+    }
+
+    forin(iter, *this)
+    {
+        Cycle& cycle = **iter;
+
+        uint elementCount = cycle.length();
+        for(uint index = 0; index < elementCount; ++index)
+        {
+            word element = cycle[index];
+            if(storage.find(element) == storage.cend())
+            {
+                storage.insert(element);
+            }
+        }
+    }
+
+    // now multiply
+    unordered_set<word> visitedElements;
+    unordered_set<word>::const_iterator end = visitedElements.cend();
+    shared_ptr<Cycle> nextCycle(new Cycle());
+
+    forcin(iter, storage)
+    {
+        word x = *iter;
+        if(visitedElements.find(x) == end)
+        {
+            while(!nextCycle->isFinal())
+            {
+                word y = x;
+                if(isLeftMultiplication)
+                {
+                    forcin(iter, *transpositions)
+                    {
+                        const Transposition& transp = *iter;
+                        y = transp.getOutput(y);
+                    }
+
+                    forin(iter, *this)
+                    {
+                        Cycle& cycle = **iter;
+                        y = cycle.getOutput(y);
+                    }
+                }
+                else
+                {
+                    forin(iter, *this)
+                    {
+                        Cycle& cycle = **iter;
+                        y = cycle.getOutput(y);
+                    }
+
+                    forcin(iter, *transpositions)
+                    {
+                        const Transposition& transp = *iter;
+                        y = transp.getOutput(y);
+                    }
+                }
+
+                if(nextCycle->isEmpty())
+                {
+                    nextCycle->append(x);
+                }
+                nextCycle->append(y);
+
+                visitedElements.insert(x);
+                x = y;
+            }
+
+            // skip fixed point
+            uint cycleLength = nextCycle->length();
+            if(cycleLength > 1)
+            {
+                newCycles.push_back(nextCycle);
+            }
+
+            nextCycle = shared_ptr<Cycle>(new Cycle());
+        }
+    }
+
+    assert(!nextCycle->length(),
+        string("Permutation::multiplyByTranspositions() failed because of last cycle"));
+
+    Permutation result(newCycles);
+    return result;
+}
+
+uint Permutation::getDistancesSum() const
+{
+    uint sum = 0;
+    forin(iter, *this)
+    {
+        Cycle& cycle = **iter;
+        sum += cycle.getDistancesSum();
+    }
+
+    return sum;
+}
+
 }   // namespace ReversibleLogic

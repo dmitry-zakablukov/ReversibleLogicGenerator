@@ -55,14 +55,23 @@ void PartialGenerator::prepareForGeneration()
     // sort keys by length
     auto sortFunction = [&](const word& left, const word& right) -> bool
     {
+        uint  leftWeight = countNonZeroBits( left);
+        uint rightWeight = countNonZeroBits(right);
+
         uint  leftFreq = frequencyMap[ left];
         uint rightFreq = frequencyMap[right];
 
         bool isLess = (leftFreq > rightFreq);
         if(leftFreq == rightFreq)
         {
-            isLess = (countNonZeroBits(left) < countNonZeroBits(right));
+            isLess = (leftWeight < rightWeight);
         }
+
+        //bool isLess = (leftWeight < rightWeight);
+        //if(leftWeight == rightWeight)
+        //{
+        //    isLess = (leftFreq > rightFreq);
+        //}
 
         return isLess;
     };
@@ -79,12 +88,22 @@ void PartialGenerator::prepareForGeneration()
 
     // now find the best diff for disjoint
     PartialResultParams bestResult;
+    uint weight = uintUndefined;
  
     uint keyCount = keys.size();
     for(uint index = 0; index < keyCount; ++index)
     {
         word diff = keys[index];
         uint freq = frequencyMap[diff];
+
+        //if(weight == uintUndefined)
+        //{
+        //    weight = countNonZeroBits(diff);
+        //}
+        //else if(countNonZeroBits(diff) > weight)
+        //{
+        //    break;
+        //}
 
         if(freq < bestResult.getCoveredTranspositionsCount())
         {
@@ -153,6 +172,7 @@ void PartialGenerator::prepareForGeneration()
     }
 
     partialResultParams = bestResult;
+    partialResultParams.distancesSum = permutation.getDistancesSum();
 }
 
 PartialResultParams PartialGenerator::getPartialResult(
@@ -169,7 +189,8 @@ PartialResultParams PartialGenerator::getPartialResult(
         if(capacity >= bestParams.params.edgeCapacity)
         {
             result.type = (edge.isFull() ? PartialResultParams::tFullEdge : PartialResultParams::tEdge);
-            result.transpositions = edgeSearcher.getEdgeSubset(edge, n, transpositions);
+            //result.transpositions = edgeSearcher.filterTranspositionsByEdge(edge, n, transpositions);
+            result.transpositions = edgeSearcher.getEdgeSubset(edge, n);
             result.edge = edge;
 
             result.params.diff = diff;
@@ -371,17 +392,19 @@ PartialGenerator::findBestCandidatePartner(
 
 ReversibleLogic::Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication) const
 {
-    vector<shared_ptr<Cycle>> cycles;
-    forin(iter, permutation)
-    {
-        const Cycle& cycle = **iter;
+    //vector<shared_ptr<Cycle>> cycles;
+    //forin(iter, permutation)
+    //{
+    //    const Cycle& cycle = **iter;
 
-        cycle.multiplyByTranspositions(partialResultParams.transpositions,
-            isLeftMultiplication, &cycles);
-    }
+    //    cycle.multiplyByTranspositions(partialResultParams.transpositions,
+    //        isLeftMultiplication, &cycles);
+    //}
 
-    Permutation residualPermutation(cycles);
-    return residualPermutation;
+    //Permutation residualPermutation(cycles);
+    //return residualPermutation;
+
+    return permutation.multiplyByTranspositions(partialResultParams.transpositions, isLeftMultiplication);
 }
 
 deque<ReverseElement> PartialGenerator::implementPartialResult()

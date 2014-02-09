@@ -117,15 +117,15 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
     {
         // get left choice
         Permutation leftMultipliedPermutation  = partialGenerator->getResidualPermutation(true);
-
         shared_ptr<PartialGenerator> leftGenerator(new PartialGenerator());
+
         leftGenerator->setPermutation(leftMultipliedPermutation, n);
         leftGenerator->prepareForGeneration();
 
         // get right choice
         Permutation rightMultipliedPermutation = partialGenerator->getResidualPermutation(false);
-
         shared_ptr<PartialGenerator> rightGenerator(new PartialGenerator());
+
         rightGenerator->setPermutation(rightMultipliedPermutation, n);
         rightGenerator->prepareForGeneration();
 

@@ -27,6 +27,11 @@ public:
     vector<shared_ptr<Cycle>>::const_iterator begin() const;
     vector<shared_ptr<Cycle>>::const_iterator end() const;
 
+    Permutation multiplyByTranspositions(shared_ptr<list<Transposition>> transpositions,
+        bool isLeftMultiplication) const;
+
+    uint getDistancesSum() const;
+
 private:
     vector<shared_ptr<Cycle>> cycles;
 };

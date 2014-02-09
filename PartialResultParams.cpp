@@ -3,7 +3,7 @@
 
 PartialResultParams::PartialResultParams()
     : type(tNone)
-    , restCyclesDistanceSum(0)
+    , distancesSum(0)
     , transpositions(0)
     , edge()
 {
@@ -24,7 +24,7 @@ bool PartialResultParams::isBetterThan(const PartialResultParams& another) const
         case tEdge:
             if(params.edgeCapacity == another.params.edgeCapacity)
             {
-                isLeftBetter = IS_LEFT_BETTER(restCyclesDistanceSum, another.restCyclesDistanceSum);
+                isLeftBetter = IS_LEFT_BETTER(distancesSum, another.distancesSum);
             }
             else
             {
@@ -39,7 +39,7 @@ bool PartialResultParams::isBetterThan(const PartialResultParams& another) const
 
                 if(leftWeight == rightWeight)
                 {
-                    isLeftBetter = IS_LEFT_BETTER(restCyclesDistanceSum, another.restCyclesDistanceSum);
+                    isLeftBetter = IS_LEFT_BETTER(distancesSum, another.distancesSum);
                 }
                 else
                 {
@@ -64,7 +64,7 @@ bool PartialResultParams::isBetterThan(const PartialResultParams& another) const
 
                 if(leftSum == rightSum)
                 {
-                    isLeftBetter = IS_LEFT_BETTER(restCyclesDistanceSum, another.restCyclesDistanceSum);
+                    isLeftBetter = IS_LEFT_BETTER(distancesSum, another.distancesSum);
                 }
                 else
                 {

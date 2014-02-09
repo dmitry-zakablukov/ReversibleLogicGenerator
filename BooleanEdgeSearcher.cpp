@@ -178,7 +178,8 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
             uint& counter = frequencyTable[entry];
             ++counter;
 
-            if(counter == edgeCapacity)
+            //if(counter == edgeCapacity)
+            if(counter == edgeCapacity || entry && counter * 2 > edgeCapacity)
             {
                 // edge generates subset in input set
                 edge->baseValue = entry;
@@ -193,7 +194,8 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
             uint& counter = frequencyTable[entry];
             ++counter;
 
-            if(counter == edgeCapacity)
+            //if(counter == edgeCapacity)
+            if(counter == edgeCapacity || entry && counter * 2 > edgeCapacity)
             {
                 // edge generates subset in input set
                 edge->baseValue = entry;
@@ -206,15 +208,8 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
     return result;
 }
 
-shared_ptr<list<ReversibleLogic::Transposition>>
-BooleanEdgeSearcher::getEdgeSubset(BooleanEdge edge, uint n)
-{
-    validateInputSettings();
-    
-    return getEdgeSubset(edge, n, inputSet);
-}
-
-shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::getEdgeSubset(BooleanEdge edge, uint n,
+// static
+shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::filterTranspositionsByEdge(BooleanEdge edge, uint n,
     shared_ptr<list<ReversibleLogic::Transposition>> transpositions)
 {
     using namespace ReversibleLogic;
@@ -222,7 +217,7 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::getEdgeSub
     word baseValue = edge.getBaseValue(n);
     word baseMask  = edge.getBaseMask(n);
 
-    shared_ptr<list<Transposition>> subset(new list<Transposition>);
+    shared_ptr<list<Transposition>> filteredResult(new list<Transposition>);
     forcin(transp, *transpositions)
     {
         word x = transp->getX();
@@ -230,7 +225,38 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::getEdgeSub
         word value = x & baseMask;
         if(value == baseValue)
         {
-            subset->push_back(*transp);
+            filteredResult->push_back(*transp);
+        }
+    }
+
+    return filteredResult;
+}
+
+shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::getEdgeSubset(BooleanEdge edge, uint n)
+{
+    using namespace ReversibleLogic;
+
+    word baseValue = edge.getBaseValue(n);
+    word baseMask  = edge.getBaseMask(n);
+
+    word totalCount = (word)1 << n;
+    unordered_set<word> visitedElements;
+
+    shared_ptr<list<Transposition>> subset(new list<Transposition>);
+    for(word x = 0; x < totalCount; ++x)
+    {
+        if(visitedElements.find(x) == visitedElements.cend())
+        {
+            word value = x & baseMask;
+            word y = x ^ initialMask;
+
+            if(value == baseValue)
+            {
+                subset->push_back(Transposition(x, y));
+            }
+
+            visitedElements.insert(x);
+            visitedElements.insert(y);
         }
     }
 

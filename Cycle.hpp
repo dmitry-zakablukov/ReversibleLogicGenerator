@@ -43,6 +43,8 @@ public:
     void multiplyByTranspositions(shared_ptr<list<Transposition>> transpositions,
         bool isLeftMultiplication, vector<shared_ptr<Cycle>>* output) const;
 
+    uint getDistancesSum() const;
+
 private:
     /// Returns index modulo element count
     uint modIndex(uint index) const;

@@ -19,7 +19,7 @@ struct PartialResultParams
     };
 
     PartialResultType type;
-    uint restCyclesDistanceSum;
+    uint distancesSum;
 
     shared_ptr<list<ReversibleLogic::Transposition>> transpositions;
     BooleanEdge edge;

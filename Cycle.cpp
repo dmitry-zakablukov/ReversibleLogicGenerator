@@ -320,7 +320,7 @@ void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
             }
 
             // 2) make rest part vector
-            if(elementCount - distance - 1 > 2)
+            if(elementCount - distance - 1 > 1)
             {
                 vector<word> restPart;
                 restPart.resize(elementCount - distance - 1);
@@ -334,6 +334,22 @@ void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
             break;
         }
     }
+}
+
+uint Cycle::getDistancesSum() const
+{
+    uint sum = 0;
+
+    uint elementCount = length();
+    for(uint index = 0; index < elementCount; ++index)
+    {
+        word x = elements[index];
+        word y = elements[modIndex(index + 1)];
+
+        sum += countNonZeroBits(x ^ y);
+    }
+
+    return sum;
 }
 
 }   // namespace ReversibleLogic
