@@ -11,9 +11,6 @@ public:
     PartialGenerator();
     ~PartialGenerator();
 
-    void setPermutation(Permutation* thePermutation, uint inputCount,
-        bool isLeftMultiplication);
-
     void setPermutation(const Permutation& thePermutation, uint inputCount);
     const Permutation& getPermutation() const;
 
@@ -23,9 +20,8 @@ public:
     PartialResultParams getPartialResultParams() const;
 
     /// Returns residual permutation, which would be left multiplied by partial result
-    /// i.e. (partial_result) * (residual_permutation) if leftMultiplicationFlag == true
-    /// and  (residual_permutation) * (partial_result) for leftMultiplicationFlag == false
-    Permutation getResidualPermutation() const;
+    /// i.e. (partial_result) * (residual_permutation) if isLeftMultiplication == true
+    /// and  (residual_permutation) * (partial_result) for isLeftMultiplication == false
     Permutation getResidualPermutation(bool isLeftMultiplication) const;
 
     // TODO: return shared_ptr
@@ -34,20 +30,6 @@ public:
 private:
     PartialResultParams getPartialResult(shared_ptr<list<Transposition>> transpositions,
         word diff, const PartialResultParams& bestParams);
-
-    shared_ptr<list<Transposition>> getTranspositions();
-    void fillDistancesMap(shared_ptr<list<Transposition>> transpositions);
-
-    // Edge optimization
-    void computeEdges();
-    BooleanEdge computeEdge(word diff, bool force = false);
-
-    void sortDistanceKeys();
-
-    word addTranspToDistMap(const Transposition& transp);
-
-    void processSameDiffTranspositions(shared_ptr<list<Transposition>> candidates);
-    void processCommonTranspositions();
 
     shared_ptr<list<Transposition>> findBestCandidates(shared_ptr<list<Transposition>> candidates);
     void sortCandidates(shared_ptr<list<Transposition>> candidates);
@@ -62,15 +44,8 @@ private:
 
     Permutation permutation;
     uint n;
-    bool leftMultiplicationFlag;
-
-    unordered_map<word, shared_ptr<list<Transposition>> > distMap;
-    list<word> distKeys;
-
-    unordered_map<word, BooleanEdge> diffToEdgeMap;
 
     PartialResultParams partialResultParams;
-    shared_ptr<list<Transposition>> transpositionsToSynthesize;
 };
 
 } //namespace ReversibleLogic

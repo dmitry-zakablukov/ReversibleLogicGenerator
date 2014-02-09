@@ -6,24 +6,12 @@ namespace ReversibleLogic
 PartialGenerator::PartialGenerator()
     : permutation()
     , n(uintUndefined)
-    , distMap()
-    , diffToEdgeMap()
 {
 }
 
 PartialGenerator::~PartialGenerator()
 {
 }
-
-//void PartialGenerator::setPermutation(Permutation* thePermutation, uint inputCount,
-//    bool isLeftMultiplication)
-//{
-//    permutation = thePermutation;
-//    n = inputCount;
-//    leftMultiplicationFlag = isLeftMultiplication;
-//
-//    assert(n != uintUndefined, string("PartialGenerator: input count not defined"));
-//}
 
 void PartialGenerator::setPermutation(const Permutation& thePermutation, uint inputCount)
 {
@@ -37,37 +25,6 @@ const Permutation& PartialGenerator::getPermutation() const
 {
     return permutation;
 }
-
-//void PartialGenerator::prepareForGeneration()
-//{
-//    assert(!permutation.isEmpty(), string("PartialGenerator: preparation for empty permutation"));
-//
-//    shared_ptr<list<Transposition>> transpositions = getTranspositions();
-//    if(!transpositions || !transpositions->size())
-//    {
-//        partialResultParams.type = tNone;
-//    }
-//    else
-//    {
-//        fillDistancesMap(transpositions);
-//        computeEdges();
-//
-//        sortDistanceKeys();
-//
-//        // get partial result
-//        word key = distKeys.front();
-//        auto& candidates = distMap[key];
-//
-//        if(candidates->size() > 1)
-//        {
-//            processSameDiffTranspositions(candidates);
-//        }
-//        else
-//        {
-//            processCommonTranspositions();
-//        }
-//    }
-//}
 
 bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
 {
@@ -236,224 +193,6 @@ PartialResultParams PartialGenerator::getPartialResultParams() const
     return partialResultParams;
 }
 
-shared_ptr<list<Transposition>> PartialGenerator::getTranspositions()
-{
-    shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
-    partialResultParams.restCyclesDistanceSum = 0;
-
-    forin(iter, permutation)
-    {
-        Cycle& cycle = **iter;
-        uint cycleDistancesSum = 0;
-
-        shared_ptr<list<Transposition>> cycleTranspositions = 0;
-            //cycle.disjoint(leftMultiplicationFlag, &cycleDistancesSum);
-
-        if(cycleTranspositions)
-        {
-            transpositions->insert(transpositions->end(),
-                cycleTranspositions->cbegin(), cycleTranspositions->cend());
-
-            partialResultParams.restCyclesDistanceSum += cycleDistancesSum;
-        }
-    }
-
-    if(transpositions && transpositions->size() == 1)
-    {
-        assert(permutation.length() == 1,
-            string("PartialGenerator::getTranspositions() failed because my DNA"));
-
-        shared_ptr<Cycle> cycle = permutation.getCycle(0);
-        cycle->completeDisjoint(leftMultiplicationFlag, transpositions);
-    }
-
-    return transpositions;
-}
-
-void PartialGenerator::fillDistancesMap(shared_ptr<list<Transposition>> transpositions)
-{
-    decltype(distMap) emptyMap;
-    distMap = emptyMap;
-
-    forcin(iter, *transpositions)
-    {
-        addTranspToDistMap(*iter);
-    }
-}
-
-word PartialGenerator::addTranspToDistMap( const Transposition& transp )
-{
-    word diff = transp.getDiff();
-    if(!distMap.count(diff))
-    {
-        shared_ptr<list<Transposition>> newList(new list<Transposition>);
-        distMap[diff] = newList;
-    }
-
-    bool alreadyHasTransp = false;
-    auto transpositions = distMap[diff];
-
-    forin(iter, *transpositions)
-    {
-        const Transposition& t = *iter;
-        alreadyHasTransp = alreadyHasTransp || (t == transp);
-    }
-
-    if(!alreadyHasTransp)
-    {
-        distMap[diff]->push_back(transp);
-        diffToEdgeMap.erase(diff);
-    }
-
-    return diff;
-}
-
-void PartialGenerator::computeEdges()
-{
-    forcin(iter, distMap)
-    {
-        word diff = iter->first;
-        shared_ptr<list<Transposition>> transpositions = iter->second;
-
-        if(!diffToEdgeMap.count(diff))
-        {
-            BooleanEdgeSearcher edgeSearcher(transpositions, n, diff);
-            BooleanEdge edge = edgeSearcher.findEdge();
-
-            diffToEdgeMap[diff] = edge;
-        }
-    }
-}
-
-void PartialGenerator::sortDistanceKeys()
-{
-    struct DiffSortKey
-    {
-        word diff;
-        uint length;
-        uint weight;
-        word capacity;
-        //bool isGood = false;
-    };
-
-    vector<DiffSortKey> keys(distMap.size());
-    uint index = 0;
-
-    forcin(iter, distMap)
-    {
-        DiffSortKey key;
-
-        key.diff = iter->first;
-        key.weight = countNonZeroBits(key.diff);
-        key.length = (iter->second)->size();
-
-        //key.isGood = (key.length > 1);
-
-        BooleanEdge edge = computeEdge(key.diff);
-        key.capacity = edge.getCapacity();
-
-        keys[index] = key;
-        ++index;
-    }
-
-    auto sortFunc = [](const DiffSortKey& leftKey, const DiffSortKey& rightKey) -> bool
-    {        
-        ////bool isLess = leftKey.length > rightKey.length;
-        //////bool isLess = (leftKey.length > 1 ) && (rightKey.length == 1);
-        ////if(leftKey.length == rightKey.length)
-        ////{
-        ////    isLess = leftKey.weight < rightKey.weight;
-        ////}        
-
-        bool isLess = (leftKey.capacity > rightKey.capacity);
-        if(leftKey.capacity == rightKey.capacity)
-        {
-            ///isLess = leftKey.weight < rightKey.weight;
-            isLess = (leftKey.length > 1 ) && (rightKey.length == 1);
-            if(leftKey.length == rightKey.length)
-            {
-                isLess = leftKey.weight < rightKey.weight;
-            }     
-        }
-
-        return isLess;
-    };
-
-    sort(keys.begin(), keys.end(), sortFunc);
-
-    distKeys = list<word>(); 
-    forin(iter, keys)
-    {
-        const DiffSortKey& key = *iter;
-        distKeys.push_back(key.diff);
-    }
-}
-
-BooleanEdge PartialGenerator::computeEdge(word diff, bool force /*= false*/)
-{
-    BooleanEdge edge;
-    assert(distMap.count(diff), string("Distance map hasn't difference"));
-
-    if(!diffToEdgeMap.count(diff) || force)
-    {
-        auto transpositions = distMap[diff];
-
-        BooleanEdgeSearcher edgeSearcher(transpositions, n, diff);
-        edge = edgeSearcher.findEdge();
-
-        diffToEdgeMap[diff] = edge;
-    }
-    else
-    {
-        edge = diffToEdgeMap[diff];
-    }
-
-    return edge;
-}
-
-void PartialGenerator::processSameDiffTranspositions(shared_ptr<list<Transposition>> candidates)
-{
-    word initialMask = 0;
-    assert(candidates && candidates->size(), string("PartialGenerator: empty candidates"));
-
-    const Transposition& transp = candidates->front();
-    initialMask = transp.getDiff();
-
-    BooleanEdge edge;
-    if(diffToEdgeMap.count(initialMask))
-    {
-        edge = diffToEdgeMap[initialMask];
-    }
-    else
-    {
-        BooleanEdgeSearcher edgeSearcher(candidates, n, initialMask);
-        edge = edgeSearcher.findEdge();
-    }
-
-    if(edge.isValid() && edge.getCapacity() > 2)
-    {
-        partialResultParams.params.edgeCapacity = edge.getCapacity();
-        
-        if(edge.isFull())
-        {
-            partialResultParams.type = PartialResultParams::tFullEdge;
-            transpositionsToSynthesize = candidates;
-        }
-        else
-        {
-            partialResultParams.type = PartialResultParams::tEdge;
-            transpositionsToSynthesize = BooleanEdgeSearcher::getEdgeSubset(edge, n, candidates);
-        }
-    }
-    else
-    {
-        partialResultParams.type = PartialResultParams::tSameDiffPair;
-        partialResultParams.params.diff = initialMask;
-
-        transpositionsToSynthesize = findBestCandidates(candidates);
-    }
-}
-
 shared_ptr<list<Transposition>> PartialGenerator::findBestCandidates(shared_ptr<list<Transposition>> candidates)
 {
     sortCandidates(candidates);
@@ -576,64 +315,59 @@ PartialGenerator::findBestCandidatePartner(
     return tie(second, minDist);
 }
 
-void PartialGenerator::processCommonTranspositions()
-{
-    // 1) find first
-    word diff = distKeys.front();
-    Transposition firstTransp = distMap[diff]->front();
-
-    // 2) find second
-    uint minComplexity = uintUndefined;
-    Transposition secondTransp;
-
-    forin(iter, distKeys)
-    {
-        const word& key = *iter;
-        if(key == diff)
-        {
-            continue;
-        }
-
-        // no skipping keys here because we don't know if partial result
-        // would be left or right multiplied
-
-        Transposition transp = distMap[key]->front();
-        TransposPair pair = TransposPair(firstTransp, transp);
-        pair.setN(n);
-
-        uint complexity = pair.getEstimateImplComplexity();
-        if(minComplexity == uintUndefined || complexity < minComplexity)
-        {
-            minComplexity = complexity;
-            secondTransp = transp;
-        }
-    }
-
-    assert(!secondTransp.isEmpty(), string("Second transposition is empty"));
-
-    // fill partial result parameters
-    partialResultParams.type = PartialResultParams::tCommonPair;
-
-    word leftDiff  = firstTransp.getDiff();
-    word rightDiff = secondTransp.getDiff();
-
-    word leftX  = firstTransp.getX();
-    word rightX = secondTransp.getX();
-    word distance = (leftX & (~leftDiff)) ^ (rightX & (~rightDiff));
-
-    partialResultParams.params.common.leftDiff  = leftDiff;
-    partialResultParams.params.common.rightDiff = rightDiff;
-    partialResultParams.params.common.distance  = distance;
-
-    transpositionsToSynthesize = shared_ptr<list<Transposition>>(new list<Transposition>);
-    transpositionsToSynthesize->push_back(firstTransp);
-    transpositionsToSynthesize->push_back(secondTransp);
-}
-
-Permutation PartialGenerator::getResidualPermutation() const
-{
-    return getResidualPermutation(leftMultiplicationFlag);
-}
+//void PartialGenerator::processCommonTranspositions()
+//{
+//    // 1) find first
+//    word diff = distKeys.front();
+//    Transposition firstTransp = distMap[diff]->front();
+//
+//    // 2) find second
+//    uint minComplexity = uintUndefined;
+//    Transposition secondTransp;
+//
+//    forin(iter, distKeys)
+//    {
+//        const word& key = *iter;
+//        if(key == diff)
+//        {
+//            continue;
+//        }
+//
+//        // no skipping keys here because we don't know if partial result
+//        // would be left or right multiplied
+//
+//        Transposition transp = distMap[key]->front();
+//        TransposPair pair = TransposPair(firstTransp, transp);
+//        pair.setN(n);
+//
+//        uint complexity = pair.getEstimateImplComplexity();
+//        if(minComplexity == uintUndefined || complexity < minComplexity)
+//        {
+//            minComplexity = complexity;
+//            secondTransp = transp;
+//        }
+//    }
+//
+//    assert(!secondTransp.isEmpty(), string("Second transposition is empty"));
+//
+//    // fill partial result parameters
+//    partialResultParams.type = PartialResultParams::tCommonPair;
+//
+//    word leftDiff  = firstTransp.getDiff();
+//    word rightDiff = secondTransp.getDiff();
+//
+//    word leftX  = firstTransp.getX();
+//    word rightX = secondTransp.getX();
+//    word distance = (leftX & (~leftDiff)) ^ (rightX & (~rightDiff));
+//
+//    partialResultParams.params.common.leftDiff  = leftDiff;
+//    partialResultParams.params.common.rightDiff = rightDiff;
+//    partialResultParams.params.common.distance  = distance;
+//
+//    transpositionsToSynthesize = shared_ptr<list<Transposition>>(new list<Transposition>);
+//    transpositionsToSynthesize->push_back(firstTransp);
+//    transpositionsToSynthesize->push_back(secondTransp);
+//}
 
 ReversibleLogic::Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication) const
 {
@@ -652,8 +386,7 @@ ReversibleLogic::Permutation PartialGenerator::getResidualPermutation(bool isLef
 
 deque<ReverseElement> PartialGenerator::implementPartialResult()
 {
-    transpositionsToSynthesize = partialResultParams.transpositions;
-    assert(transpositionsToSynthesize->size(), string("PartialGenerator: no transpositions to synthesize"));
+    assert(partialResultParams.transpositions->size(), string("PartialGenerator: no transpositions to synthesize"));
 
     deque<ReverseElement> synthesisResult;
     switch(partialResultParams.type)
@@ -674,7 +407,7 @@ deque<ReverseElement> PartialGenerator::implementPartialResult()
 
 deque<ReverseElement> PartialGenerator::implementEdge()
 {
-    const Transposition& transp = transpositionsToSynthesize->front();
+    const Transposition& transp = partialResultParams.transpositions->front();
     word diff = transp.getDiff();
 
     BooleanEdge& edge = partialResultParams.edge;
@@ -701,11 +434,11 @@ deque<ReverseElement> PartialGenerator::implementEdge()
 
 deque<ReverseElement> PartialGenerator::implementPairOfTranspositions()
 {
-    assert(transpositionsToSynthesize->size() == 2,
+    assert(partialResultParams.transpositions->size() == 2,
         string("PartialGenerator: can't implement pair of transpositions"));
 
-    Transposition firstTransp  = transpositionsToSynthesize->front();
-    Transposition secondTransp = transpositionsToSynthesize->back();
+    Transposition firstTransp  = partialResultParams.transpositions->front();
+    Transposition secondTransp = partialResultParams.transpositions->back();
 
     deque<ReverseElement> elements;
 

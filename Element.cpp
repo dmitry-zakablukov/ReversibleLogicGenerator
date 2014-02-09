@@ -302,6 +302,30 @@ deque<ReverseElement> ReverseElement::getImplementation(bool heavyRight /* = tru
 
         elements = second.getImplementation();
         implementation.insert(implementation.end(), elements.cbegin(), elements.cend());
+
+        //word mask = 1;
+        //while(mask <= inversionMask)
+        //{
+        //    if(inversionMask & mask)
+        //    {
+        //        implementation.push_back(ReverseElement(n, mask));
+        //    }
+
+        //    mask <<= 1;
+        //}
+
+        //implementation.push_back(ReverseElement(n, targetMask, controlMask));
+
+        //mask = 1;
+        //while(mask <= inversionMask)
+        //{
+        //    if(inversionMask & mask)
+        //    {
+        //        implementation.push_back(ReverseElement(n, mask));
+        //    }
+
+        //    mask <<= 1;
+        //}
     }
     else
     {
