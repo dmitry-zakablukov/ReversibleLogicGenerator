@@ -62,7 +62,7 @@ vector<word> getRd53()
     scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 3, 4, END)) );
     scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, END)) );
     
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
+    //scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
     
     //scheme.push_back( ReverseElement(n, 1 << 5, (1 << 0) + (1 << 4)) );
     //scheme.push_back( ReverseElement(n, 1 << 3, 1 << 0) );
@@ -168,9 +168,9 @@ void testSynthesis( int argc, const char* argv[] )
         {
             const char* const strSchemesFolder = "schemes/";
 
-            if(access(strSchemesFolder, 0))
+            if(_access(strSchemesFolder, 0))
             {
-                mkdir(strSchemesFolder);
+                _mkdir(strSchemesFolder);
             }
 
             //ostringstream schemeFileName;
