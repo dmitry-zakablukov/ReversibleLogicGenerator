@@ -38,14 +38,6 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
     Scheme scheme;
     Scheme::iterator targetIter = scheme.end();
 
-    //while(!permutation.isEmpty())
-    //{
-    //    assert(permutation.isEven(), string("Permutation parity violation found"));
-
-    //    prepareCyclesInPermutation(&permutation);
-    //    reducePermutation(&permutation, n, &scheme, &targetIter);
-    //}
-
     shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
     partialGenerator->setPermutation(permutation, n);
     partialGenerator->prepareForGeneration();
@@ -174,53 +166,6 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
     return restGenerator;
 }
 
-void Generator::reducePermutation(Permutation* permutation, uint n, Scheme* scheme, Scheme::iterator* targetIter)
-{
-//    PartialGenerator leftGenerator;
-//    PartialGenerator rightGenerator;
-//    
-//    PartialGenerator* generator = 0;
-//    bool isLeftMultiplication = true;
-//    
-//    bool multiplicationDiffers = isLeftAndRightMultiplicationDiffers(permutation);
-//    if(multiplicationDiffers)
-//    {
-//        // get left choice
-//        leftGenerator.setPermutation(permutation, n, true);
-//        leftGenerator.prepareForGeneration();
-//        PartialResultParams leftPartialResultParams = leftGenerator.getPartialResultParams();
-//
-//        // get right choice
-//        rightGenerator.setPermutation(permutation, n, false);
-//        rightGenerator.prepareForGeneration();
-//        PartialResultParams rightPartialResultParams = rightGenerator.getPartialResultParams();
-//
-//        // compare left and right choices and choose the best
-//        isLeftMultiplication = isLeftChoiceBetter(leftPartialResultParams, rightPartialResultParams);
-//
-//        // for test purpose only
-//        // isLeftBetter = false;
-//        generator = (isLeftMultiplication ? &leftGenerator : &rightGenerator);
-//    }
-//    else
-//    {
-//        leftGenerator.setPermutation(permutation, n, true);
-//        leftGenerator.prepareForGeneration();
-//        PartialResultParams leftPartialResultParams = leftGenerator.getPartialResultParams();
-//
-//        generator = &leftGenerator;
-//    }
-//
-//    implementPartialResult(generator, isLeftMultiplication, scheme, targetIter);
-//    *permutation = generator->getResidualPermutation();
-}
-
-void Generator::implementPartialResult(PartialGenerator* partialGenerator,
-    bool isLeftMultiplication, Scheme* scheme, Scheme::iterator* targetIter)
-{
-    implementPartialResult(*partialGenerator, isLeftMultiplication, scheme, targetIter);
-}
-
 void Generator::implementPartialResult(PartialGenerator& partialGenerator,
     bool isLeftMultiplication, Scheme* scheme, Scheme::iterator* targetIter)
 {
@@ -313,70 +258,6 @@ bool Generator::checkSchemeAgainstPermutationVector(const Scheme& scheme, const 
     }
 
     return result;
-}
-
-void Generator::prepareCyclesInPermutation(Permutation* permutation)
-{
-    // prepare all cycles in permutation for disjoint
-    unordered_map<word, uint> frequencyMap;
-    forin(iter, *permutation)
-    {
-        Cycle& cycle = **iter;
-        cycle.prepareForDisjoint(&frequencyMap);
-    }
-
-    // find most frequent diff
-    uint maxFreq = 0;
-    word bestDiff = 0;
-    uint bestDiffWeight = 0;
-
-    forcin(iter, frequencyMap)
-    {
-        word diff = iter->first;
-        uint count = iter->second;
-
-        if(count > maxFreq)
-        {
-            maxFreq = count;
-            bestDiff = diff;
-            bestDiffWeight = countNonZeroBits(bestDiff);
-        }
-        else if(maxFreq == count)
-        {
-            uint diffWeight = countNonZeroBits(diff);
-            if(diffWeight < bestDiffWeight)
-            {
-                bestDiffWeight = diffWeight;
-                bestDiff = diff;
-            }
-        }
-    }
-
-    // set best diff for all cycles in permutation
-    forin(iter, *permutation)
-    {
-        Cycle& cycle = **iter;
-        //cycle.setDisjointDiff(bestDiff);
-    }
-
-    //// debug
-    //cout << "Cycles in permutation prepared\n";
-}
-
-bool Generator::isLeftAndRightMultiplicationDiffers(const Permutation* permutation) const
-{
-    bool isDiffer = false;
-    forin(iter, *permutation)
-    {
-        const Cycle& cycle = **iter;
-        if(cycle.length() > 2)
-        {
-            isDiffer = true;
-            break;
-        }
-    }
-
-    return isDiffer;
 }
 
 }   // namespace ReversibleLogic
