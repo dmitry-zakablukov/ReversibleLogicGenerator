@@ -24,7 +24,7 @@ struct PartialResultParams
     shared_ptr<list<ReversibleLogic::Transposition>> transpositions;
     BooleanEdge edge;
 
-    union
+    struct
     {
         word edgeCapacity;  // tFullEdge and tEdge
         word diff;          // tSameDiffPair

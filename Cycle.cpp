@@ -341,12 +341,25 @@ uint Cycle::getDistancesSum() const
     uint sum = 0;
 
     uint elementCount = length();
-    for(uint index = 0; index < elementCount; ++index)
-    {
-        word x = elements[index];
-        word y = elements[modIndex(index + 1)];
+    uint stepCount = elementCount / 2;
 
-        sum += countNonZeroBits(x ^ y);
+    for(uint step = 1; step <= stepCount; ++step)
+    {
+        uint maxIndex = elementCount;
+        if(!(elementCount & 1) && step == stepCount)
+        {
+            // avoid pair duplicates
+            maxIndex /= 2;
+        }
+
+        for(uint index = 0; index < maxIndex; ++index)
+        {
+            word x = elements[index];
+            word y = elements[modIndex(index + step)];
+            word diff = x ^ y;
+
+            sum += countNonZeroBits(diff);
+        }
     }
 
     return sum;
