@@ -129,6 +129,11 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
         rightGenerator->setPermutation(rightMultipliedPermutation, n);
         rightGenerator->prepareForGeneration();
 
+        //// debug
+        //cout << "============================\n";
+        //cout << "Left:\n" << (string)leftMultipliedPermutation << '\n';
+        //cout << "\nRight:\n" << (string)rightMultipliedPermutation << '\n\n';
+
         // compare left and right choices and choose the best
         PartialResultParams leftPartialResultParams  =  leftGenerator->getPartialResultParams();
         PartialResultParams rightPartialResultParams = rightGenerator->getPartialResultParams();
