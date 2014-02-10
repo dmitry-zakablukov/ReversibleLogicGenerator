@@ -242,13 +242,17 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::getEdgeSub
     word totalCount = (word)1 << n;
     unordered_set<word> visitedElements;
 
+    // generate transpositions with ||diff|| = 1
+    uint pos = findPositiveBitPosition(initialMask);
+    word diff = (word)1 << pos;
+
     shared_ptr<list<Transposition>> subset(new list<Transposition>);
     for(word x = 0; x < totalCount; ++x)
     {
         if(visitedElements.find(x) == visitedElements.cend())
         {
             word value = x & baseMask;
-            word y = x ^ initialMask;
+            word y = x ^ diff;
 
             if(value == baseValue)
             {

@@ -61,13 +61,13 @@ vector<word> getRd53()
     scheme.push_back( ReverseElement(n, mask(1, END), mask(2, END)) );
     scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 3, 4, END)) );
     scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
-    
+    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );    
     scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 4, END)) );
 
-    //scheme.push_back( ReverseElement(n, 1 << 3, 1 << 0) );
-    //scheme.push_back( ReverseElement(n, 1 << 5, (1 << 3) + (1 << 4)) );
-    //scheme.push_back( ReverseElement(n, 1 << 4, 1 << 3) );
+    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, END)) );
+
+    //scheme.push_back( ReverseElement(n, mask(5, END), mask(3, 4, END)) );
+    //scheme.push_back( ReverseElement(n, mask(4, END), mask(3, END)) );
 
     vector<word> table = makePermutationFromScheme(scheme, n);
     return table;

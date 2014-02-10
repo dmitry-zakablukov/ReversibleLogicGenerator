@@ -550,6 +550,8 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
 
                     if(lessComplexityRequired)
                     {
+                        //if(optimizedSchemeSize >= elementCount
+                        //    && secondPassOptimizationFlag)
                         if(optimizedSchemeSize == elementCount
                             && secondPassOptimizationFlag)
                         {
@@ -560,6 +562,7 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                             optimizedScheme = transferOptimization(optimizedScheme, &tempFlag);
 
                             complexityDelta = 0;
+                            //secondPassOptimizationFlag = true;
                             secondPassOptimizationFlag = false;
                         }
 

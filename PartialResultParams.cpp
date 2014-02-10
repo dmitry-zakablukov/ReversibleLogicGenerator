@@ -100,7 +100,7 @@ word PartialResultParams::getCoveredTranspositionsCount() const
     {
     case tFullEdge:
     case tEdge:
-        count = params.edgeCapacity;
+        count = params.edgeCapacity / 2;
         break;
 
     case tSameDiffPair:

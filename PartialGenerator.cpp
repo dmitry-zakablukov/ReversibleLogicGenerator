@@ -189,9 +189,10 @@ PartialResultParams PartialGenerator::getPartialResult(
         if(capacity >= bestParams.params.edgeCapacity)
         {
             result.type = (edge.isFull() ? PartialResultParams::tFullEdge : PartialResultParams::tEdge);
-            //result.transpositions = edgeSearcher.filterTranspositionsByEdge(edge, n, transpositions);
             result.transpositions = edgeSearcher.getEdgeSubset(edge, n);
-            result.edge = edge;
+
+            //result.edge = edge;
+            result.edge = BooleanEdgeSearcher(result.transpositions, n, diff).findEdge();
 
             result.params.diff = diff;
             result.params.edgeCapacity = edge.getCapacity();
