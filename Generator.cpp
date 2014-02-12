@@ -110,6 +110,23 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
 shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGenerator> partialGenerator,
     uint n, Scheme* scheme, Scheme::iterator* targetIter)
 {
+    //////////////////////////////////////////////////////////////////////////
+    // start of debug
+    const Permutation& perm = partialGenerator->getPermutation();
+    uint transpCount = 0;
+    static uint stepCount = 0;
+
+    forin(iter, perm)
+    {
+        const Cycle& cycle = **iter;
+        uint elementCount = cycle.length();
+        transpCount += elementCount - 1;
+    }
+
+    cout << "Step " << ++stepCount << ", transposition count = " << transpCount << '\n';
+    // end of debug
+    //////////////////////////////////////////////////////////////////////////
+
     shared_ptr<PartialGenerator> restGenerator = 0;
 
     bool isLeftAndRightMultiplicationDiffers = partialGenerator->isLeftAndRightMultiplicationDiffers();

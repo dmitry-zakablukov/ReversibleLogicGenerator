@@ -65,9 +65,9 @@ vector<word> getRd53()
     scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 4, END)) );
 
     scheme.push_back( ReverseElement(n, mask(3, END), mask(0, END)) );
-
-    //scheme.push_back( ReverseElement(n, mask(5, END), mask(3, 4, END)) );
-    //scheme.push_back( ReverseElement(n, mask(4, END), mask(3, END)) );
+    
+    scheme.push_back( ReverseElement(n, mask(5, END), mask(3, 4, END)) );
+    scheme.push_back( ReverseElement(n, mask(4, END), mask(3, END)) );
 
     vector<word> table = makePermutationFromScheme(scheme, n);
     return table;
