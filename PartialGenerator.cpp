@@ -108,7 +108,7 @@ void PartialGenerator::prepareForGeneration()
         if(freq < bestResult.getCoveredTranspositionsCount())
         {
             // even theoretically we can't get more transpositions than we already have on previous step
-            break;
+            //break;
         }
 
         shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
@@ -124,7 +124,7 @@ void PartialGenerator::prepareForGeneration()
         {
             // real number of transpositions is lower than theoretical, so go to next diff
             // also skip this step if transposition count equals 1
-            continue;
+            //continue;
         }
 
         PartialResultParams result = getPartialResult(transpositions, diff, bestResult);
