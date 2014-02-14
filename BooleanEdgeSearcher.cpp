@@ -7,6 +7,7 @@ BooleanEdge::BooleanEdge()
     : baseValue(wordUndefined)
     , starsMask(wordUndefined)
     , full(false)
+    , coveredTranspositionCount(0)
 {
 }
 
@@ -92,7 +93,7 @@ BooleanEdge BooleanEdgeSearcher::findEdge()
         // find maximum edge
         while(minEdgeDimension <= maxEdgeDimension)
         {
-            edge = findEdge(initialMask, maxEdgeDimension - minEdgeDimension, 0);
+            findEdge(&edge, initialMask, maxEdgeDimension - minEdgeDimension, 0);
             if(edge.isValid())
             {
                 break;
@@ -117,9 +118,9 @@ uint BooleanEdgeSearcher::findMaxEdgeDimension(uint length)
     return maxEdgeDimesion;
 }
 
-BooleanEdge BooleanEdgeSearcher::findEdge(word edgeMask, uint restPositionCount, uint startPos)
+void BooleanEdgeSearcher::findEdge(BooleanEdge* bestEdge, word edgeMask,
+    uint restPositionCount, uint startPos)
 {
-    BooleanEdge edge;
     if(restPositionCount)
     {
         while(startPos <= n - restPositionCount)
@@ -127,8 +128,8 @@ BooleanEdge BooleanEdgeSearcher::findEdge(word edgeMask, uint restPositionCount,
             word mask = 1 << startPos;
             if(!(edgeMask & mask))
             {
-                edge = findEdge(mask ^ edgeMask, restPositionCount - 1, startPos + 1);
-                if(edge.isValid())
+                findEdge(bestEdge, mask ^ edgeMask, restPositionCount - 1, startPos + 1);
+                if(bestEdge->isValid())
                 {
                     break;
                 }
@@ -139,15 +140,15 @@ BooleanEdge BooleanEdgeSearcher::findEdge(word edgeMask, uint restPositionCount,
     }
     else
     {
+        BooleanEdge edge;
         edge.starsMask = edgeMask;
-        if(!checkEdge(&edge))
+
+        bool isValid = checkEdge(&edge);
+        if(isValid && edge.coveredTranspositionCount > bestEdge->coveredTranspositionCount)
         {
-            edge.baseValue = uintUndefined;
-            edge.starsMask = uintUndefined;
+            *bestEdge = edge;
         }
     }
-
-    return edge;
 }
 
 bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
@@ -182,6 +183,8 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
             {
                 // edge generates subset in input set
                 edge->baseValue = entry;
+                edge->coveredTranspositionCount = edgeCapacity;
+
                 result = true;
                 break;
             }
@@ -197,6 +200,8 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
             {
                 // edge generates subset in input set
                 edge->baseValue = entry;
+                edge->coveredTranspositionCount = edgeCapacity;
+
                 result = true;
                 break;
             }
@@ -225,6 +230,7 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
     if(maxCounter * 2 > edgeCapacity)
     {
         edge->baseValue = bestIndex;
+        edge->coveredTranspositionCount = maxCounter;
         result = true;
     }
 

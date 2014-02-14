@@ -20,6 +20,8 @@ struct BooleanEdge
     word baseValue;
     word starsMask;
     bool full;
+
+    uint coveredTranspositionCount;
 };
 
 // Class for searching boolean edge in set of binary vectors
@@ -43,7 +45,7 @@ private:
     /// Returns max number of * in edge
     uint findMaxEdgeDimension(uint length);
 
-    BooleanEdge findEdge(word edgeMask, uint restPositionCount, uint startPos);
+    void findEdge(BooleanEdge* bestEdge, word edgeMask, uint restPositionCount, uint startPos);
 
     /// Returns true, if edge cover subset of input set
     bool checkEdge(BooleanEdge* edge);
