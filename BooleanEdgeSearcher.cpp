@@ -129,10 +129,6 @@ void BooleanEdgeSearcher::findEdge(BooleanEdge* bestEdge, word edgeMask,
             if(!(edgeMask & mask))
             {
                 findEdge(bestEdge, mask ^ edgeMask, restPositionCount - 1, startPos + 1);
-                if(bestEdge->isValid())
-                {
-                    break;
-                }
             }
 
             ++startPos;

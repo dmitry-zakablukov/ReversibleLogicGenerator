@@ -128,7 +128,7 @@ void PartialGenerator::prepareForGeneration()
         }
 
         PartialResultParams result = getPartialResult(transpositions, diff, bestResult);
-        if(result.isBetterThan(bestResult))
+        if(result.edge.coveredTranspositionCount > bestResult.edge.coveredTranspositionCount)
         {
             bestResult = result;
         }
