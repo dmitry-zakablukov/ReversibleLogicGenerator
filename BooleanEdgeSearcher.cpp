@@ -86,7 +86,7 @@ BooleanEdge BooleanEdgeSearcher::findEdge()
     else
     {
         // find upper bound for edge dimension
-        uint maxEdgeDimension = findMaxEdgeDimension(inputLength);
+        uint maxEdgeDimension = findMaxEdgeDimension(inputLength * 2);
         uint minEdgeDimension = countNonZeroBits(initialMask);
 
         // find maximum edge
@@ -245,6 +245,9 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::getEdgeSub
     // generate transpositions with ||diff|| = 1
     uint pos = findPositiveBitPosition(initialMask);
     word diff = (word)1 << pos;
+
+    // debug
+    diff = initialMask;
 
     shared_ptr<list<Transposition>> subset(new list<Transposition>);
     for(word x = 0; x < totalCount; ++x)
