@@ -119,12 +119,13 @@ void PartialGenerator::prepareForGeneration()
         }
 
         uint transpositionCount = transpositions->size();
-        if(transpositionCount < bestResult.getCoveredTranspositionsCount()
-            || transpositionCount == 1)
+        //if(transpositionCount < bestResult.getCoveredTranspositionsCount()
+        //    || transpositionCount == 1)
+        if(transpositionCount == 1)
         {
             // real number of transpositions is lower than theoretical, so go to next diff
             // also skip this step if transposition count equals 1
-            //continue;
+            continue;
         }
 
         PartialResultParams result = getPartialResult(transpositions, diff, bestResult);
@@ -194,8 +195,9 @@ PartialResultParams PartialGenerator::getPartialResult(
             result.type = (edge.isFull() ? PartialResultParams::tFullEdge : PartialResultParams::tEdge);
             result.transpositions = edgeSearcher.getEdgeSubset(edge, n);
 
-            //result.edge = edge;
-            result.edge = BooleanEdgeSearcher(result.transpositions, n, diff).findEdge();
+            edge = BooleanEdgeSearcher(result.transpositions, n, diff).findEdge();
+            result.edge = edge;
+            //result.edge = BooleanEdgeSearcher(result.transpositions, n, diff).findEdge();
 
             result.params.diff = diff;
             result.params.edgeCapacity = edge.getCapacity();
