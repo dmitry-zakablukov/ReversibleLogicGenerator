@@ -150,10 +150,13 @@ void PartialGenerator::prepareForGeneration()
         }
         // bugbug: see processCommonTranspositions() for better pair creation
 
-        assert(transpositions->size() == 2,
+        assert(transpositions->size() > 1,
             string("PartialGenerator::prepareForGeneration() failed to find common pair"));
 
         bestResult.type = PartialResultParams::tCommonPair;
+
+        // todo: sort to get best pair
+        transpositions->erase(++(transpositions->begin()), --(transpositions->end()));
         bestResult.transpositions = transpositions;
 
         Transposition& firstTransp = transpositions->front();

@@ -294,8 +294,12 @@ void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
         elementStorage.insert(element);
     }
 
-    // find first pair with desired Hamming distance
-    unordered_set<word>::const_iterator end = elementStorage.cend(); 
+    // fill array of coverage by possible disjoint segments
+    vector<uint> counterArray;
+    counterArray.resize(elementCount);
+    uint counter = 0;
+
+    unordered_set<word>::const_iterator end = elementStorage.cend();
     for(uint index = 0; index < elementCount; ++index)
     {
         const word& x = input[index];
@@ -303,14 +307,61 @@ void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
 
         if(elementStorage.find(y) != end)
         {
-            result->push_back(Transposition(x, y));
-
             uint xIndex = elementToIndexMap[x];
             uint yIndex = elementToIndexMap[y];
 
-            getTranspositionsByDiff(input, diff, xIndex, yIndex, result);
-            break;
+            if(xIndex < yIndex)
+            {
+                ++counter;
+                counterArray[index] = counter;
+            }
+            else
+            {
+                counterArray[index] = counter;
+                --counter;
+            }
         }
+        else
+        {
+            counterArray[index] = counter;
+        }
+    }
+
+    // find best disjoint indices
+    uint bestLeftIndex = uintUndefined;
+    uint bestRightIndex = uintUndefined;
+    uint minSum = uintUndefined;
+
+    for(uint index = 0; index < elementCount; ++index)
+    {
+        const word& x = input[index];
+        word y = x ^ diff;
+
+        if(elementStorage.find(y) != end)
+        {
+            uint xIndex = elementToIndexMap[x];
+            uint yIndex = elementToIndexMap[y];
+
+            if(xIndex < yIndex)
+            {
+                uint sum = counterArray[xIndex] + counterArray[yIndex];
+                if(sum < minSum)
+                {
+                    minSum = sum;
+                    bestLeftIndex = xIndex;
+                    bestRightIndex = yIndex;
+                }
+            }
+        }
+    }
+
+    if(minSum != uintUndefined)
+    {
+        const word& x = input[bestLeftIndex];
+        word y = x ^ diff;
+
+        result->push_back(Transposition(x, y));
+        getTranspositionsByDiff(input, diff, bestLeftIndex, bestRightIndex, result);
     }
 }
 
