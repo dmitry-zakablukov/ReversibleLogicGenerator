@@ -178,8 +178,7 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
             uint& counter = frequencyTable[entry];
             ++counter;
 
-            //if(counter == edgeCapacity)
-            if(counter == edgeCapacity || entry && counter * 2 > edgeCapacity)
+            if(counter == edgeCapacity)
             {
                 // edge generates subset in input set
                 edge->baseValue = entry;
@@ -194,8 +193,7 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
             uint& counter = frequencyTable[entry];
             ++counter;
 
-            //if(counter == edgeCapacity)
-            if(counter == edgeCapacity || entry && counter * 2 > edgeCapacity)
+            if(counter == edgeCapacity)
             {
                 // edge generates subset in input set
                 edge->baseValue = entry;
@@ -203,6 +201,31 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
                 break;
             }
         }
+    }
+
+    uint bestIndex = 0;
+    uint maxCounter = 0;
+
+    uint index = 0;
+    if(edge->starsMask == ((1 << n) - 1))
+    {
+        index = 1;
+    }
+
+    for(; index < maxEntriesCount; ++index)
+    {
+        uint counter = frequencyTable[index];
+        if(counter > maxCounter)
+        {
+            maxCounter = counter;
+            bestIndex = index;
+        }
+    }
+
+    if(maxCounter * 2 > edgeCapacity)
+    {
+        edge->baseValue = bestIndex;
+        result = true;
     }
 
     return result;
