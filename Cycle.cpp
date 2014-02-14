@@ -307,32 +307,39 @@ void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
 
             uint xIndex = elementToIndexMap[x];
             uint yIndex = elementToIndexMap[y];
-            uint distance = yIndex - xIndex;
 
-            // 1) make middle part vector
-            if(distance > 2)
-            {
-                vector<word> middlePart;
-                middlePart.resize(distance - 1);
-                memcpy(middlePart.data(), input.data() + xIndex + 1, (distance - 1) * sizeof(word));
-
-                getTranspositionsByDiff(middlePart, diff, result);
-            }
-
-            // 2) make rest part vector
-            if(elementCount - distance - 1 > 1)
-            {
-                vector<word> restPart;
-                restPart.resize(elementCount - distance - 1);
-
-                memcpy(restPart.data(), input.data(), xIndex * sizeof(word));
-                memcpy(restPart.data() + xIndex, input.data() + yIndex + 1, (elementCount - yIndex - 1) * sizeof(word));
-
-                getTranspositionsByDiff(restPart, diff, result);
-            }
-
+            getTranspositionsByDiff(input, diff, xIndex, yIndex, result);
             break;
         }
+    }
+}
+
+void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
+    uint xIndex, uint yIndex, shared_ptr<list<Transposition>> result)
+{
+    uint distance = yIndex - xIndex;
+
+    // 1) make middle part vector
+    if(distance > 2)
+    {
+        vector<word> middlePart;
+        middlePart.resize(distance - 1);
+        memcpy(middlePart.data(), input.data() + xIndex + 1, (distance - 1) * sizeof(word));
+
+        getTranspositionsByDiff(middlePart, diff, result);
+    }
+
+    // 2) make rest part vector
+    uint elementCount = length();
+    if(elementCount - distance - 1 > 1)
+    {
+        vector<word> restPart;
+        restPart.resize(elementCount - distance - 1);
+
+        memcpy(restPart.data(), input.data(), xIndex * sizeof(word));
+        memcpy(restPart.data() + xIndex, input.data() + yIndex + 1, (elementCount - yIndex - 1) * sizeof(word));
+
+        getTranspositionsByDiff(restPart, diff, result);
     }
 }
 

@@ -58,6 +58,9 @@ private:
     void getTranspositionsByDiff(const vector<word>& input, word diff,
         shared_ptr<list<Transposition>> result);
 
+    void getTranspositionsByDiff(const vector<word>& input, word diff,
+        uint xIndex, uint yIndex, shared_ptr<list<Transposition>> result);
+
     vector<word> elements;
     bool finalized;
 };
