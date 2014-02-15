@@ -104,6 +104,9 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
     //repres = SchemePrinter::schemeToString(n, scheme, false);
     //log << repres;
 
+    // debug
+    cout << "Gate complexity: " << scheme.size() << '\n';
+
     return scheme;
 }
 

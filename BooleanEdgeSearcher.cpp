@@ -160,7 +160,9 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
     word edgeCapacity = edge->getCapacity();
 
     // calculate frequency of all entries according to the edge
-    word mask = ~(edge->starsMask);
+    word fullMask = ((word)1 << n) - 1;
+    word mask = (fullMask ^ edge->starsMask) & fullMask;
+
     forcin(transp, *inputSet)
     {
         word x = transp->getX();
