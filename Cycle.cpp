@@ -381,8 +381,8 @@ void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
     }
 
     // 2) make rest part vector
-    uint elementCount = length();
-    if(elementCount - distance - 1 > 1)
+    uint elementCount = input.size();
+    if(distance + 2 < elementCount) //unsigned, so this is just condition (elementCount - (distance + 1) > 1)
     {
         vector<word> restPart;
         restPart.resize(elementCount - distance - 1);
