@@ -62,7 +62,7 @@ vector<word> getRd53()
     scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 3, 4, END)) );
     scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, END)) );
     scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );    
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 4, END)) );
+    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 3, END)) );
 
     scheme.push_back( ReverseElement(n, mask(3, END), mask(0, END)) );
     
