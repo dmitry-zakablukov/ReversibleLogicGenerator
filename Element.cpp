@@ -121,7 +121,7 @@ bool ReverseElement::isValid() const
     return valid;
 }
 
-bool ReverseElement::isSwitchable(const ReverseElement& another) const
+bool ReverseElement::isSwappable(const ReverseElement& another) const
 {
     assert(isValid(), string("Reverse element is not valid"));
     assert(another.isValid(), string("Reverse element is not valid"));
@@ -130,26 +130,26 @@ bool ReverseElement::isSwitchable(const ReverseElement& another) const
     word anotherControlMask = another.getControlMask();
     word anotherInversionMask = another.getInversionMask();
 
-    bool switchable = (!(anotherControlMask & targetMask) && !(controlMask & anotherTargetMask))
+    bool swappable = (!(anotherControlMask & targetMask) && !(controlMask & anotherTargetMask))
         || ((inversionMask ^ anotherInversionMask) & controlMask & anotherControlMask);
 
-    return switchable;
+    return swappable;
 }
 
-bool ReverseElement::isSwitchable(const list<ReverseElement>& elements) const
+bool ReverseElement::isSwappable(const list<ReverseElement>& elements) const
 {
     assert(isValid(), string("Reverse element is not valid"));
 
-    bool switchable = true;
+    bool swappable = true;
     forcin(element, elements)
     {
-        if(!isSwitchable(*element))
+        if (!isSwappable(*element))
         {
-            switchable = false;
+            swappable = false;
             break;
         }
     }
-    return switchable;
+    return swappable;
 }
 
 word ReverseElement::getValue(word input) const

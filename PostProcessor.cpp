@@ -62,7 +62,7 @@ bool selectForTransferOptimization(const ReverseElement& left,
     word rightControlMask = right.getControlMask();
 
     bool result = false;
-    if(!left.isSwitchable(right))
+    if (!left.isSwappable(right))
     {
         // (left_target in right_controls) xor (right_target in left_controls)
         result = ((rightControlMask & leftTargetMask) != 0) ^ ((leftControlMask & rightTargetMask) != 0);
@@ -626,8 +626,8 @@ int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
     {
         const ReverseElement& neighborElement = scheme[index];
 
-        // stop search if not switchable
-        if(!target.isSwitchable(neighborElement))
+        // stop search if not swappable
+        if (!target.isSwappable(neighborElement))
         {
             break;
         }
