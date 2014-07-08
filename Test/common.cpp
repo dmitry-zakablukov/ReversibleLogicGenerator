@@ -20,11 +20,9 @@ word mask(uint first, ...)
 word binStringToInt(string value)
 {
     word number = 0;
-    forin(iter, value)
+    for (auto symbol : value)
     {
         number <<= 1;
-
-        char& symbol = *iter;
         if(symbol == '1')
         {
             number |= 1;

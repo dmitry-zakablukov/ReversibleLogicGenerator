@@ -29,10 +29,9 @@ const Permutation& PartialGenerator::getPermutation() const
 bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
 {
     bool isDiffer = false;
-    forin(iter, permutation)
+    for (auto cycle : permutation)
     {
-        const Cycle& cycle = **iter;
-        if(cycle.length() > 2)
+        if(cycle->length() > 2)
         {
             isDiffer = true;
             break;
@@ -46,10 +45,9 @@ void PartialGenerator::prepareForGeneration()
 {
     // prepare all cycles in permutation for disjoint
     unordered_map<word, uint> frequencyMap;
-    forin(iter, permutation)
+    for (auto cycle : permutation)
     {
-        Cycle& cycle = **iter;
-        cycle.prepareForDisjoint(&frequencyMap);
+        cycle->prepareForDisjoint(&frequencyMap);
     }
 
     // sort keys by length
@@ -79,9 +77,9 @@ void PartialGenerator::prepareForGeneration()
     vector<uint> keys;
     keys.reserve(frequencyMap.size());
 
-    forcin(iter, frequencyMap)
+    for (auto iter : frequencyMap)
     {
-        keys.push_back(iter->first);
+        keys.push_back(iter.first);
     }
 
     sort(keys.begin(), keys.end(), sortFunction);
@@ -112,10 +110,9 @@ void PartialGenerator::prepareForGeneration()
         }
 
         shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
-        forin(iter, permutation)
+        for (auto cycle : permutation)
         {
-            Cycle& cycle = **iter;
-            cycle.disjointByDiff(diff, transpositions);
+            cycle->disjointByDiff(diff, transpositions);
         }
 
         uint transpositionCount = transpositions->size();
@@ -143,10 +140,9 @@ void PartialGenerator::prepareForGeneration()
         for(uint index = 0; index < keyCount && transpositions->size() < 2; ++index)
         {
             word diff = keys[index];
-            forin(iter, permutation)
+            for (auto cycle : permutation)
             {
-                Cycle& cycle = **iter;
-                cycle.disjointByDiff(diff, transpositions);
+                cycle->disjointByDiff(diff, transpositions);
             }
         }
         // bugbug: see processCommonTranspositions() for better pair creation
@@ -277,10 +273,8 @@ void PartialGenerator::sortCandidates( shared_ptr<list<Transposition>> candidate
     vector<CandSortKey> keys(candidates->size());
     uint index = 0;
 
-    forin(iter, *candidates)
+    for (auto& transp : *candidates)
     {
-        const Transposition& transp = *iter;
-
         word minValue = min(transp.getX(), transp.getY());
         keys[index].weight = countNonZeroBits(minValue);
         keys[index].transp = transp;
@@ -295,9 +289,9 @@ void PartialGenerator::sortCandidates( shared_ptr<list<Transposition>> candidate
     sort(keys.begin(), keys.end(), sortFunc);
 
     index = 0;
-    forin(iter, *candidates)
+    for (auto& t : *candidates)
     {
-        *iter = keys[index].transp;
+        t = keys[index].transp;
         ++index;
     }
 }
@@ -310,10 +304,8 @@ PartialGenerator::findBestCandidatePartner(
     uint minDist = uintUndefined;
 
     auto count = countNonZeroBits;
-    forin(iter, *candidates)
+    for (auto& cand : *candidates)
     {
-        const Transposition& cand = *iter;
-
         uint dxz = uintUndefined;
         uint dxw = uintUndefined;
         uint dyz = uintUndefined;

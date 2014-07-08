@@ -42,9 +42,8 @@ bool Permutation::isEmpty() const
     //return (cycleCount == 0);
 
     bool empty = true;
-    forcin(iter, cycles)
+    for (auto cycle : cycles)
     {
-        auto cycle = *iter;
         if(cycle->length())
         {
             empty = false;
@@ -58,9 +57,8 @@ bool Permutation::isEmpty() const
 bool Permutation::isEven() const
 {
     uint length = 0;
-    forin(iter, cycles)
+    for (auto cycle : cycles)
     {
-        const shared_ptr<Cycle>& cycle = *iter;
         length += cycle->length() - 1;
     }
 
@@ -74,10 +72,8 @@ void Permutation::completeToEven()
 
     shared_ptr<Cycle> incompleteCycle;
     bool incompleteFound = false;
-    forin(cycleIter, cycles)
+    for (auto cycle : cycles)
     {
-        shared_ptr<Cycle>& cycle = *cycleIter;
-
         uint elementCount = cycle->length();
         for(uint index = 0; index < elementCount; ++index)
         {
@@ -135,9 +131,8 @@ Permutation::operator string()
     ostringstream result;
     result << "[ ";
 
-    forin(iter, *this)
+    for (auto cycle : *this)
     {
-        const shared_ptr<Cycle>& cycle = *iter;
         result << (string)*cycle << ", ";
     }
 
@@ -162,9 +157,8 @@ Permutation Permutation::multiplyByTranspositions(
 
     // remember all elements in transpositions and in this permutation
     unordered_set<word> storage;
-    forcin(iter, *transpositions)
+    for (auto& transp : *transpositions)
     {
-        const Transposition& transp = *iter;
         word x = transp.getX();
         word y = transp.getY();
 
@@ -179,14 +173,12 @@ Permutation Permutation::multiplyByTranspositions(
         }
     }
 
-    forin(iter, *this)
+    for (auto cycle : *this)
     {
-        Cycle& cycle = **iter;
-
-        uint elementCount = cycle.length();
+        uint elementCount = cycle->length();
         for(uint index = 0; index < elementCount; ++index)
         {
-            word element = cycle[index];
+            word element = (*cycle)[index];
             if(storage.find(element) == storage.cend())
             {
                 storage.insert(element);
@@ -199,9 +191,8 @@ Permutation Permutation::multiplyByTranspositions(
     unordered_set<word>::const_iterator end = visitedElements.cend();
     shared_ptr<Cycle> nextCycle(new Cycle());
 
-    forcin(iter, storage)
+    for (word x : storage)
     {
-        word x = *iter;
         if(visitedElements.find(x) == end)
         {
             while(!nextCycle->isFinal())
@@ -209,29 +200,25 @@ Permutation Permutation::multiplyByTranspositions(
                 word y = x;
                 if(isLeftMultiplication)
                 {
-                    forcin(iter, *transpositions)
+                    for (auto& transp : *transpositions)
                     {
-                        const Transposition& transp = *iter;
                         y = transp.getOutput(y);
                     }
 
-                    forin(iter, *this)
+                    for (auto cycle : *this)
                     {
-                        Cycle& cycle = **iter;
-                        y = cycle.getOutput(y);
+                        y = cycle->getOutput(y);
                     }
                 }
                 else
                 {
-                    forin(iter, *this)
+                    for (auto cycle : *this)
                     {
-                        Cycle& cycle = **iter;
-                        y = cycle.getOutput(y);
+                        y = cycle->getOutput(y);
                     }
 
-                    forcin(iter, *transpositions)
+                    for (auto& transp : *transpositions)
                     {
-                        const Transposition& transp = *iter;
                         y = transp.getOutput(y);
                     }
                 }
@@ -267,10 +254,9 @@ Permutation Permutation::multiplyByTranspositions(
 uint Permutation::getDistancesSum() const
 {
     uint sum = 0;
-    forin(iter, *this)
+    for (auto cycle : *this)
     {
-        Cycle& cycle = **iter;
-        sum += cycle.getDistancesSum();
+        sum += cycle->getDistancesSum();
     }
 
     return sum;

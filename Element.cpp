@@ -141,9 +141,9 @@ bool ReverseElement::isSwappable(const list<ReverseElement>& elements) const
     assert(isValid(), string("Reverse element is not valid"));
 
     bool swappable = true;
-    forcin(element, elements)
+    for (auto& element : elements)
     {
-        if (!isSwappable(*element))
+        if (!isSwappable(element))
         {
             swappable = false;
             break;

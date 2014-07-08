@@ -159,9 +159,9 @@ word Cycle::getOutput(word input) const
 word Cycle::getOutput(word input, shared_ptr<list<Transposition>> transpositions) const
 {
     word output = input;
-    forcin(iter, *transpositions)
+    for (auto& transp : *transpositions)
     {
-        output = iter->getOutput(output);
+        output = transp.getOutput(output);
     }
 
     return output;

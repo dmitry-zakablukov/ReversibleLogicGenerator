@@ -119,10 +119,9 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
     uint transpCount = 0;
     static uint stepCount = 0;
 
-    forin(iter, perm)
+    for (auto cycle : perm)
     {
-        const Cycle& cycle = **iter;
-        uint elementCount = cycle.length();
+        uint elementCount = cycle->length();
         transpCount += elementCount - 1;
     }
 
@@ -237,9 +236,8 @@ tuple<uint, Permutation> Generator::getPermutation(const PermutationTable& table
     Permutation permutation = PermutationUtils::createPermutation(table);
 
     word maxValue = 0;
-    forin(cycleIter, permutation)
+    for (auto cycle : permutation)
     {
-        const shared_ptr<Cycle>& cycle = *cycleIter;
         uint elementCount = cycle->length();
         for(uint index = 0; index < elementCount; ++index)
         {
@@ -269,9 +267,8 @@ bool Generator::checkSchemeAgainstPermutationVector(const Scheme& scheme, const 
     {
         const word& y = table[x];
 
-        forin(iter, scheme)
+        for (auto& element : scheme)
         {
-            const ReverseElement& element = *iter;
             x = element.getValue(x);
         }
 

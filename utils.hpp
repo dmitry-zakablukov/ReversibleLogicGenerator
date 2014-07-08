@@ -93,8 +93,8 @@ template<typename T>
 inline void toVector(const list<T>& container, vector<T>* output)
 {
     output->reserve(container.size());
-    forcin(iter, container)
+    for (auto& element : container)
     {
-        output->push_back(*iter);
+        output->push_back(element);
     }
 }

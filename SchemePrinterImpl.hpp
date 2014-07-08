@@ -50,11 +50,11 @@ string SchemePrinter::horizontalPrint(const Container& scheme)
     }
 
     // middle
-    forcin(element, scheme)
+    for (auto element : scheme)
     {
-        word targetMask    = element->getTargetMask();
-        word controlMask   = element->getControlMask();
-        word inversionMask = element->getInversionMask();
+        word targetMask    = element.getTargetMask();
+        word controlMask   = element.getControlMask();
+        word inversionMask = element.getInversionMask();
         word elementMask   = targetMask | controlMask;
 
         uint positiveBitCount = countNonZeroBits(elementMask);
@@ -200,11 +200,11 @@ string SchemePrinter::verticalPrint(const Container& scheme)
     
     connectionString << "\n";
 
-    forcin(element, scheme)
+    for (auto element : scheme)
     {
-        word targetMask    = element->getTargetMask();
-        word controlMask   = element->getControlMask();
-        word inversionMask = element->getInversionMask();
+        word targetMask    = element.getTargetMask();
+        word controlMask   = element.getControlMask();
+        word inversionMask = element.getInversionMask();
         word elementMask   = targetMask | controlMask;
 
         uint positiveBitCount = countNonZeroBits(elementMask);

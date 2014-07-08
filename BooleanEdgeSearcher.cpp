@@ -163,10 +163,10 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
     word fullMask = ((word)1 << n) - 1;
     word mask = (fullMask ^ edge->starsMask) & fullMask;
 
-    forcin(transp, *inputSet)
+    for (auto& transp : *inputSet)
     {
-        word x = transp->getX();
-        word y = transp->getY();
+        word x = transp.getX();
+        word y = transp.getY();
 
         assert(x < maxEntriesCount, string("Invalid x value in input set"));
         assert(y < maxEntriesCount, string("Invalid y value in input set"));
@@ -245,14 +245,14 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::filterTran
     word baseMask  = edge.getBaseMask(n);
 
     shared_ptr<list<Transposition>> filteredResult(new list<Transposition>);
-    forcin(transp, *transpositions)
+    for (auto& transp : *transpositions)
     {
-        word x = transp->getX();
+        word x = transp.getX();
 
         word value = x & baseMask;
         if(value == baseValue)
         {
-            filteredResult->push_back(*transp);
+            filteredResult->push_back(transp);
         }
     }
 
