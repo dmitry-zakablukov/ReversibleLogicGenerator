@@ -58,6 +58,14 @@ private:
         bool* optimizationSucceeded, bool searchPairFromEnd,
         bool lessComplexityRequired, int* startIndex = 0);
 
+    // First element - new reverse element obtained as a result of swapping
+    // Second element - range of indices, on which this element is freely swappable
+    typedef pair<ReverseElement, Range> SwapResult;
+
+    // Returns swap result for element on @index position in @scheme
+    // @toLeft determines, where this element is moving
+    deque<SwapResult> getSwapResult(const OptScheme& scheme, uint index, bool toLeft = true);
+
     int getMaximumTransferIndex(const OptScheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex) const;
 

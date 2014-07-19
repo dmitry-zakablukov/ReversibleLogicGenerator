@@ -40,6 +40,12 @@ typedef size_t uint;
 #define uintUndefined (size_t)(-1)
 #define wordUndefined (word)(-1)
 
+typedef struct
+{
+    uint start;
+    uint end;
+} Range;
+
 // Optimization techniques
 //#define ADDITIONAL_MEMORY_TECHNIQUE
 

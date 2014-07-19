@@ -121,10 +121,12 @@ bool ReverseElement::isValid() const
     return valid;
 }
 
-bool ReverseElement::isSwappable(const ReverseElement& another) const
+bool ReverseElement::isSwappable(const ReverseElement& another,
+    bool* withOneControlLineInverting) const
 {
     assert(isValid(), string("Reverse element is not valid"));
     assert(another.isValid(), string("Reverse element is not valid"));
+    assert(withOneControlLineInverting, string("Null ptr (withOneControlLineInverting)"));
 
     word anotherTargetMask  = another.getTargetMask();
     word anotherControlMask = another.getControlMask();
@@ -132,6 +134,27 @@ bool ReverseElement::isSwappable(const ReverseElement& another) const
 
     bool swappable = (!(anotherControlMask & targetMask) && !(controlMask & anotherTargetMask))
         || ((inversionMask ^ anotherInversionMask) & controlMask & anotherControlMask);
+
+    if (!swappable)
+    {
+        // check variant, when elements can be swapped with only one control line inversion
+        if ((targetMask | controlMask) == anotherControlMask)
+        {
+            if (inversionMask == (~targetMask & anotherInversionMask))
+            {
+                swappable = true;
+                *withOneControlLineInverting = false;
+            }
+        }
+        else if ((anotherTargetMask | anotherControlMask) == controlMask)
+        {
+            if (anotherInversionMask == (~anotherTargetMask & inversionMask))
+            {
+                swappable = true;
+                *withOneControlLineInverting = true;
+            }
+        }
+    }
 
     return swappable;
 }
@@ -141,15 +164,73 @@ bool ReverseElement::isSwappable(const list<ReverseElement>& elements) const
     assert(isValid(), string("Reverse element is not valid"));
 
     bool swappable = true;
+    bool withOneControlLineInverting = false;
+
     for (auto& element : elements)
     {
-        if (!isSwappable(element))
+        if (!isSwappable(element, &withOneControlLineInverting)
+            || withOneControlLineInverting)
         {
             swappable = false;
             break;
         }
     }
     return swappable;
+}
+
+void ReverseElement::swap(ReverseElement* another)
+{
+    ReverseElement::swap(this, another);
+}
+
+void ReverseElement::swap(ReverseElement* left, ReverseElement* right)
+{
+    assert(left && right, string("Null ptr (ReverseElement::swap)"));
+
+    word leftTargetMask    = left->getTargetMask();
+    word leftControlMask   = left->getControlMask();
+    word leftInversionMask = left->getInversionMask();
+
+    word rightTargetMask    = right->getTargetMask();
+    word rightControlMask   = right->getControlMask();
+    word rightInversionMask = right->getInversionMask();
+
+    bool swappable = (!(rightControlMask & leftTargetMask) && !(leftControlMask & rightTargetMask))
+        || ((leftInversionMask ^ rightInversionMask) & leftControlMask & rightControlMask);
+
+    if (swappable)
+    {
+        ReverseElement temp = *left;
+        *left = *right;
+        *right = temp;
+    }
+    else
+    {
+        // check variant, when elements can be swapped with only one control line inversion
+        if ((leftTargetMask | leftControlMask) == rightControlMask)
+        {
+            if (leftInversionMask == (~leftTargetMask & rightInversionMask))
+            {
+                ReverseElement temp = *left;
+                
+                *left = ReverseElement(left->getInputCount(), rightTargetMask,
+                    rightControlMask, rightInversionMask ^ leftTargetMask);
+
+                *right = *left;
+            }
+        }
+        else if ((rightTargetMask | rightControlMask) == leftControlMask)
+        {
+            if (rightInversionMask == (~rightTargetMask & leftInversionMask))
+            {
+                ReverseElement temp = *left;
+                *left = *right;
+
+                *right = ReverseElement(left->getInputCount(), leftTargetMask,
+                    leftControlMask, leftInversionMask ^ rightTargetMask);
+            }
+        }
+    }
 }
 
 word ReverseElement::getValue(word input) const

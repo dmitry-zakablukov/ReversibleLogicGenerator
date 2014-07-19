@@ -31,8 +31,18 @@ public:
 
     bool isValid() const;
 
-    bool isSwappable(const ReverseElement& another) const;
+    // Returns true if 'this' element can be swapped with @another
+    // If result is true, then @withOneControlLineInverting would be true,
+    // if swapping possible with inversion of one control line of 'this' element
+    // and would be false, if all inputs remain the same after swapping
+    bool isSwappable(const ReverseElement& another, bool* withOneControlLineInverting) const;
+
+    // Returns true if 'this' element can be swapped with all elements from @elements
+    // while preserving all inputs the same
     bool isSwappable(const list<ReverseElement>& elements) const;
+
+    void swap(ReverseElement* another);
+    static void swap(ReverseElement* left, ReverseElement* right);
 
     word getValue(word input) const;
 

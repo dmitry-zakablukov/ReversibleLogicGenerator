@@ -62,7 +62,9 @@ bool selectForTransferOptimization(const ReverseElement& left,
     word rightControlMask = right.getControlMask();
 
     bool result = false;
-    if (!left.isSwappable(right))
+    bool withOneControlLineInverting = false;
+
+    if (!left.isSwappable(right, &withOneControlLineInverting))
     {
         // (left_target in right_controls) xor (right_target in left_controls)
         result = ((rightControlMask & leftTargetMask) != 0) ^ ((leftControlMask & rightTargetMask) != 0);
@@ -627,7 +629,8 @@ int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
         const ReverseElement& neighborElement = scheme[index];
 
         // stop search if not swappable
-        if (!target.isSwappable(neighborElement))
+        bool withOneControlLineInverting = false;
+        if (!target.isSwappable(neighborElement, &withOneControlLineInverting))
         {
             break;
         }
@@ -696,6 +699,42 @@ void PostProcessor::insertReplacements(const OptScheme& originalScheme,
         const ReverseElement& element = originalScheme[index];
         resultScheme->push_back(element);
     }
+}
+
+deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(
+    const OptScheme& scheme, uint index, bool toLeft /*= true*/)
+{
+    deque<SwapResult> result;
+
+    uint stopIndex = 0;
+    uint step = (uint)-1;
+
+    if (!toLeft)
+    {
+        stopIndex = scheme.size() - 1;
+        step = 1;
+    }
+
+    if (index == stopIndex)
+        return result;
+
+    Range range = { index, index };
+    ReverseElement target = scheme[index];
+
+    do
+    {
+        bool withOneControlLineInverting = false;
+
+        index += step;
+        ReverseElement another = scheme[index];
+
+        if (target.isSwappable(another, &withOneControlLineInverting))
+        {
+        }
+
+    } while (index != stopIndex);
+
+    return result;
 }
 
 }   // namespace ReversibleLogic
