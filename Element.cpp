@@ -217,6 +217,7 @@ void ReverseElement::swap(ReverseElement* left, ReverseElement* right)
                     rightControlMask, rightInversionMask ^ leftTargetMask);
 
                 *right = *left;
+                swappable = true;
             }
         }
         else if ((rightTargetMask | rightControlMask) == leftControlMask)
@@ -228,9 +229,13 @@ void ReverseElement::swap(ReverseElement* left, ReverseElement* right)
 
                 *right = ReverseElement(left->getInputCount(), leftTargetMask,
                     leftControlMask, leftInversionMask ^ rightTargetMask);
+
+                swappable = true;
             }
         }
     }
+
+    assert(swappable, string("Can't swap unswappable elements"));
 }
 
 word ReverseElement::getValue(word input) const

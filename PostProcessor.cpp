@@ -730,9 +730,33 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(
 
         if (target.isSwappable(another, &withOneControlLineInverting))
         {
+            if (!withOneControlLineInverting)
+            {
+                range.end += step;
+            }
+            else
+            {
+                // remember current swap result
+                SwapResult sr = { target, range };
+                result.push_back(sr);
+
+                // change current element
+                target.swap(&another);
+
+                // create new range
+                range = { index, index };
+            }
+        }
+        else
+        {
+            break;
         }
 
     } while (index != stopIndex);
+
+    // remember current swap result
+    SwapResult sr = { target, range };
+    result.push_back(sr);
 
     return result;
 }
