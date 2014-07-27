@@ -62,9 +62,27 @@ private:
     // Second element - range of indices, on which this element is freely swappable
     typedef pair<ReverseElement, Range> SwapResult;
 
-    // Returns swap result for element on @index position in @scheme
-    // @toLeft determines, where this element is moving
-    deque<SwapResult> getSwapResult(const OptScheme& scheme, uint index, bool toLeft = true);
+    // Returns swap result for element on @startIndex position in @scheme.
+    // Element on @skipIndex position doesn't participate in this operation.
+    // Param @toLeft determines, where this element is moving.
+    deque<SwapResult> getSwapResult(const OptScheme& scheme, uint startIndex,
+        uint skipIndex, bool toLeft = true);
+
+    deque<SwapResult> mergeSwapResults(deque<SwapResult> toLeft, deque<SwapResult> toRight);
+
+    // First element of pair - swap results for left element
+    // Second element of pair - swap results for right element
+    typedef struct 
+    {
+        deque<SwapResult> forLeft;
+        deque<SwapResult> forRight;
+    } SwapResultsPair;
+        
+    void getSwapResultsPair(SwapResultsPair* result, const OptScheme& scheme,
+        uint leftIndex, uint rightIndex);
+
+    bool isSwapResultsPairSuiteOptimizationTactics(SelectionFunc selectionFunc,
+        const SwapResultsPair& result, uint* newLeftIndex, uint* newRightIndex);
 
     int getMaximumTransferIndex(const OptScheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex) const;

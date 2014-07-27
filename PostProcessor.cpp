@@ -64,7 +64,7 @@ bool selectForTransferOptimization(const ReverseElement& left,
     bool result = false;
     bool withOneControlLineInverting = false;
 
-    if (!left.isSwappable(right, &withOneControlLineInverting))
+    if (!left.isSwappable(right, &withOneControlLineInverting) || withOneControlLineInverting)
     {
         // (left_target in right_controls) xor (right_target in left_controls)
         result = ((rightControlMask & leftTargetMask) != 0) ^ ((leftControlMask & rightTargetMask) != 0);
@@ -630,7 +630,7 @@ int PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
 
         // stop search if not swappable
         bool withOneControlLineInverting = false;
-        if (!target.isSwappable(neighborElement, &withOneControlLineInverting))
+        if (!target.isSwappable(neighborElement, &withOneControlLineInverting) || withOneControlLineInverting)
         {
             break;
         }
@@ -701,11 +701,12 @@ void PostProcessor::insertReplacements(const OptScheme& originalScheme,
     }
 }
 
-deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(
-    const OptScheme& scheme, uint index, bool toLeft /*= true*/)
+deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(const OptScheme& scheme,
+    uint startIndex, uint skipIndex, bool toLeft /*= true*/)
 {
     deque<SwapResult> result;
 
+    uint index = startIndex;
     uint stopIndex = 0;
     uint step = (uint)-1;
 
@@ -723,11 +724,16 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(
 
     do
     {
-        bool withOneControlLineInverting = false;
-
         index += step;
+        if (index == skipIndex)
+        {
+            range.end += step;
+            continue;
+        }
+
         ReverseElement another = scheme[index];
 
+        bool withOneControlLineInverting = false;
         if (target.isSwappable(another, &withOneControlLineInverting))
         {
             if (!withOneControlLineInverting)
@@ -737,8 +743,17 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(
             else
             {
                 // remember current swap result
+                range.sort();
                 SwapResult sr = { target, range };
-                result.push_back(sr);
+
+                if (toLeft)
+                {
+                    result.push_front(sr);
+                }
+                else
+                {
+                    result.push_back(sr);
+                }
 
                 // change current element
                 target.swap(&another);
@@ -755,10 +770,115 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(
     } while (index != stopIndex);
 
     // remember current swap result
+    range.sort();
     SwapResult sr = { target, range };
-    result.push_back(sr);
+
+    if (toLeft)
+    {
+        result.push_front(sr);
+    }
+    else
+    {
+        result.push_back(sr);
+    }
 
     return result;
+}
+
+void PostProcessor::getSwapResultsPair(SwapResultsPair* result,
+    const OptScheme& scheme, uint leftIndex, uint rightIndex)
+{
+    assert(result, string("Null ptr (PostProcessor::getSwapResultsPair)"));
+
+    uint schemeSize = scheme.size();
+    assert(leftIndex < schemeSize && rightIndex < schemeSize,
+        string("Wrong indices (PostProcessor::getSwapResultsPair)"));
+
+    // TODO: check if this would be necessary
+    assert(leftIndex < rightIndex, string("Unordered indices (PostProcessor::getSwapResultsPair)"));
+
+    // merge results for left element
+    deque<SwapResult> toLeft  = getSwapResult(scheme, leftIndex, true);
+    deque<SwapResult> toRight = getSwapResult(scheme, leftIndex, false);
+
+    result->forLeft = mergeSwapResults(toLeft, toRight);
+
+    // merge results for right element
+    toLeft  = getSwapResult(scheme, rightIndex, true);
+    toRight = getSwapResult(scheme, rightIndex, false);
+
+    result->forRight = mergeSwapResults(toLeft, toRight);
+}
+
+deque<PostProcessor::SwapResult> PostProcessor::mergeSwapResults(
+    deque<SwapResult> toLeft, deque<SwapResult> toRight)
+{
+    assert(toLeft.size() && toRight.size(), string("Can't merge empty swap results"));
+
+    SwapResult left = toLeft.back();
+    toLeft.pop_back();
+
+    SwapResult right = toRight.front();
+    toRight.pop_front();
+
+    assert(left.first == right.first && left.second.end == right.second.start,
+        string("Can't merge not neighbour swap results"));
+
+    left.second.end = right.second.end;
+
+    deque<SwapResult> merged = toLeft;
+    merged.push_back(left);
+
+    for (auto& x : toRight)
+    {
+        merged.push_back(x);
+    }
+
+    return merged;
+}
+
+bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
+    SelectionFunc selectionFunc, const SwapResultsPair& result,
+    uint* newLeftIndex, uint* newRightIndex)
+{
+    assert(newLeftIndex && newRightIndex, string("Null ptr "
+        "(PostProcessor::isSwapResultsPairSuiteOptimizationTactics)"));
+
+    assert(result.forLeft.size() && result.forRight.size(),
+        string("Wrong swap result (PostProcessor::isSwapResultsPairSuiteOptimizationTactics)"));
+
+    for (auto& left : result.forLeft)
+    {
+        for (auto& right : result.forRight)
+        {
+            if (selectionFunc(left.first, right.first))
+            {
+                // found, check ranges
+                Range range = right.second;
+                if (range.start)
+                {
+                    --range.start;
+                }
+                if (range.end)
+                {
+                    --range.end;
+                }
+
+                for (uint index = left.second.start; index != left.second.end; ++index)
+                {
+                    if (range.has(index))
+                    {
+                        *newLeftIndex  = index;
+                        *newRightIndex = index + 1;
+
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 }   // namespace ReversibleLogic
