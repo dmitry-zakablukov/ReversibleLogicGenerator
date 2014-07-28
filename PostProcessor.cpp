@@ -747,9 +747,7 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
             target = copy;
 
             if (!withOneControlLineInverting)
-            {
                 range.end += step;
-            }
             else
             {
                 // remember current swap result
@@ -757,22 +755,16 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
                 SwapResult sr = { backUp, range };
 
                 if (toLeft)
-                {
                     result.push_front(sr);
-                }
                 else
-                {
                     result.push_back(sr);
-                }
 
                 // create new range
                 range = { index, index };
             }
         }
         else
-        {
             break;
-        }
 
     } while (index != stopIndex);
 
@@ -781,13 +773,9 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
     SwapResult sr = { target, range };
 
     if (toLeft)
-    {
         result.push_front(sr);
-    }
     else
-    {
         result.push_back(sr);
-    }
 
     return result;
 }
@@ -839,9 +827,7 @@ deque<PostProcessor::SwapResult> PostProcessor::mergeSwapResults(
     merged.push_back(left);
 
     for (auto& x : toRight)
-    {
         merged.push_back(x);
-    }
 
     return merged;
 }
@@ -865,13 +851,10 @@ bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
                 // found, check ranges
                 Range range = right.second;
                 if (range.start)
-                {
                     --range.start;
-                }
+
                 if (range.end)
-                {
                     --range.end;
-                }
 
                 for (uint index = left.second.start; index != left.second.end; ++index)
                 {
@@ -899,9 +882,7 @@ PostProcessor::OptScheme PostProcessor::moveElementInScheme(const OptScheme& sch
 
     uint step = 1;
     if (toIndex < fromIndex)
-    {
         step = -1;
-    }
 
     OptScheme resultScheme = scheme;
     while (fromIndex != toIndex)
@@ -910,7 +891,6 @@ PostProcessor::OptScheme PostProcessor::moveElementInScheme(const OptScheme& sch
         ReverseElement& second = resultScheme[fromIndex + step];
 
         first.swap(&second);
-
         fromIndex += step;
     }
 
