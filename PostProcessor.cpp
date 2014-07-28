@@ -893,7 +893,27 @@ bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
 PostProcessor::OptScheme PostProcessor::moveElementInScheme(const OptScheme& scheme,
     uint fromIndex, uint toIndex)
 {
+    uint size = scheme.size();
+    assert(fromIndex < size && toIndex < size,
+        string("Moving element out of borders (PostProcessor::moveElementInScheme)"));
+
+    uint step = 1;
+    if (toIndex < fromIndex)
+    {
+        step = -1;
+    }
+
     OptScheme resultScheme = scheme;
+    while (fromIndex != toIndex)
+    {
+        ReverseElement& first  = resultScheme[fromIndex];
+        ReverseElement& second = resultScheme[fromIndex + step];
+
+        first.swap(&second);
+
+        fromIndex += step;
+    }
+
     return resultScheme;
 }
 
