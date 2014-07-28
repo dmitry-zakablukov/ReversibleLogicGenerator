@@ -63,9 +63,10 @@ private:
     typedef pair<ReverseElement, Range> SwapResult;
 
     // Returns swap result for element on @startIndex position in @scheme.
+    // Elements in @scheme will be changed accordingly to swap operations, so make backup before using.
     // Element on @skipIndex position doesn't participate in this operation.
     // Param @toLeft determines, where this element is moving.
-    deque<SwapResult> getSwapResult(const OptScheme& scheme, uint startIndex,
+    deque<SwapResult> getSwapResult(OptScheme* scheme, uint startIndex,
         uint skipIndex, bool toLeft = true);
 
     deque<SwapResult> mergeSwapResults(deque<SwapResult> toLeft, deque<SwapResult> toRight);
@@ -83,6 +84,8 @@ private:
 
     bool isSwapResultsPairSuiteOptimizationTactics(SelectionFunc selectionFunc,
         const SwapResultsPair& result, uint* newLeftIndex, uint* newRightIndex);
+
+    OptScheme moveElementInScheme(const OptScheme& scheme, uint fromIndex, uint toIndex);
 
     int getMaximumTransferIndex(const OptScheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex) const;

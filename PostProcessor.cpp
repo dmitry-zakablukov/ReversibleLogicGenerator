@@ -701,7 +701,7 @@ void PostProcessor::insertReplacements(const OptScheme& originalScheme,
     }
 }
 
-deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(const OptScheme& scheme,
+deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
     uint startIndex, uint skipIndex, bool toLeft /*= true*/)
 {
     deque<SwapResult> result;
@@ -712,7 +712,7 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(const OptScheme& s
 
     if (!toLeft)
     {
-        stopIndex = scheme.size() - 1;
+        stopIndex = scheme->size() - 1;
         step = 1;
     }
 
@@ -720,7 +720,7 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(const OptScheme& s
         return result;
 
     Range range = { index, index };
-    ReverseElement target = scheme[index];
+    ReverseElement target = (*scheme)[index];
 
     do
     {
@@ -731,11 +731,21 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(const OptScheme& s
             continue;
         }
 
-        ReverseElement another = scheme[index];
+        ReverseElement& another = (*scheme)[index];
 
         bool withOneControlLineInverting = false;
         if (target.isSwappable(another, &withOneControlLineInverting))
         {
+            ReverseElement backUp = target;
+
+            // swap elements
+            ReverseElement copy = another;
+            target.swap(&copy);
+
+            // save result to elements
+            another = target;
+            target = copy;
+
             if (!withOneControlLineInverting)
             {
                 range.end += step;
@@ -744,7 +754,7 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(const OptScheme& s
             {
                 // remember current swap result
                 range.sort();
-                SwapResult sr = { target, range };
+                SwapResult sr = { backUp, range };
 
                 if (toLeft)
                 {
@@ -754,9 +764,6 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(const OptScheme& s
                 {
                     result.push_back(sr);
                 }
-
-                // change current element
-                target.swap(&another);
 
                 // create new range
                 range = { index, index };
@@ -797,17 +804,19 @@ void PostProcessor::getSwapResultsPair(SwapResultsPair* result,
     // TODO: check if this would be necessary
     assert(leftIndex < rightIndex, string("Unordered indices (PostProcessor::getSwapResultsPair)"));
 
-    // merge results for left element
-    deque<SwapResult> toLeft  = getSwapResult(scheme, leftIndex, true);
-    deque<SwapResult> toRight = getSwapResult(scheme, leftIndex, false);
+    // move to left
+    OptScheme schemeCopy = scheme;
+    deque<SwapResult> forLeftToLeft  = getSwapResult(&schemeCopy, leftIndex, rightIndex, true);
+    deque<SwapResult> forRightToLeft = getSwapResult(&schemeCopy, rightIndex, leftIndex, true);
 
-    result->forLeft = mergeSwapResults(toLeft, toRight);
+    // move to right
+    schemeCopy = scheme;
+    deque<SwapResult> forRightToRight = getSwapResult(&schemeCopy, rightIndex, leftIndex, false);
+    deque<SwapResult> forLeftToRight  = getSwapResult(&schemeCopy, leftIndex, rightIndex, false);
 
-    // merge results for right element
-    toLeft  = getSwapResult(scheme, rightIndex, true);
-    toRight = getSwapResult(scheme, rightIndex, false);
-
-    result->forRight = mergeSwapResults(toLeft, toRight);
+    // merge results
+    result->forLeft = mergeSwapResults(forLeftToLeft, forLeftToRight);
+    result->forRight = mergeSwapResults(forRightToLeft, forRightToRight);
 }
 
 deque<PostProcessor::SwapResult> PostProcessor::mergeSwapResults(
@@ -879,6 +888,13 @@ bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
     }
 
     return false;
+}
+
+PostProcessor::OptScheme PostProcessor::moveElementInScheme(const OptScheme& scheme,
+    uint fromIndex, uint toIndex)
+{
+    OptScheme resultScheme = scheme;
+    return resultScheme;
 }
 
 }   // namespace ReversibleLogic
