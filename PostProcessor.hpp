@@ -100,6 +100,10 @@ private:
     // is required
     bool secondPassOptimizationFlag;
 
+    // this flag is needed on the last optimization step
+    // when none of the negative control inputs are allowed
+    bool isNegativeControlInputsAllowed = true;
+
     OptScheme testScheme;
     int complexityDelta;
 };

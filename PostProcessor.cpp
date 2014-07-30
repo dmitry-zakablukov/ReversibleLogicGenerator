@@ -200,6 +200,8 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     OptScheme optimizedScheme = scheme;
     uint lengthBefore = uintUndefined;
     uint lengthAfter  = uintUndefined;
+
+    isNegativeControlInputsAllowed = true;
     
     //// debug: generator 4.0 - test scheme synthesis
     //return scheme;
@@ -228,6 +230,7 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     implementation = optimizedScheme;
 
     implementation = getFullScheme(optimizedScheme);
+    isNegativeControlInputsAllowed = false;
 
     needOptimization = true;
     //step = 0;
@@ -540,8 +543,11 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                     // now try to optimize this scheme
                     optimizedScheme = removeDuplicates(optimizedScheme);
 
-                    bool optimized;
-                    optimizedScheme = mergeOptimization(optimizedScheme, &optimized);
+                    if (isNegativeControlInputsAllowed)
+                    {
+                        bool optimized;
+                        optimizedScheme = mergeOptimization(optimizedScheme, &optimized);
+                    }
 
                     schemeOptimized = optimizedScheme.size() < scheme.size();
                 }
@@ -812,7 +818,7 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
         ReverseElement& another = (*scheme)[index];
 
         bool withOneControlLineInverting = false;
-        if (target.isSwappable(another, &withOneControlLineInverting))
+        if (target.isSwappable(another, &withOneControlLineInverting, !isNegativeControlInputsAllowed))
         {
             // swap elements
             ReverseElement& targetCopy = (*scheme)[index - step];
