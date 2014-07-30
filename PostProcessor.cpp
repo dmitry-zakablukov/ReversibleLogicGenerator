@@ -204,7 +204,7 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     //// debug: generator 4.0 - test scheme synthesis
     //return scheme;
 
-    //optimizedScheme = removeDuplicates(optimizedScheme);
+    optimizedScheme = removeDuplicates(optimizedScheme);
 
     bool needOptimization = true;
     uint step = 0;
@@ -474,11 +474,95 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
     bool* optimizationSucceeded, bool searchPairFromEnd,
     bool lessComplexityRequired, int* startIndex /* = 0 */)
 {
-    Optimizations optimizations;
-    OptScheme optimizedScheme;
+    assert(optimizationSucceeded, string("Null ptr 'optimizationSucceeded' (PostProcessor::tryOptimizationTactics)"));
+    *optimizationSucceeded = false;
+
+    OptScheme optimizedScheme = scheme;
 
     bool schemeOptimized = false;
     int elementCount = scheme.size();
+
+    // find left element index
+    for (int leftIndex = startIndex ? *startIndex : 0;
+        !schemeOptimized && leftIndex < elementCount - 1; ++leftIndex)
+    {
+        if (startIndex)
+            *startIndex = leftIndex;
+
+        // find right element index
+        for (int rightIndex = (searchPairFromEnd ? elementCount - 1 : leftIndex + 1);
+            !schemeOptimized && (searchPairFromEnd ? rightIndex > leftIndex : rightIndex < elementCount);
+            rightIndex += (searchPairFromEnd ? -1 : 1))
+        {
+            static int counter = 0;
+            ++counter;
+
+            SwapResultsPair pair = getSwapResultsPair(scheme, leftIndex, rightIndex);
+
+            uint newLeftIndex  = uintUndefined;
+            uint newRightIndex = uintUndefined;
+            if (isSwapResultsPairSuiteOptimizationTactics(selectionFunc, pair, &newLeftIndex, &newRightIndex))
+            {
+                // move elements to new positions
+                if (newLeftIndex < (uint)rightIndex)
+                {
+                    moveElementInScheme(&optimizedScheme, leftIndex, newLeftIndex);
+                    moveElementInScheme(&optimizedScheme, rightIndex, newRightIndex);
+                }
+                else
+                {
+                    moveElementInScheme(&optimizedScheme, rightIndex, newRightIndex);
+                    moveElementInScheme(&optimizedScheme, leftIndex, newLeftIndex);
+                }
+
+                // apply swap function
+                const ReverseElement& leftElement = optimizedScheme[newLeftIndex];
+                list<ReverseElement> leftReplacement;
+
+                const ReverseElement& rightElement = optimizedScheme[newRightIndex];
+                list<ReverseElement> rightReplacement;
+
+                swapFunc(leftElement, rightElement, &leftReplacement, &rightReplacement);
+
+                // replace elements with swap result
+                Optimizations optimizations;
+                prepareSchemeForOptimization(optimizedScheme, &optimizations);
+
+                optimizations[newLeftIndex].replace = true;
+                optimizations[newLeftIndex].replacement = leftReplacement;
+
+                optimizations[newRightIndex].replace = true;
+                optimizations[newRightIndex].replacement = rightReplacement;
+
+                optimizedScheme = applyOptimizations(optimizedScheme, optimizations);
+                if (optimizedScheme.size() >= scheme.size())
+                {
+                    // now try to optimize this scheme
+                    optimizedScheme = removeDuplicates(optimizedScheme);
+
+                    bool optimized;
+                    optimizedScheme = mergeOptimization(optimizedScheme, &optimized);
+
+                    schemeOptimized = optimizedScheme.size() < scheme.size();
+                }
+                else
+                {
+                    schemeOptimized = true;
+                }
+
+                if (!schemeOptimized)
+                {
+                    optimizedScheme = scheme;
+                }
+            }
+        }
+    }
+
+    *optimizationSucceeded = schemeOptimized;
+    return optimizedScheme;
+
+    ////////////////////////
+    Optimizations optimizations;
 
     prepareSchemeForOptimization(scheme, &optimizations);
 
@@ -702,7 +786,7 @@ void PostProcessor::insertReplacements(const OptScheme& originalScheme,
 }
 
 deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
-    uint startIndex, uint skipIndex, bool toLeft /*= true*/)
+    uint startIndex, bool toLeft)
 {
     deque<SwapResult> result;
 
@@ -725,26 +809,14 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
     do
     {
         index += step;
-        if (index == skipIndex)
-        {
-            range.end += step;
-            continue;
-        }
-
         ReverseElement& another = (*scheme)[index];
 
         bool withOneControlLineInverting = false;
         if (target.isSwappable(another, &withOneControlLineInverting))
         {
-            ReverseElement backUp = target;
-
             // swap elements
-            ReverseElement copy = another;
-            target.swap(&copy);
-
-            // save result to elements
-            another = target;
-            target = copy;
+            ReverseElement& targetCopy = (*scheme)[index - step];
+            targetCopy.swap(&another);
 
             if (!withOneControlLineInverting)
                 range.end += step;
@@ -752,7 +824,7 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
             {
                 // remember current swap result
                 range.sort();
-                SwapResult sr = { backUp, range };
+                SwapResult sr = { target, range };
 
                 if (toLeft)
                     result.push_front(sr);
@@ -762,6 +834,9 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
                 // create new range
                 range = { index, index };
             }
+
+            // save result for next iteration
+            target = another;
         }
         else
             break;
@@ -780,11 +855,9 @@ deque<PostProcessor::SwapResult> PostProcessor::getSwapResult(OptScheme* scheme,
     return result;
 }
 
-void PostProcessor::getSwapResultsPair(SwapResultsPair* result,
+PostProcessor::SwapResultsPair PostProcessor::getSwapResultsPair(
     const OptScheme& scheme, uint leftIndex, uint rightIndex)
 {
-    assert(result, string("Null ptr (PostProcessor::getSwapResultsPair)"));
-
     uint schemeSize = scheme.size();
     assert(leftIndex < schemeSize && rightIndex < schemeSize,
         string("Wrong indices (PostProcessor::getSwapResultsPair)"));
@@ -794,22 +867,35 @@ void PostProcessor::getSwapResultsPair(SwapResultsPair* result,
 
     // move to left
     OptScheme schemeCopy = scheme;
-    deque<SwapResult> forLeftToLeft  = getSwapResult(&schemeCopy, leftIndex, rightIndex, true);
-    deque<SwapResult> forRightToLeft = getSwapResult(&schemeCopy, rightIndex, leftIndex, true);
+    deque<SwapResult> forLeftToLeft  = getSwapResult(&schemeCopy, leftIndex,  true);
+    deque<SwapResult> forRightToLeft = getSwapResult(&schemeCopy, rightIndex, true);
 
     // move to right
     schemeCopy = scheme;
-    deque<SwapResult> forRightToRight = getSwapResult(&schemeCopy, rightIndex, leftIndex, false);
-    deque<SwapResult> forLeftToRight  = getSwapResult(&schemeCopy, leftIndex, rightIndex, false);
+    deque<SwapResult> forRightToRight = getSwapResult(&schemeCopy, rightIndex, false);
+    deque<SwapResult> forLeftToRight  = getSwapResult(&schemeCopy, leftIndex,  false);
 
     // merge results
-    result->forLeft = mergeSwapResults(forLeftToLeft, forLeftToRight);
-    result->forRight = mergeSwapResults(forRightToLeft, forRightToRight);
+    SwapResultsPair result;
+    result.forLeft = mergeSwapResults(forLeftToLeft, forLeftToRight);
+    result.forRight = mergeSwapResults(forRightToLeft, forRightToRight);
+
+    return result;
 }
 
 deque<PostProcessor::SwapResult> PostProcessor::mergeSwapResults(
-    deque<SwapResult> toLeft, deque<SwapResult> toRight)
+    deque<SwapResult>& toLeft, deque<SwapResult>& toRight)
 {
+    uint leftSize  = toLeft.size();
+    uint rightSize = toRight.size();
+
+    deque<SwapResult> merged;
+
+    if (leftSize == 0)
+        return toRight;
+    else if (rightSize == 0)
+        return toLeft;
+
     assert(toLeft.size() && toRight.size(), string("Can't merge empty swap results"));
 
     SwapResult left = toLeft.back();
@@ -823,7 +909,7 @@ deque<PostProcessor::SwapResult> PostProcessor::mergeSwapResults(
 
     left.second.end = right.second.end;
 
-    deque<SwapResult> merged = toLeft;
+    merged = toLeft;
     merged.push_back(left);
 
     for (auto& x : toRight)
@@ -858,7 +944,7 @@ bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
 
                 for (uint index = left.second.start; index != left.second.end; ++index)
                 {
-                    if (range.has(index))
+                    if (range.has(index) && right.second.has(index + 1))
                     {
                         *newLeftIndex  = index;
                         *newRightIndex = index + 1;
@@ -873,10 +959,12 @@ bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
     return false;
 }
 
-PostProcessor::OptScheme PostProcessor::moveElementInScheme(const OptScheme& scheme,
+void PostProcessor::moveElementInScheme(OptScheme* scheme,
     uint fromIndex, uint toIndex)
 {
-    uint size = scheme.size();
+    assert(scheme, string("Null ptr (PostProcessor::moveElementInScheme)"));
+
+    uint size = scheme->size();
     assert(fromIndex < size && toIndex < size,
         string("Moving element out of borders (PostProcessor::moveElementInScheme)"));
 
@@ -884,17 +972,14 @@ PostProcessor::OptScheme PostProcessor::moveElementInScheme(const OptScheme& sch
     if (toIndex < fromIndex)
         step = -1;
 
-    OptScheme resultScheme = scheme;
     while (fromIndex != toIndex)
     {
-        ReverseElement& first  = resultScheme[fromIndex];
-        ReverseElement& second = resultScheme[fromIndex + step];
+        ReverseElement& first  = (*scheme)[fromIndex];
+        ReverseElement& second = (*scheme)[fromIndex + step];
 
         first.swap(&second);
         fromIndex += step;
     }
-
-    return resultScheme;
 }
 
 }   // namespace ReversibleLogic

@@ -216,7 +216,7 @@ void ReverseElement::swap(ReverseElement* left, ReverseElement* right)
                 *left = ReverseElement(left->getInputCount(), rightTargetMask,
                     rightControlMask, rightInversionMask ^ leftTargetMask);
 
-                *right = *left;
+                *right = temp;
                 swappable = true;
             }
         }
@@ -224,12 +224,11 @@ void ReverseElement::swap(ReverseElement* left, ReverseElement* right)
         {
             if (rightInversionMask == (~rightTargetMask & leftInversionMask))
             {
-                ReverseElement temp = *left;
-                *left = *right;
-
+                ReverseElement temp = *right;
                 *right = ReverseElement(left->getInputCount(), leftTargetMask,
                     leftControlMask, leftInversionMask ^ rightTargetMask);
 
+                *left = temp;
                 swappable = true;
             }
         }

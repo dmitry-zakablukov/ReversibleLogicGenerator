@@ -2,6 +2,32 @@
 
 using namespace ReversibleLogic;
 
+bool validateOptimizedScheme(const Scheme& before, const PostProcessor::OptScheme& after)
+{
+    uint n = 0;
+    if (before.size())
+        n = before.front().getInputCount();
+    else if (after.size())
+        n = after.front().getInputCount();
+
+    word total = 1 << n;
+    for (word x = 0; x < total; ++x)
+    {
+        word y = x;
+        for (auto& element : before)
+            y = element.getValue(y);
+
+        word z = x;
+        for (auto& element : after)
+            z = element.getValue(z);
+
+        if (y != z)
+            return false;
+    }
+
+    return true;
+}
+
 Scheme getRd53_8of12_goodPart()
 {
     Scheme scheme;
@@ -199,6 +225,8 @@ void testOptimization( int argc, const char* argv[] )
         }
 
         optimizedScheme = optimizer.optimize(optimizedScheme);
+        assert(validateOptimizedScheme(scheme, optimizedScheme),
+            string("Optimized scheme is not valid"));
 
         elementCount = optimizedScheme.size();
         scheme.resize(elementCount);

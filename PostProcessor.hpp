@@ -64,12 +64,10 @@ private:
 
     // Returns swap result for element on @startIndex position in @scheme.
     // Elements in @scheme will be changed accordingly to swap operations, so make backup before using.
-    // Element on @skipIndex position doesn't participate in this operation.
     // Param @toLeft determines, where this element is moving.
-    deque<SwapResult> getSwapResult(OptScheme* scheme, uint startIndex,
-        uint skipIndex, bool toLeft = true);
+    deque<SwapResult> getSwapResult(OptScheme* scheme, uint startIndex, bool toLeft);
 
-    deque<SwapResult> mergeSwapResults(deque<SwapResult> toLeft, deque<SwapResult> toRight);
+    deque<SwapResult> mergeSwapResults(deque<SwapResult>& toLeft, deque<SwapResult>& toRight);
 
     // First element of pair - swap results for left element
     // Second element of pair - swap results for right element
@@ -79,13 +77,12 @@ private:
         deque<SwapResult> forRight;
     } SwapResultsPair;
         
-    void getSwapResultsPair(SwapResultsPair* result, const OptScheme& scheme,
-        uint leftIndex, uint rightIndex);
+    SwapResultsPair getSwapResultsPair(const OptScheme& scheme, uint leftIndex, uint rightIndex);
 
     bool isSwapResultsPairSuiteOptimizationTactics(SelectionFunc selectionFunc,
         const SwapResultsPair& result, uint* newLeftIndex, uint* newRightIndex);
 
-    OptScheme moveElementInScheme(const OptScheme& scheme, uint fromIndex, uint toIndex);
+    void moveElementInScheme(OptScheme* scheme, uint fromIndex, uint toIndex);
 
     int getMaximumTransferIndex(const OptScheme& scheme, const ReverseElement& target,
         int startIndex, int stopIndex) const;
@@ -116,7 +113,7 @@ struct PostProcessor::OptimizationParams
     // Remove flag suppress "as is" flag
     bool remove;
     bool replace;
-    vector<ReverseElement> replacement;
+    list<ReverseElement> replacement;
     bool asis;
 };
 
