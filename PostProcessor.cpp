@@ -37,19 +37,42 @@ bool selectForMergeOptimization(const ReverseElement& left,
     const ReverseElement& right)
 {
     // (01)(11) -> (*1)
+    // (0*)(01) -> (00)
+    // (1*)(10) -> (11)
 
-    bool result = false;
-    if(left.getTargetMask() == right.getTargetMask()
-        && left.getControlMask() == right.getControlMask())
+    if(left.getTargetMask() == right.getTargetMask())
     {
+        word  leftControlMask =  left.getControlMask();
+        word rightControlMask = right.getControlMask();
+
         word  leftInversionMask =  left.getInversionMask();
         word rightInversionMask = right.getInversionMask();
 
-        word diffInversionMask = leftInversionMask ^ rightInversionMask;
-        result = (countNonZeroBits(diffInversionMask) == 1);
+        word controlsDiff   = leftControlMask   ^ rightControlMask;
+        word inversionsDiff = leftInversionMask ^ rightInversionMask;
+
+        // (01)(11) -> (*1)
+        if (leftControlMask == rightControlMask &&
+            countNonZeroBits(inversionsDiff) == 1)
+        {
+            return true;
+        }
+ 
+        // (0*)(01) -> (00)
+        if (leftInversionMask == rightInversionMask &&
+            countNonZeroBits(controlsDiff) == 1)
+        {
+            return true;
+        }
+
+        // (1*)(10) -> (11)
+        if (controlsDiff == inversionsDiff && countNonZeroBits(controlsDiff) == 1)
+        {
+            return true;
+        }
     }
 
-    return result;
+    return false;
 }
 
 bool selectForTransferOptimization(const ReverseElement& left,
@@ -117,19 +140,56 @@ void swapElementsWithConnectionReduction(const ReverseElement& left, const Rever
 void swapElementsWithMerge(const ReverseElement& left, const ReverseElement& right,
     list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
 {
-    assert(selectForMergeOptimization(left, right),
-        string("swapElementsWithMerge(): wrong input elements"));
+    // (01)(11) -> (*1)
+    // (0*)(01) -> (00)
+    // (1*)(10) -> (11)
 
-    word inversionMask = left.getInversionMask();
-    word controlMask   = left.getControlMask();
-    word diffInversionMask  = inversionMask ^ right.getInversionMask();
+    if (left.getTargetMask() == right.getTargetMask())
+    {
+        word  leftControlMask = left.getControlMask();
+        word rightControlMask = right.getControlMask();
 
-    // important! fill only left replacement
-    ReverseElement element = left;
-    element.setInversionMask(inversionMask & ~diffInversionMask);
-    element.setControlMask(controlMask & ~diffInversionMask);
+        word  leftInversionMask = left.getInversionMask();
+        word rightInversionMask = right.getInversionMask();
 
-    leftReplacement->push_back(element);
+        word controlsDiff = leftControlMask   ^ rightControlMask;
+        word inversionsDiff = leftInversionMask ^ rightInversionMask;
+
+        // (01)(11) -> (*1)
+        if (leftControlMask == rightControlMask &&
+            countNonZeroBits(inversionsDiff) == 1)
+        {
+            ReverseElement element = left;
+            element.setControlMask(leftControlMask & ~inversionsDiff);
+            element.setInversionMask(leftInversionMask & ~inversionsDiff);
+
+            leftReplacement->push_back(element);
+        }
+
+        // (0*)(01) -> (00)
+        if (leftInversionMask == rightInversionMask &&
+            countNonZeroBits(controlsDiff) == 1)
+        {
+            ReverseElement element = left;
+            element.setControlMask(leftControlMask | controlsDiff);
+            element.setInversionMask(leftInversionMask | controlsDiff);
+
+            leftReplacement->push_back(element);
+        }
+
+        // (1*)(10) -> (11)
+        if (controlsDiff == inversionsDiff && countNonZeroBits(controlsDiff) == 1)
+        {
+            ReverseElement element = left;
+            element.setControlMask(leftControlMask | controlsDiff);
+            element.setInversionMask(leftInversionMask & ~inversionsDiff);
+
+            leftReplacement->push_back(element);
+        }
+    }
+
+    // important! only left replacement should be non-empty
+    assert(leftReplacement->size(), string("swapElementsWithMerge(): wrong input elements"));
 }
 
 void swapElementsWithTransferOptimization(const ReverseElement& leftElement, const ReverseElement& rightElement,
@@ -497,9 +557,6 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
             !schemeOptimized && (searchPairFromEnd ? rightIndex > leftIndex : rightIndex < elementCount);
             rightIndex += (searchPairFromEnd ? -1 : 1))
         {
-            static int counter = 0;
-            ++counter;
-
             SwapResultsPair pair = getSwapResultsPair(scheme, leftIndex, rightIndex);
 
             uint newLeftIndex  = uintUndefined;
