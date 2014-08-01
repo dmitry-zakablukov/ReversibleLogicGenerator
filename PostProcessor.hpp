@@ -6,7 +6,7 @@ namespace ReversibleLogic
 class PostProcessor
 {
 public:
-    PostProcessor();
+    PostProcessor() = default;
 
     typedef vector<ReverseElement> OptScheme;
     OptScheme optimize(const OptScheme& scheme);
@@ -19,6 +19,17 @@ private:
 
     struct OptimizationParams;
     typedef vector<OptimizationParams> Optimizations;
+
+    // Selection function should return true if and only if right element fits to
+    // right element in terms of optimization
+    typedef bool(*SelectionFunc)(const ReverseElement& left, const ReverseElement& right);
+
+    // Swap function should return in leftReplacement list of elements for replacement after
+    // left and right element would be swapped. Same for rightReplacement list.
+    // left  element are definitely not in  leftReplacement and may be in rigthReplacement
+    // right element are definitely not in rightReplacement and may be in  leftReplacement
+    typedef void(*SwapFunc)(const ReverseElement& left, const ReverseElement& right,
+        list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement);
 
     void prepareSchemeForOptimization(const OptScheme& scheme, Optimizations* optimizations);
     OptScheme applyOptimizations(const OptScheme& scheme, const Optimizations& optimizations);
@@ -38,19 +49,13 @@ private:
     // Transfer optimization: two elements are swapped with producing new element
     OptScheme transferOptimization(OptScheme& scheme, bool* optimized);
 
+    // General optimization function for merge, reduce and transfer optimization
+    OptScheme generalOptimization(OptScheme& scheme, bool* optimized,
+        SelectionFunc selectFunc, SwapFunc swapFunc,
+        bool searchPairFromEnd, bool lessComplexityRequired);
+
     OptScheme getFullScheme(const OptScheme& scheme, bool heavyRight = true);
     OptScheme getFinalSchemeImplementation(const OptScheme& scheme);
-
-    // Selection function should return true if and only if right element fits to
-    // right element in terms of optimization
-    typedef bool (*SelectionFunc)(const ReverseElement& left, const ReverseElement& right);
-
-    // Swap function should return in leftReplacement list of elements for replacement after
-    // left and right element would be swapped. Same for rightReplacement list.
-    // left  element are definitely not in  leftReplacement and may be in rigthReplacement
-    // right element are definitely not in rightReplacement and may be in  leftReplacement
-    typedef void (*SwapFunc)(const ReverseElement& left, const ReverseElement& right,
-        list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement);
 
     // Returns true in optimizationSucceeded param if optimization tactics
     // succeeded and result scheme has less gate complexity
@@ -96,30 +101,22 @@ private:
         const list<ReverseElement>& leftReplacement,
         const list<ReverseElement>& rightReplacement);
 
-    // this flag turns on and off second transfer optimization
-    // inside transfer optimization, if less scheme complexity
-    // is required
-    bool secondPassOptimizationFlag;
-
     // this flag is needed on the last optimization step
     // when none of the negative control inputs are allowed
     bool isNegativeControlInputsAllowed = true;
-
-    OptScheme testScheme;
-    int complexityDelta;
 };
 
 struct PostProcessor::OptimizationParams
 {
-    OptimizationParams();
+    OptimizationParams() = default;
 
-    bool inversions;
-    bool heavyRight;
+    bool inversions = false;
+    bool heavyRight = false;
     // Remove flag suppress "as is" flag
-    bool remove;
-    bool replace;
+    bool remove     = false;
+    bool replace    = false;
     list<ReverseElement> replacement;
-    bool asis;
+    bool asis       = true;
 };
 
 }   // ReversibleLogic

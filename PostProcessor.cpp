@@ -238,23 +238,6 @@ void swapElementsWithTransferOptimization(const ReverseElement& leftElement, con
 }
 
 //////////////////////////////////////////////////////////////////////////
-PostProcessor::OptimizationParams::OptimizationParams()
-    : inversions(false)
-    , heavyRight(false)
-    , remove(false)
-    , replace(false)
-    , replacement()
-    , asis(true)
-{
-}
-
-PostProcessor::PostProcessor()
-    : testScheme()
-    , secondPassOptimizationFlag(true)
-    , complexityDelta(0)
-{
-}
-
 PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
 {
     OptScheme optimizedScheme = scheme;
@@ -315,8 +298,6 @@ void PostProcessor::prepareSchemeForOptimization(const OptScheme& scheme,
     {
         (*optimizations)[index] = OptimizationParams();
     }
-
-    testScheme.reserve(elementCount + numMaxElementCountInReplacements);
 }
 
 PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& scheme,
@@ -440,54 +421,36 @@ PostProcessor::OptScheme PostProcessor::removeDuplicates(const OptScheme& scheme
 
 PostProcessor::OptScheme PostProcessor::mergeOptimization(OptScheme& scheme, bool* optimized)
 {
-    assert(optimized, string("Null 'optimized' pointer"));
-    *optimized = false;
-
-    OptScheme optimizedScheme = scheme;
-    bool repeat = true;
-
-    while(repeat)
-    {
-        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForMergeOptimization,
-            swapElementsWithMerge, &repeat, false, false);
-
-        *optimized = *optimized || repeat;
-    }
-
-    return optimizedScheme;
+    return generalOptimization(scheme, optimized, selectForMergeOptimization,
+        swapElementsWithMerge, false, false);
 }
 
 PostProcessor::OptScheme PostProcessor::reduceConnectionsOptimization( OptScheme& scheme, bool* optimized)
 {
-    assert(optimized, string("Null 'optimized' pointer"));
-    *optimized = false;
-
-    OptScheme optimizedScheme = scheme;
-    bool repeat = true;
-
-    while(repeat)
-    {
-        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForReduceConnectionsOptimization,
-            swapElementsWithConnectionReduction, &repeat, false, false);
-
-        *optimized = *optimized || repeat;
-    }
-
-    return optimizedScheme;
+    return generalOptimization(scheme, optimized, selectForReduceConnectionsOptimization,
+        swapElementsWithConnectionReduction, false, false);
 }
 
 PostProcessor::OptScheme PostProcessor::transferOptimization(OptScheme& scheme, bool* optimized)
 {
-    assert(optimized, string("Null 'optimized' pointer"));
+    return generalOptimization(scheme, optimized, selectForTransferOptimization,
+        swapElementsWithTransferOptimization, false, true);
+}
+
+PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
+    bool* optimized, SelectionFunc selectFunc, SwapFunc swapFunc,
+    bool searchPairFromEnd, bool lessComplexityRequired)
+{
+    assert(optimized, string("Null 'optimized' pointer (PostProcessor::generalOptimization)"));
     *optimized = false;
 
     OptScheme optimizedScheme = scheme;
     bool repeat = true;
 
-    while(repeat)
+    while (repeat)
     {
-        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForTransferOptimization,
-            swapElementsWithTransferOptimization, &repeat, false, true);
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectFunc,
+            swapFunc, &repeat, searchPairFromEnd, lessComplexityRequired);
 
         *optimized = *optimized || repeat;
     }
