@@ -273,8 +273,8 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     implementation = optimizedScheme;
 
     implementation = getFullScheme(optimizedScheme);
-    isNegativeControlInputsAllowed = false;
-
+    //isNegativeControlInputsAllowed = false;
+    
     needOptimization = true;
     //step = 0;
     while(needOptimization/* && step < 1*/)
@@ -284,6 +284,19 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
         implementation = removeDuplicates(implementation);
         //++step;
     }
+
+    //implementation = getFullScheme(implementation);
+    //isNegativeControlInputsAllowed = false;
+    //
+    //needOptimization = true;
+    ////step = 0;
+    //while (needOptimization/* && step < 1*/)
+    //{
+    //    needOptimization = false;
+    //    implementation = transferOptimization(implementation, &needOptimization);
+    //    implementation = removeDuplicates(implementation);
+    //    //++step;
+    //}
 
     return implementation;
 }

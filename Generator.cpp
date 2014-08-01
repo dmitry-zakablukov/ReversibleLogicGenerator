@@ -36,67 +36,92 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
     *log << (string)permutation << "\n";
 
     Scheme scheme;
-    Scheme::iterator targetIter = scheme.end();
 
-    shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
-    partialGenerator->setPermutation(permutation, n);
-    partialGenerator->prepareForGeneration();
-
-    while(partialGenerator)
+    time = 0;
     {
-        partialGenerator = reducePermutation(partialGenerator, n, &scheme, &targetIter);
+        const uint numIterCount = 100;
+        {
+            AutoTimer timer(&time);
+
+            uint count = numIterCount;
+            while (count--)
+            {
+                Scheme localScheme;
+                Scheme::iterator targetIter = localScheme.end();
+
+                shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
+                partialGenerator->setPermutation(permutation, n);
+                partialGenerator->prepareForGeneration();
+
+                while (partialGenerator)
+                {
+                    partialGenerator = reducePermutation(partialGenerator, n, &localScheme, &targetIter);
+                }
+
+                scheme = localScheme;
+            }
+        }
+
+        time /= numIterCount;
     }
 
     //////////////////////////////////////////////////////////////////////////
 
     *log << "Scheme synthesis time: ";
-    *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    *log << " sec\n";
+    *log << setiosflags(ios::fixed) << setprecision(5) << time;
+    *log << " ms\n";
+    *log << "Complexity before optimization: " << scheme.size() << '\n';
 
     totalTime += time;
-
     time = 0;
     {
-        AutoTimer timer(&time);
+        const uint numIterCount = 100;
 
-        *log << "Complexity before optimization: " << scheme.size() << '\n';
-
-        PostProcessor optimizer;
-
-        uint elementCount = scheme.size();
-        PostProcessor::OptScheme optimizedScheme(elementCount);
-
-        for(uint index = 0; index < elementCount; ++index)
         {
-            optimizedScheme[index] = scheme[index];
+            AutoTimer timer(&time);
+            uint count = numIterCount;
+
+            while (count--)
+            {
+                PostProcessor optimizer;
+
+                uint elementCount = scheme.size();
+                PostProcessor::OptScheme optimizedScheme(elementCount);
+
+                for (uint index = 0; index < elementCount; ++index)
+                {
+                    optimizedScheme[index] = scheme[index];
+                }
+
+                optimizedScheme = optimizer.optimize(optimizedScheme);
+
+                elementCount = optimizedScheme.size();
+                scheme.resize(elementCount);
+
+                for (uint index = 0; index < elementCount; ++index)
+                {
+                    scheme[index] = optimizedScheme[index];
+                }
+            }
         }
-
-        optimizedScheme = optimizer.optimize(optimizedScheme);
-
-        elementCount = optimizedScheme.size();
-        scheme.resize(elementCount);
-
-        for(uint index = 0; index < elementCount; ++index)
-        {
-            scheme[index] = optimizedScheme[index];
-        }
-
-        *log << "Complexity after optimization: " << scheme.size() << '\n';
 
         bool isValid = checkSchemeAgainstPermutationVector(scheme, table);
         //debug
         assert(isValid, string("Generated scheme is not valid"));
+
+        time /= numIterCount;
     }
 
     *log << "Optimization time: ";
-    *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    *log << " sec\n";
+    *log << setiosflags(ios::fixed) << setprecision(5) << time;
+    *log << " ms\n";
+    *log << "Complexity after optimization: " << scheme.size() << '\n';
 
     totalTime += time;
 
     *log << "Total time: ";
-    *log << setiosflags(ios::fixed) << setprecision(2) << totalTime / 1000;
-    *log << " sec\n";
+    *log << setiosflags(ios::fixed) << setprecision(5) << totalTime;
+    *log << " ms\n";
 
     //string repres = SchemePrinter::schemeToString(n, scheme, false);
     //log << repres;
@@ -104,8 +129,8 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
     //repres = SchemePrinter::schemeToString(n, scheme, false);
     //log << repres;
 
-    // debug
-    cout << "Gate complexity: " << scheme.size() << '\n';
+    //// debug
+    //cout << "Gate complexity: " << scheme.size() << '\n';
 
     return scheme;
 }
@@ -113,21 +138,21 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
 shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGenerator> partialGenerator,
     uint n, Scheme* scheme, Scheme::iterator* targetIter)
 {
-    //////////////////////////////////////////////////////////////////////////
-    // start of debug
-    const Permutation& perm = partialGenerator->getPermutation();
-    uint transpCount = 0;
-    static uint stepCount = 0;
+    ////////////////////////////////////////////////////////////////////////////
+    //// start of debug
+    //const Permutation& perm = partialGenerator->getPermutation();
+    //uint transpCount = 0;
+    //static uint stepCount = 0;
 
-    for (auto cycle : perm)
-    {
-        uint elementCount = cycle->length();
-        transpCount += elementCount - 1;
-    }
+    //for (auto cycle : perm)
+    //{
+    //    uint elementCount = cycle->length();
+    //    transpCount += elementCount - 1;
+    //}
 
-    cout << "Step " << ++stepCount << ", transposition count = " << transpCount << '\n';
-    // end of debug
-    //////////////////////////////////////////////////////////////////////////
+    //cout << "Step " << ++stepCount << ", transposition count = " << transpCount << '\n';
+    //// end of debug
+    ////////////////////////////////////////////////////////////////////////////
 
     shared_ptr<PartialGenerator> restGenerator = 0;
 
