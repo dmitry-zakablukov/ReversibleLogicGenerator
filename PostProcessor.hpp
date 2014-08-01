@@ -90,17 +90,6 @@ private:
 
     void moveElementInScheme(OptScheme* scheme, uint fromIndex, uint toIndex);
 
-    int getMaximumTransferIndex(const OptScheme& scheme, const ReverseElement& target,
-        int startIndex, int stopIndex) const;
-
-    /// Inserts replacements to result scheme based on original scheme
-    void insertReplacements(const OptScheme& originalScheme,
-        OptScheme* resultScheme,
-        int leftIndex, int leftTransferedIndex,
-        int rightIndex, int rightTransferedIndex,
-        const list<ReverseElement>& leftReplacement,
-        const list<ReverseElement>& rightReplacement);
-
     // this flag is needed on the last optimization step
     // when none of the negative control inputs are allowed
     bool isNegativeControlInputsAllowed = true;
