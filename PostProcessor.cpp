@@ -300,7 +300,7 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
         implementation = transferOptimization(implementation, &needOptimization);
         implementation = removeDuplicates(implementation);
         //++step;
-    }    
+    }
 
     return implementation;
 }
@@ -561,7 +561,8 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
 
             uint newLeftIndex  = uintUndefined;
             uint newRightIndex = uintUndefined;
-            if (isSwapResultsPairSuiteOptimizationTactics(selectionFunc, pair, &newLeftIndex, &newRightIndex))
+            if (isSwapResultsPairSuiteOptimizationTactics(selectionFunc, pair,
+                leftIndex, rightIndex, &newLeftIndex, &newRightIndex))
             {
                 // move elements to new positions
                 if (newLeftIndex < (uint)rightIndex)
@@ -606,149 +607,21 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                         optimizedScheme = mergeOptimization(optimizedScheme, &optimized);
                     }
 
-                    schemeOptimized = optimizedScheme.size() < scheme.size();
+                    if (lessComplexityRequired)
+                        schemeOptimized = optimizedScheme.size() < scheme.size();
+                    else
+                        schemeOptimized = true;
                 }
                 else
-                {
                     schemeOptimized = true;
-                }
 
                 if (!schemeOptimized)
-                {
                     optimizedScheme = scheme;
-                }
             }
         }
     }
 
     *optimizationSucceeded = schemeOptimized;
-    return optimizedScheme;
-
-    ////////////////////////
-    Optimizations optimizations;
-
-    prepareSchemeForOptimization(scheme, &optimizations);
-
-    // find left element
-    for(int leftIndex = startIndex ? *startIndex : 0;
-        !schemeOptimized && leftIndex < elementCount - 1; ++leftIndex)
-    {
-        if(startIndex)
-        {
-            *startIndex = leftIndex;
-        }
-
-        int leftElementMaxTransferIndex = -1; // for optimization
-        const ReverseElement& leftElement = scheme[leftIndex];
-
-        // find right element
-        for(int rightIndex = (searchPairFromEnd ? elementCount - 1 : leftIndex + 1);
-            !schemeOptimized && (searchPairFromEnd ? rightIndex > leftIndex : rightIndex < elementCount);
-            rightIndex += (searchPairFromEnd ? -1 : 1))
-        {
-            const ReverseElement& rightElement = scheme[rightIndex];
-
-            // 1) check right element with selection function
-            if(selectionFunc(leftElement, rightElement))
-            {
-                int leftTransferedIndex  = leftIndex;
-                int rightTransferedIndex = rightIndex;
-
-                // transfer elements if needed
-                if(leftTransferedIndex + 1 != rightTransferedIndex)
-                {
-                    // transfer right element to left at maximum
-                    rightTransferedIndex = getMaximumTransferIndex(scheme, rightElement, rightIndex, leftIndex);
-
-                    if(rightTransferedIndex != leftIndex + 1)
-                    {
-                        // transfer left element to left at maximum (just once)
-                        if(leftElementMaxTransferIndex == -1)
-                        {
-                            leftElementMaxTransferIndex = getMaximumTransferIndex(scheme, leftElement,
-                                leftIndex, elementCount - 1);
-                        }
-
-                        leftTransferedIndex = leftElementMaxTransferIndex;
-                    }
-
-                    // compare indices
-                    if(leftTransferedIndex + 1 >= rightTransferedIndex)
-                    {
-                        // good right element, try to apply optimization
-                        leftTransferedIndex = rightTransferedIndex - 1; // keep left element maximum left aligned
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
-
-                // 2) swap left and right elements
-                list<ReverseElement> leftReplacement;
-                list<ReverseElement> rightReplacement;
-
-                swapFunc(leftElement, rightElement, &leftReplacement, &rightReplacement);
-                if(leftReplacement.size() || rightReplacement.size())
-                {
-                    insertReplacements(scheme, &testScheme, leftIndex, leftTransferedIndex,
-                        rightIndex, rightTransferedIndex, leftReplacement, rightReplacement);
-
-                    optimizedScheme = removeDuplicates(testScheme);
-                    int optimizedSchemeSize = optimizedScheme.size();
-
-                    if(lessComplexityRequired)
-                    {
-                        //if(optimizedSchemeSize >= elementCount
-                        //    && secondPassOptimizationFlag)
-                        if(optimizedSchemeSize == elementCount
-                            && secondPassOptimizationFlag)
-                        {
-                            secondPassOptimizationFlag = false;
-                            complexityDelta = optimizedSchemeSize - elementCount;
-
-                            bool tempFlag = false;
-                            optimizedScheme = transferOptimization(optimizedScheme, &tempFlag);
-
-                            complexityDelta = 0;
-                            //secondPassOptimizationFlag = true;
-                            secondPassOptimizationFlag = false;
-                        }
-
-                        int newElementCount = optimizedScheme.size();
-                        schemeOptimized = (newElementCount + complexityDelta < elementCount);
-                    }
-                    else
-                    {
-                        schemeOptimized = true;
-                    }
-                }
-                else
-                {
-                    // just remove left and right elements from scheme
-                    OptimizationParams& leftOptimization = optimizations[leftIndex];
-                    leftOptimization.remove = true;
-
-                    OptimizationParams& rightOptimization = optimizations[rightIndex];
-                    rightOptimization.remove = true;
-
-                    schemeOptimized = true;
-                    optimizedScheme = applyOptimizations(scheme, optimizations);
-                }
-            }
-        }
-    }
-
-    if(optimizationSucceeded)
-    {
-        *optimizationSucceeded = schemeOptimized;
-    }
-
-    if(!schemeOptimized)
-    {
-        optimizedScheme = scheme;
-    }
-
     return optimizedScheme;
 }
 
@@ -983,6 +856,7 @@ deque<PostProcessor::SwapResult> PostProcessor::mergeSwapResults(
 
 bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
     SelectionFunc selectionFunc, const SwapResultsPair& result,
+    uint leftIndex, uint rightIndex,
     uint* newLeftIndex, uint* newRightIndex)
 {
     assert(newLeftIndex && newRightIndex, string("Null ptr "
@@ -990,6 +864,9 @@ bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
 
     assert(result.forLeft.size() && result.forRight.size(),
         string("Wrong swap result (PostProcessor::isSwapResultsPairSuiteOptimizationTactics)"));
+
+    uint minDistance = uintUndefined;
+    bool answer = false;
 
     for (auto& left : result.forLeft)
     {
@@ -1009,17 +886,25 @@ bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
                 {
                     if (range.has(index) && right.second.has(index + 1))
                     {
-                        *newLeftIndex  = index;
-                        *newRightIndex = index + 1;
+                        uint newLeft = index;
+                        uint newRight = index + 1;
 
-                        return true;
+                        uint distance = abs(int(leftIndex - newLeft)) + abs(int(rightIndex - newRight));
+                        if (distance < minDistance)
+                        {
+                            *newLeftIndex  = newLeft;
+                            *newRightIndex = newRight;
+
+                            minDistance = distance;
+                            answer = true;
+                        }
                     }
                 }
             }
         }
     }
 
-    return false;
+    return answer;
 }
 
 void PostProcessor::moveElementInScheme(OptScheme* scheme,

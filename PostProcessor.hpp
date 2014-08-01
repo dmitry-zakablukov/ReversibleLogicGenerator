@@ -80,7 +80,8 @@ private:
     SwapResultsPair getSwapResultsPair(const OptScheme& scheme, uint leftIndex, uint rightIndex);
 
     bool isSwapResultsPairSuiteOptimizationTactics(SelectionFunc selectionFunc,
-        const SwapResultsPair& result, uint* newLeftIndex, uint* newRightIndex);
+        const SwapResultsPair& result, uint leftIndex, uint rightIndex,
+        uint* newLeftIndex, uint* newRightIndex);
 
     void moveElementInScheme(OptScheme* scheme, uint fromIndex, uint toIndex);
 
