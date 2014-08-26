@@ -9,3 +9,4 @@
 #include "common.h"
 #include "synthesisTest.h"
 #include "optimizationTest.h"
+#include "Gf2Field.hpp"

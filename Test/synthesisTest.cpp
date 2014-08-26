@@ -1,5 +1,50 @@
 #include "std.hpp"
 
+vector<word> getDiscreteLog(const Gf2Field& field)
+{
+    uint degree = field.getDegree();
+    word maxElement = (word)(1 << degree);
+    word elementCount = (1 << degree) - 1;
+
+    word capacity = maxElement * maxElement;    // O(n^2)
+    vector<word> table;
+    table.resize(capacity);
+
+    // init table
+    for (word index = 0; index < capacity; ++index)
+        table[index] = index;
+
+    // fill vector
+    for (word element = 1; element < (word)(1 << degree); ++element)
+    {
+        if (element != 1)
+        {
+            word left = element | ((uint)0 << degree);
+            word right = element | ((uint)1 << degree);
+
+            if (left != right)
+                table[left] = right;
+        }
+
+        for (word n = 1; n < (word)((uint)1 << degree); ++n)
+        {
+            word power = field.pow(element, n);
+            if (power != 1)
+            {
+                word left = element | (n << degree);
+                word right = element | (power << degree);
+
+                if (left != right)
+                    table[left] = right;
+            }
+            else
+                break;
+        }
+    }
+
+    return table;
+}
+
 vector<word> getLinearWithMemory()
 {
     using namespace ReversibleLogic;
@@ -62,8 +107,7 @@ vector<word> getRd53()
     scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 3, 4, END)) );
     scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, END)) );
     scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );    
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 3, END)) );
-    
+    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 3, END)) );    
     scheme.push_back( ReverseElement(n, mask(3, END), mask(0, END)) );
     scheme.push_back( ReverseElement(n, mask(5, END), mask(3, 4, END)) );
     scheme.push_back( ReverseElement(n, mask(4, END), mask(3, END)) );
@@ -146,57 +190,56 @@ void testSynthesis( int argc, const char* argv[] )
         outputFile.open(strDefaultOutputFileName);
     }
 
-    try
+    while (inputFile.good())
     {
-        //outputFile << "Input: " << polynomial << "\n";
-        //outputFile << "Polynomial: " << polynomialToString(polynomial) << "\n";
+        string polynomialString;
+        getline(inputFile, polynomialString);
+        word polynomial = binStringToInt(polynomialString);
 
-        //Gf2Field field(polynomial);
-        //vector<word> table = getDiscreteLog(field);
-
-        vector<word> table;
-        //table = getLinearMemoryless();
-        table = getRd53();
-        //table = getBadCase();
-        //table = getSimple();
-
-        Generator generator;
-        auto scheme = generator.generate(table, outputFile);
-
-        if(scheme.size() < 1000)
+        try
         {
-            const char* const strSchemesFolder = "schemes/";
+            outputFile << "Input: " << polynomial << "\n";
+            outputFile << "Polynomial: " << polynomialToString(polynomial) << "\n";
 
-            if(_access(strSchemesFolder, 0))
+            Gf2Field field(polynomial);
+            vector<word> table = getDiscreteLog(field);
+
+            Generator generator;
+            auto scheme = generator.generate(table, outputFile);
+
+            if (scheme.size() < 1000)
             {
-                _mkdir(strSchemesFolder);
+                const char* const strSchemesFolder = "schemes/";
+
+                if (_access(strSchemesFolder, 0))
+                {
+                    _mkdir(strSchemesFolder);
+                }
+
+                ostringstream schemeFileName;
+                schemeFileName << strSchemesFolder << polynomialString << ".txt";
+
+                outputFile << "Scheme file: " << schemeFileName.str() << "\n";
+
+                string schemeString = SchemePrinter::schemeToString(scheme, false); // vertical
+                //string schemeString = SchemePrinter::schemeToString(scheme, true); // horizontal
+
+                ofstream schemeFile(schemeFileName.str());
+                schemeFile << schemeString;
+                schemeFile.close();
             }
 
-            //ostringstream schemeFileName;
-            //schemeFileName << strSchemesFolder << polynomialString << ".txt";
-
-            //outputFile << "Scheme file: " << schemeFileName.str() << "\n";
-
-            string schemeString = SchemePrinter::schemeToString(scheme, false); // vertical
-            //string schemeString = SchemePrinter::schemeToString(scheme, true); // horizontal
-
-            //ofstream schemeFile(schemeFileName.str());
-            //schemeFile << schemeString;
-            //schemeFile.close();
-
-            outputFile << schemeString;
+            outputFile << "\n===============================================================\n";
+            outputFile.flush();
         }
-
-        outputFile << "\n===============================================================\n";
-        outputFile.flush();
-    }
-    catch(exception& ex)
-    {
-        outputFile << ex.what() << '\n';
-    }
-    catch(...)
-    {
-        outputFile << "Unknown exception\n";
+        catch (exception& ex)
+        {
+            outputFile << ex.what() << '\n';
+        }
+        catch (...)
+        {
+            outputFile << "Unknown exception\n";
+        }
     }
 
     inputFile.close();

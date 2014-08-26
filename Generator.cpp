@@ -39,7 +39,7 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
 
     time = 0;
     {
-        const uint numIterCount = 100;
+        const uint numIterCount = 1;
         {
             AutoTimer timer(&time);
 
@@ -75,7 +75,7 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
     totalTime += time;
     time = 0;
     {
-        const uint numIterCount = 100;
+        const uint numIterCount = 1;
 
         {
             AutoTimer timer(&time);

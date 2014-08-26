@@ -20,13 +20,11 @@ word mask(uint first, ...)
 word binStringToInt(string value)
 {
     word number = 0;
-    for (auto symbol : value)
+    for (auto& symbol : value)
     {
         number <<= 1;
         if(symbol == '1')
-        {
             number |= 1;
-        }
     }
 
     return number;
@@ -39,25 +37,19 @@ string polynomialToString(word polynomial)
     uint index = 0;
     word mask = 1;
 
-    while(mask <= polynomial)
+    while (mask <= polynomial)
     {
-        if(polynomial & mask)
+        if (polynomial & mask)
         {
-            if(index)
+            if (index)
             {
-                if(index == 1)
-                {
+                if (index == 1)
                     repres << " + x";
-                }
                 else
-                {
                     repres << " + " << index << "^x";
-                }
             }
             else
-            {
                 repres << "1";
-            }
         }
 
         mask <<= 1;
