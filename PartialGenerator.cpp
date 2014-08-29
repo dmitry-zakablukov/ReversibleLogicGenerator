@@ -38,6 +38,15 @@ bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
         }
     }
 
+    if (isDiffer)
+    {
+        uint length = 0;
+        for (auto cycle : permutation)
+            length += cycle->length();
+
+        isDiffer = (length > 3);
+    }
+
     return isDiffer;
 }
 
@@ -134,26 +143,13 @@ void PartialGenerator::prepareForGeneration()
 
     if(bestResult.type == PartialResultParams::tNone)
     {
-        shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
-
-        uint keyCount = keys.size();
-        for(uint index = 0; index < keyCount && transpositions->size() < 2; ++index)
-        {
-            word diff = keys[index];
-            for (auto cycle : permutation)
-            {
-                cycle->disjointByDiff(diff, transpositions);
-            }
-        }
         // bugbug: see processCommonTranspositions() for better pair creation
+        shared_ptr<list<Transposition>> transpositions = getCommonPair();
 
         assert(transpositions->size() > 1,
             string("PartialGenerator::prepareForGeneration() failed to find common pair"));
 
         bestResult.type = PartialResultParams::tCommonPair;
-
-        // todo: sort to get best pair
-        transpositions->erase(++(transpositions->begin()), --(transpositions->end()));
         bestResult.transpositions = transpositions;
 
         Transposition& firstTransp = transpositions->front();
@@ -173,6 +169,37 @@ void PartialGenerator::prepareForGeneration()
 
     partialResultParams = bestResult;
     partialResultParams.distancesSum = permutation.getDistancesSum();
+}
+
+shared_ptr<list<Transposition>> PartialGenerator::getCommonPair()
+{
+    shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
+    if (permutation.length() > 1)
+    {
+        auto iter = permutation.begin();
+        Cycle& firstCycle = **iter;
+        iter++;
+        Cycle& secondCycle = **iter;
+
+        transpositions->push_back(Transposition(firstCycle[0], firstCycle[1]));
+        transpositions->push_back(Transposition(secondCycle[0], secondCycle[1]));
+    }
+    else
+    {
+        Cycle& cycle = **(permutation.begin());
+        if (cycle.length() >= 4)
+        {
+            transpositions->push_back(Transposition(cycle[0], cycle[1]));
+            transpositions->push_back(Transposition(cycle[2], cycle[3]));
+        }
+        else
+        {
+            transpositions->push_back(Transposition(cycle[0], cycle[2]));
+            transpositions->push_back(Transposition(cycle[0], cycle[1]));
+        }
+    }
+
+    return transpositions;
 }
 
 PartialResultParams PartialGenerator::getPartialResult(

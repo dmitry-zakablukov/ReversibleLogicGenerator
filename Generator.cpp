@@ -49,6 +49,9 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
                 Scheme localScheme;
                 Scheme::iterator targetIter = localScheme.end();
 
+                //// debug
+                //cout << "Permutation: " << (string)permutation << "\n";
+
                 shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
                 partialGenerator->setPermutation(permutation, n);
                 partialGenerator->prepareForGeneration();
@@ -189,11 +192,17 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
         
         if(isLeftBetter)
         {
+            //// debug
+            //cout << "Left:\n" << (string)leftMultipliedPermutation << '\n';
+
             implementPartialResult(*partialGenerator, true, scheme, targetIter);
             restGenerator = leftGenerator;
         }
         else
         {
+            //// debug
+            //cout << "Right:\n" << (string)rightMultipliedPermutation << '\n';
+
             implementPartialResult(*partialGenerator, false, scheme, targetIter);
             restGenerator = rightGenerator;
         }
@@ -206,6 +215,9 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
         Permutation residualPermutation = partialGenerator->getResidualPermutation(true);
         if(!residualPermutation.isEmpty())
         {
+            //// debug
+            //cout << "Residual:\n" << (string)residualPermutation << '\n';
+
             restGenerator = shared_ptr<PartialGenerator>(new PartialGenerator());
             restGenerator->setPermutation(residualPermutation, n);
             restGenerator->prepareForGeneration();

@@ -31,6 +31,8 @@ private:
     PartialResultParams getPartialResult(shared_ptr<list<Transposition>> transpositions,
         word diff, const PartialResultParams& bestParams);
 
+    shared_ptr<list<Transposition>> getCommonPair();
+
     shared_ptr<list<Transposition>> findBestCandidates(shared_ptr<list<Transposition>> candidates);
     void sortCandidates(shared_ptr<list<Transposition>> candidates);
 
