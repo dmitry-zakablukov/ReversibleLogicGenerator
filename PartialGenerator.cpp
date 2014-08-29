@@ -183,7 +183,7 @@ PartialResultParams PartialGenerator::getPartialResult(
     BooleanEdge edge = edgeSearcher.findEdge();
 
     PartialResultParams result;
-    if(edge.isValid())
+    if(edge.isValid() && edge.getCapacity() > 2)
     {
         word capacity = edge.getCapacity();
         if(capacity >= bestParams.params.edgeCapacity)

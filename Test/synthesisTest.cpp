@@ -1,45 +1,26 @@
 #include "std.hpp"
 
-vector<word> getDiscreteLog(const Gf2Field& field)
+vector<word> getDiscreteLogWithPrimitiveElement(Gf2Field& field)
 {
-    uint degree = field.getDegree();
-    word maxElement = (word)(1 << degree);
-    word elementCount = (1 << degree) - 1;
+    word maxElement = (word)(1 << field.getDegree());
+    word elementCount = maxElement - 1;
 
-    word capacity = maxElement * maxElement;    // O(n^2)
+    word primitiveElement = field.getPrimitiveElement();
+    assert(primitiveElement != wordUndefined, string("Field has no primitive elements"));
+
     vector<word> table;
-    table.resize(capacity);
+    table.resize(maxElement);
 
-    // init table
-    for (word index = 0; index < capacity; ++index)
-        table[index] = index;
+    table[0] = 0;
+    table[1] = primitiveElement;
+    table[elementCount] = 1;
 
-    // fill vector
-    for (word element = 1; element < (word)(1 << degree); ++element)
+    // fill rest table
+    word z = primitiveElement;
+    for (word deg = 2; deg < elementCount; ++deg)
     {
-        if (element != 1)
-        {
-            word left = element | ((uint)0 << degree);
-            word right = element | ((uint)1 << degree);
-
-            if (left != right)
-                table[left] = right;
-        }
-
-        for (word n = 1; n < (word)((uint)1 << degree); ++n)
-        {
-            word power = field.pow(element, n);
-            if (power != 1)
-            {
-                word left = element | (n << degree);
-                word right = element | (power << degree);
-
-                if (left != right)
-                    table[left] = right;
-            }
-            else
-                break;
-        }
+        z = field.mul(z, primitiveElement);
+        table[deg] = z;
     }
 
     return table;
@@ -202,7 +183,7 @@ void testSynthesis( int argc, const char* argv[] )
             outputFile << "Polynomial: " << polynomialToString(polynomial) << "\n";
 
             Gf2Field field(polynomial);
-            vector<word> table = getDiscreteLog(field);
+            vector<word> table = getDiscreteLogWithPrimitiveElement(field);
 
             Generator generator;
             auto scheme = generator.generate(table, outputFile);
@@ -235,10 +216,12 @@ void testSynthesis( int argc, const char* argv[] )
         catch (exception& ex)
         {
             outputFile << ex.what() << '\n';
+            outputFile.flush();
         }
         catch (...)
         {
             outputFile << "Unknown exception\n";
+            outputFile.flush();
         }
     }
 
