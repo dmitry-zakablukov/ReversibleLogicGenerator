@@ -88,6 +88,9 @@ private:
         const SwapResultsPair& result, uint leftIndex, uint rightIndex,
         uint* newLeftIndex, uint* newRightIndex);
 
+    uint getMaximumTransferIndex(const OptScheme& scheme, const ReverseElement& target,
+        uint startIndex, uint stopIndex) const;
+
     void moveElementInScheme(OptScheme* scheme, uint fromIndex, uint toIndex);
 
     // this flag is needed on the last optimization step

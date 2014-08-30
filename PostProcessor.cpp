@@ -1,5 +1,9 @@
 #include "std.hpp"
 
+// define this to use full optimization scheme
+// comment this to use fast optimization scheme
+// #define USE_FULL_OPTIMIZATION_SCHEME
+
 namespace ReversibleLogic
 {
 
@@ -528,17 +532,63 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
         if (startIndex)
             *startIndex = leftIndex;
 
+        uint leftElementMaxTransferIndex = uintUndefined;
+
         // find right element index
         for (int rightIndex = (searchPairFromEnd ? elementCount - 1 : leftIndex + 1);
             !schemeOptimized && (searchPairFromEnd ? rightIndex > leftIndex : rightIndex < elementCount);
             rightIndex += (searchPairFromEnd ? -1 : 1))
         {
-            SwapResultsPair pair = getSwapResultsPair(scheme, leftIndex, rightIndex);
-
             uint newLeftIndex  = uintUndefined;
             uint newRightIndex = uintUndefined;
+
+#if defined(USE_FULL_OPTIMIZATION_SCHEME)
+            SwapResultsPair pair = getSwapResultsPair(scheme, leftIndex, rightIndex);
+
             if (isSwapResultsPairSuiteOptimizationTactics(selectionFunc, pair,
                 leftIndex, rightIndex, &newLeftIndex, &newRightIndex))
+#else //USE_FULL_OPTIMIZATION_SCHEME
+            const ReverseElement& left = scheme[leftIndex];
+            const ReverseElement& right = scheme[rightIndex];
+
+            // 1) check right element with selection function
+            if (!selectionFunc(left, right))
+            {
+                continue;
+            }
+
+            newLeftIndex  = (uint)leftIndex;
+            newRightIndex = (uint)rightIndex;
+
+            // transfer elements if needed
+            if (newLeftIndex + 1 != newRightIndex)
+            {
+                // transfer right element to left at maximum
+                newRightIndex = getMaximumTransferIndex(scheme, right, rightIndex, leftIndex);
+                if (newRightIndex != leftIndex + 1)
+                {
+                    // transfer left element to left at maximum (just once)
+                    if (leftElementMaxTransferIndex == uintUndefined)
+                    {
+                        leftElementMaxTransferIndex = getMaximumTransferIndex(scheme, left,
+                            leftIndex, elementCount - 1);
+                    }
+
+                    newLeftIndex = leftElementMaxTransferIndex;
+                }
+
+                // compare indices
+                if (newLeftIndex + 1 >= newRightIndex)
+                {
+                    // good right element, try to apply optimization
+                    newLeftIndex = newRightIndex - 1; // keep left element maximum left aligned
+                }
+                else
+                {
+                    continue;
+                }
+            }
+#endif //USE_FULL_OPTIMIZATION_SCHEME
             {
                 // move elements to new positions
                 if (newLeftIndex < (uint)rightIndex)
@@ -808,6 +858,41 @@ void PostProcessor::moveElementInScheme(OptScheme* scheme,
         first.swap(&second);
         fromIndex += step;
     }
+}
+
+uint PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
+    const ReverseElement& target, uint startIndex, uint stopIndex) const
+{
+    uint elementCount = (uint)scheme.size();
+
+    assert(startIndex < elementCount,
+        string("PostProcessor: invalid start index for getMaximumTransferIndex()"));
+
+    assert(stopIndex < elementCount,
+        string("PostProcessor: invalid stop index for getMaximumTransferIndex()"));
+
+    int step = 1;
+    if (startIndex > stopIndex)
+    {
+        // from right to left
+        step = -1;
+    }
+
+    uint index = startIndex;
+    while (index != stopIndex)
+    {
+        const ReverseElement& neighborElement = scheme[index];
+        if (!target.isSwappable(neighborElement))
+        {
+            // stop search if not swappable
+            break;
+        }
+
+        index += step;
+    }
+
+    index -= step; // target element can be in previous position, not in the last
+    return index;
 }
 
 }   // namespace ReversibleLogic

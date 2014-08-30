@@ -31,6 +31,9 @@ public:
 
     bool isValid() const;
 
+    // Returns true if elements are independent
+    bool isSwappable(const ReverseElement& another) const;
+
     // Returns true if 'this' element can be swapped with @another.
     // If result is true, then @withOneControlLineInverting would be true,
     // if swapping possible with inversion of one control line of 'this' element

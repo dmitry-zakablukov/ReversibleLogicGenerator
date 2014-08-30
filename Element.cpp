@@ -121,20 +121,31 @@ bool ReverseElement::isValid() const
     return valid;
 }
 
-bool ReverseElement::isSwappable(const ReverseElement& another,
-    bool* withOneControlLineInverting, bool withoutAnyChanges /*= false*/) const
+bool ReverseElement::isSwappable(const ReverseElement& another) const
 {
     assert(isValid(), string("Reverse element is not valid"));
     assert(another.isValid(), string("Reverse element is not valid"));
-    assert(withOneControlLineInverting, string("Null ptr (withOneControlLineInverting)"));
 
-    word anotherTargetMask  = another.getTargetMask();
+    word anotherTargetMask = another.getTargetMask();
     word anotherControlMask = another.getControlMask();
     word anotherInversionMask = another.getInversionMask();
 
     bool swappable = (!(anotherControlMask & targetMask) && !(controlMask & anotherTargetMask))
         || ((inversionMask ^ anotherInversionMask) & controlMask & anotherControlMask);
 
+    return swappable;
+}
+
+bool ReverseElement::isSwappable(const ReverseElement& another,
+    bool* withOneControlLineInverting, bool withoutAnyChanges /*= false*/) const
+{
+    assert(withOneControlLineInverting, string("Null ptr (withOneControlLineInverting)"));
+
+    word anotherTargetMask  = another.getTargetMask();
+    word anotherControlMask = another.getControlMask();
+    word anotherInversionMask = another.getInversionMask();
+
+    bool swappable = isSwappable(another);
     if (!swappable && !withoutAnyChanges)
     {
         // check variant, when elements can be swapped with only one control line inversion
