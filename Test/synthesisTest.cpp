@@ -179,11 +179,12 @@ void testSynthesis( int argc, const char* argv[] )
 
         try
         {
-            outputFile << "Input: " << polynomial << "\n";
-            outputFile << "Polynomial: " << polynomialToString(polynomial) << "\n";
-
             Gf2Field field(polynomial);
             vector<word> table = getDiscreteLogWithPrimitiveElement(field);
+
+            outputFile << "Input: " << polynomial << endl;
+            outputFile << "Polynomial: " << polynomialToString(polynomial) << endl;
+            outputFile << "Primitive element: " << polynomialToString(field.getPrimitiveElement()) << endl;
 
             Generator generator;
             auto scheme = generator.generate(table, outputFile);
@@ -200,7 +201,7 @@ void testSynthesis( int argc, const char* argv[] )
                 ostringstream schemeFileName;
                 schemeFileName << strSchemesFolder << polynomialString << ".txt";
 
-                outputFile << "Scheme file: " << schemeFileName.str() << "\n";
+                outputFile << "Scheme file: " << schemeFileName.str() << endl;
 
                 string schemeString = SchemePrinter::schemeToString(scheme, false); // vertical
                 //string schemeString = SchemePrinter::schemeToString(scheme, true); // horizontal
@@ -209,20 +210,17 @@ void testSynthesis( int argc, const char* argv[] )
                 schemeFile << schemeString;
                 schemeFile.close();
             }
-
-            outputFile << "\n===============================================================\n";
-            outputFile.flush();
         }
         catch (exception& ex)
         {
-            outputFile << ex.what() << '\n';
-            outputFile.flush();
+            outputFile << ex.what() << endl;
         }
         catch (...)
         {
-            outputFile << "Unknown exception\n";
-            outputFile.flush();
+            outputFile << "Unknown exception" << endl;
         }
+
+        outputFile << "\n===============================================================" << endl;
     }
 
     inputFile.close();

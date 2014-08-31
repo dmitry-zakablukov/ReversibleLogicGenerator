@@ -200,27 +200,29 @@ Permutation Permutation::multiplyByTranspositions(
                 word y = x;
                 if(isLeftMultiplication)
                 {
-                    for (auto& transp : *transpositions)
-                    {
-                        y = transp.getOutput(y);
-                    }
+                    // multiply in reverse order for common pair case
+                    // for other cases this reverse order won't affect in result
+
+                    //for (auto& transp : *transpositions)
+                    //    y = transp.getOutput(y);
+                    for (auto iter = transpositions->rbegin(); iter != transpositions->rend(); ++iter)
+                        y = iter->getOutput(y);
 
                     for (auto cycle : *this)
-                    {
                         y = cycle->getOutput(y);
-                    }
                 }
                 else
                 {
                     for (auto cycle : *this)
-                    {
                         y = cycle->getOutput(y);
-                    }
 
-                    for (auto& transp : *transpositions)
-                    {
-                        y = transp.getOutput(y);
-                    }
+                    // multiply in reverse order for common pair case
+                    // for other cases this reverse order won't affect in result
+
+                    //for (auto& transp : *transpositions)
+                    //    y = transp.getOutput(y);
+                    for (auto iter = transpositions->rbegin(); iter != transpositions->rend(); ++iter)
+                        y = iter->getOutput(y);
                 }
 
                 if(nextCycle->isEmpty())

@@ -194,8 +194,8 @@ shared_ptr<list<Transposition>> PartialGenerator::getCommonPair()
         }
         else
         {
-            transpositions->push_back(Transposition(cycle[0], cycle[2]));
             transpositions->push_back(Transposition(cycle[0], cycle[1]));
+            transpositions->push_back(Transposition(cycle[0], cycle[2]));
         }
     }
 
