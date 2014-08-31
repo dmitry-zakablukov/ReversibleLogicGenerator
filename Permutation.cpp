@@ -201,7 +201,7 @@ Permutation Permutation::multiplyByTranspositions(
                 if(isLeftMultiplication)
                 {
                     // multiply in reverse order for common pair case
-                    // for other cases this reverse order won't affect in result
+                    // for other cases this reverse order won't affect on result
 
                     //for (auto& transp : *transpositions)
                     //    y = transp.getOutput(y);
@@ -217,7 +217,7 @@ Permutation Permutation::multiplyByTranspositions(
                         y = cycle->getOutput(y);
 
                     // multiply in reverse order for common pair case
-                    // for other cases this reverse order won't affect in result
+                    // for other cases this reverse order won't affect on result
 
                     //for (auto& transp : *transpositions)
                     //    y = transp.getOutput(y);

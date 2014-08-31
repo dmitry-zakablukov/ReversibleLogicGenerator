@@ -43,10 +43,13 @@ string polynomialToString(word polynomial)
         {
             if (index)
             {
+                if (polynomial & 1)
+                    repres << " +";
+
                 if (index == 1)
-                    repres << " + x";
+                    repres << " x";
                 else
-                    repres << " + " << index << "^x";
+                    repres << " " << index << "^x";
             }
             else
                 repres << "1";

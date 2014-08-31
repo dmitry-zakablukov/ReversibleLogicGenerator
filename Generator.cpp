@@ -32,8 +32,8 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
 
     totalTime += time;
 
-    //debug
-    *log << (string)permutation << "\n";
+    ////debug
+    //*log << (string)permutation << "\n";
 
     Scheme scheme;
 
