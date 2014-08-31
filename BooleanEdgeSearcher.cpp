@@ -68,9 +68,9 @@ BooleanEdgeSearcher::~BooleanEdgeSearcher()
 
 void BooleanEdgeSearcher::validateInputSettings()
 {
-    assert(inputSet, string("Empty input set"));
-    assert(n != uintUndefined, string("n is not defined"));
-    assert(initialMask <= (word)((1 << n) - 1), string("Initial mask is not valid"));
+    assertd(inputSet, string("Empty input set"));
+    assertd(n != uintUndefined, string("n is not defined"));
+    assertd(initialMask <= (word)((1 << n) - 1), string("Initial mask is not valid"));
 }
 
 BooleanEdge BooleanEdgeSearcher::findEdge()
@@ -168,8 +168,8 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
         word x = transp.getX();
         word y = transp.getY();
 
-        assert(x < maxEntriesCount, string("Invalid x value in input set"));
-        assert(y < maxEntriesCount, string("Invalid y value in input set"));
+        assertd(x < maxEntriesCount, string("Invalid x value in input set"));
+        assertd(y < maxEntriesCount, string("Invalid y value in input set"));
 
         // process x
         {

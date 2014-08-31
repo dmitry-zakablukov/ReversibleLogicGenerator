@@ -18,7 +18,7 @@ void PartialGenerator::setPermutation(const Permutation& thePermutation, uint in
     permutation = thePermutation;
     n = inputCount;
 
-    assert(n != uintUndefined, string("PartialGenerator: input count not defined"));
+    assertd(n != uintUndefined, string("PartialGenerator: input count not defined"));
 }
 
 const Permutation& PartialGenerator::getPermutation() const
@@ -146,7 +146,7 @@ void PartialGenerator::prepareForGeneration()
         // bugbug: see processCommonTranspositions() for better pair creation
         shared_ptr<list<Transposition>> transpositions = getCommonPair();
 
-        assert(transpositions->size() > 1,
+        assertd(transpositions->size() > 1,
             string("PartialGenerator::prepareForGeneration() failed to find common pair"));
 
         bestResult.type = PartialResultParams::tCommonPair;
@@ -248,7 +248,7 @@ shared_ptr<list<Transposition>> PartialGenerator::findBestCandidates(shared_ptr<
     sortCandidates(candidates);
 
     uint candidateCount = candidates->size();
-    assert(candidateCount > 1, string("PartialGenerator: too few candidates for findBestCandidates()"));
+    assertd(candidateCount > 1, string("PartialGenerator: too few candidates for findBestCandidates()"));
 
     auto iter = candidates->begin();
 
@@ -357,7 +357,7 @@ PartialGenerator::findBestCandidatePartner(
         }
     }
 
-    assert(!second.isEmpty(), string("Candidate partner not found"));
+    assertd(!second.isEmpty(), string("Candidate partner not found"));
     return tie(second, minDist);
 }
 
@@ -394,7 +394,7 @@ PartialGenerator::findBestCandidatePartner(
 //        }
 //    }
 //
-//    assert(!secondTransp.isEmpty(), string("Second transposition is empty"));
+//    assertd(!secondTransp.isEmpty(), string("Second transposition is empty"));
 //
 //    // fill partial result parameters
 //    partialResultParams.type = PartialResultParams::tCommonPair;
@@ -434,7 +434,7 @@ ReversibleLogic::Permutation PartialGenerator::getResidualPermutation(bool isLef
 
 deque<ReverseElement> PartialGenerator::implementPartialResult()
 {
-    assert(partialResultParams.transpositions->size(), string("PartialGenerator: no transpositions to synthesize"));
+    assertd(partialResultParams.transpositions->size(), string("PartialGenerator: no transpositions to synthesize"));
 
     deque<ReverseElement> synthesisResult;
     switch(partialResultParams.type)
@@ -482,7 +482,7 @@ deque<ReverseElement> PartialGenerator::implementEdge()
 
 deque<ReverseElement> PartialGenerator::implementPairOfTranspositions()
 {
-    assert(partialResultParams.transpositions->size() == 2,
+    assertd(partialResultParams.transpositions->size() == 2,
         string("PartialGenerator: can't implement pair of transpositions"));
 
     Transposition firstTransp  = partialResultParams.transpositions->front();

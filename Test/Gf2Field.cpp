@@ -4,7 +4,7 @@ Gf2Field::Gf2Field(word base)
     : base(base)
 {
     degree = getPolynomDegree(base);
-    assert(degree > 0, string("Base have no positive degree"));
+    assertd(degree > 0, string("Base have no positive degree"));
 }
 
 uint Gf2Field::getDegree() const
@@ -32,8 +32,8 @@ word Gf2Field::add(word x, word y) const
 
 word Gf2Field::mul(word x, word y) const
 {
-    assert(has(x), string("x not in field"));
-    assert(has(y), string("y not in field"));
+    assertd(has(x), string("x not in field"));
+    assertd(has(y), string("y not in field"));
 
     uint yDegree = getPolynomDegree(y);
     word yMask = 1 << yDegree;
@@ -63,8 +63,8 @@ word Gf2Field::mul(word x, word y) const
 
 word Gf2Field::pow(word x, word n) const
 {
-    assert(has(x), string("x not in field"));
-    assert(n >= 0, string("Degree is non positive"));
+    assertd(has(x), string("x not in field"));
+    assertd(n >= 0, string("Degree is non positive"));
 
     uint nDegree = getPolynomDegree(n);
     word nMask = 1 << nDegree;

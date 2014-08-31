@@ -79,7 +79,7 @@ vector<word> makePermutationFromScheme(ReversibleLogic::Scheme scheme,
             iter != scheme.end(); ++iter)
         {
             y = (*iter).getValue(y);
-            assert((y < transformCount), string("Wrong transform"));
+            assertd((y < transformCount), string("Wrong transform"));
         }
 
         table[x] = y;

@@ -20,6 +20,7 @@ public:
     bool isEven() const;
 
     void completeToEven();
+    void completeToEven(word truthTableSize);
 
     operator string();
 

@@ -106,7 +106,7 @@ bool selectForTransferOptimization(const ReverseElement& left,
 void swapEqualElements(const ReverseElement& left, const ReverseElement& right,
     list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
 {
-    assert(selectEqual(left, right), string("swapEqualElements(): wrong input elements"));
+    assertd(selectEqual(left, right), string("swapEqualElements(): wrong input elements"));
 
     // leave replacements empty
     leftReplacement->resize(0);
@@ -116,7 +116,7 @@ void swapEqualElements(const ReverseElement& left, const ReverseElement& right,
 void swapElementsWithConnectionReduction(const ReverseElement& left, const ReverseElement& right,
     list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
 {
-    assert(selectForReduceConnectionsOptimization(left, right),
+    assertd(selectForReduceConnectionsOptimization(left, right),
         string("swapElementsWithConnectionReduction(): wrong input elements"));
 
     word  leftInversionMask =  left.getInversionMask();
@@ -193,13 +193,13 @@ void swapElementsWithMerge(const ReverseElement& left, const ReverseElement& rig
     }
 
     // important! only left replacement should be non-empty
-    assert(leftReplacement->size(), string("swapElementsWithMerge(): wrong input elements"));
+    assertd(leftReplacement->size(), string("swapElementsWithMerge(): wrong input elements"));
 }
 
 void swapElementsWithTransferOptimization(const ReverseElement& leftElement, const ReverseElement& rightElement,
     list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
 {
-    assert(selectForTransferOptimization(leftElement, rightElement),
+    assertd(selectForTransferOptimization(leftElement, rightElement),
         string("swapElementsWithTransferOptimization(): wrong input elements"));
 
     const ReverseElement*  left =  &leftElement;
@@ -458,7 +458,7 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
     bool* optimized, SelectionFunc selectFunc, SwapFunc swapFunc,
     bool searchPairFromEnd, bool lessComplexityRequired)
 {
-    assert(optimized, string("Null 'optimized' pointer (PostProcessor::generalOptimization)"));
+    assertd(optimized, string("Null 'optimized' pointer (PostProcessor::generalOptimization)"));
     *optimized = false;
 
     OptScheme optimizedScheme = scheme;
@@ -517,7 +517,7 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
     bool* optimizationSucceeded, bool searchPairFromEnd,
     bool lessComplexityRequired, int* startIndex /* = 0 */)
 {
-    assert(optimizationSucceeded, string("Null ptr 'optimizationSucceeded' (PostProcessor::tryOptimizationTactics)"));
+    assertd(optimizationSucceeded, string("Null ptr 'optimizationSucceeded' (PostProcessor::tryOptimizationTactics)"));
     *optimizationSucceeded = false;
 
     OptScheme optimizedScheme = scheme;
@@ -725,11 +725,11 @@ PostProcessor::SwapResultsPair PostProcessor::getSwapResultsPair(
     const OptScheme& scheme, uint leftIndex, uint rightIndex)
 {
     uint schemeSize = scheme.size();
-    assert(leftIndex < schemeSize && rightIndex < schemeSize,
+    assertd(leftIndex < schemeSize && rightIndex < schemeSize,
         string("Wrong indices (PostProcessor::getSwapResultsPair)"));
 
     // TODO: check if this would be necessary
-    assert(leftIndex < rightIndex, string("Unordered indices (PostProcessor::getSwapResultsPair)"));
+    assertd(leftIndex < rightIndex, string("Unordered indices (PostProcessor::getSwapResultsPair)"));
 
     // move to left
     OptScheme schemeCopy = scheme;
@@ -762,7 +762,7 @@ deque<PostProcessor::SwapResult> PostProcessor::mergeSwapResults(
     else if (rightSize == 0)
         return toLeft;
 
-    assert(toLeft.size() && toRight.size(), string("Can't merge empty swap results"));
+    assertd(toLeft.size() && toRight.size(), string("Can't merge empty swap results"));
 
     SwapResult left = toLeft.back();
     toLeft.pop_back();
@@ -770,7 +770,7 @@ deque<PostProcessor::SwapResult> PostProcessor::mergeSwapResults(
     SwapResult right = toRight.front();
     toRight.pop_front();
 
-    assert(left.first == right.first && left.second.end == right.second.start,
+    assertd(left.first == right.first && left.second.end == right.second.start,
         string("Can't merge not neighbour swap results"));
 
     left.second.end = right.second.end;
@@ -789,10 +789,10 @@ bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
     uint leftIndex, uint rightIndex,
     uint* newLeftIndex, uint* newRightIndex)
 {
-    assert(newLeftIndex && newRightIndex, string("Null ptr "
+    assertd(newLeftIndex && newRightIndex, string("Null ptr "
         "(PostProcessor::isSwapResultsPairSuiteOptimizationTactics)"));
 
-    assert(result.forLeft.size() && result.forRight.size(),
+    assertd(result.forLeft.size() && result.forRight.size(),
         string("Wrong swap result (PostProcessor::isSwapResultsPairSuiteOptimizationTactics)"));
 
     uint minDistance = uintUndefined;
@@ -840,10 +840,10 @@ bool PostProcessor::isSwapResultsPairSuiteOptimizationTactics(
 void PostProcessor::moveElementInScheme(OptScheme* scheme,
     uint fromIndex, uint toIndex)
 {
-    assert(scheme, string("Null ptr (PostProcessor::moveElementInScheme)"));
+    assertd(scheme, string("Null ptr (PostProcessor::moveElementInScheme)"));
 
     uint size = scheme->size();
-    assert(fromIndex < size && toIndex < size,
+    assertd(fromIndex < size && toIndex < size,
         string("Moving element out of borders (PostProcessor::moveElementInScheme)"));
 
     uint step = 1;
@@ -865,10 +865,10 @@ uint PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
 {
     uint elementCount = (uint)scheme.size();
 
-    assert(startIndex < elementCount,
+    assertd(startIndex < elementCount,
         string("PostProcessor: invalid start index for getMaximumTransferIndex()"));
 
-    assert(stopIndex < elementCount,
+    assertd(stopIndex < elementCount,
         string("PostProcessor: invalid stop index for getMaximumTransferIndex()"));
 
     int step = 1;

@@ -35,7 +35,7 @@ AutoTimer::AutoTimer( float* elapsedTime )
     : timer()
     , elapsedTime( elapsedTime )
 {
-    assert( elapsedTime != 0, string("Elapsed time pointer is null") );
+    assertd( elapsedTime != 0, string("Elapsed time pointer is null") );
     timer.start();
 }
 

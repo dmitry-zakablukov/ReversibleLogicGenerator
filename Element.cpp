@@ -74,8 +74,8 @@ word ReverseElement::getInversionMask() const
 
 bool ReverseElement::operator ==(const ReverseElement& another) const
 {
-    assert(isValid(), string("Reverse element is not valid"));
-    assert(another.isValid(), string("Reverse element is not valid"));
+    assertd(isValid(), string("Reverse element is not valid"));
+    assertd(another.isValid(), string("Reverse element is not valid"));
 
     bool equal = true;
     if(n != another.getInputCount()
@@ -123,8 +123,8 @@ bool ReverseElement::isValid() const
 
 bool ReverseElement::isSwappable(const ReverseElement& another) const
 {
-    assert(isValid(), string("Reverse element is not valid"));
-    assert(another.isValid(), string("Reverse element is not valid"));
+    assertd(isValid(), string("Reverse element is not valid"));
+    assertd(another.isValid(), string("Reverse element is not valid"));
 
     word anotherTargetMask = another.getTargetMask();
     word anotherControlMask = another.getControlMask();
@@ -139,7 +139,7 @@ bool ReverseElement::isSwappable(const ReverseElement& another) const
 bool ReverseElement::isSwappable(const ReverseElement& another,
     bool* withOneControlLineInverting, bool withoutAnyChanges /*= false*/) const
 {
-    assert(withOneControlLineInverting, string("Null ptr (withOneControlLineInverting)"));
+    assertd(withOneControlLineInverting, string("Null ptr (withOneControlLineInverting)"));
 
     word anotherTargetMask  = another.getTargetMask();
     word anotherControlMask = another.getControlMask();
@@ -172,7 +172,7 @@ bool ReverseElement::isSwappable(const ReverseElement& another,
 
 bool ReverseElement::isSwappable(const list<ReverseElement>& elements) const
 {
-    assert(isValid(), string("Reverse element is not valid"));
+    assertd(isValid(), string("Reverse element is not valid"));
 
     bool swappable = true;
     bool withOneControlLineInverting = false;
@@ -195,7 +195,7 @@ void ReverseElement::swap(ReverseElement* another)
 
 void ReverseElement::swap(ReverseElement* left, ReverseElement* right)
 {
-    assert(left && right, string("Null ptr (ReverseElement::swap)"));
+    assertd(left && right, string("Null ptr (ReverseElement::swap)"));
 
     word leftTargetMask    = left->getTargetMask();
     word leftControlMask   = left->getControlMask();
@@ -244,7 +244,7 @@ void ReverseElement::swap(ReverseElement* left, ReverseElement* right)
         }
     }
 
-    assert(swappable, string("Can't swap unswappable elements"));
+    assertd(swappable, string("Can't swap unswappable elements"));
 }
 
 word ReverseElement::getValue(word input) const
@@ -284,7 +284,7 @@ word ReverseElement::getValue(word input) const
 
 deque<ReverseElement> ReverseElement::getInversionOptimizedImplementation(bool heavyRight /* = true */) const
 {
-    assert(isValid(), string("Reverse element is not valid"));
+    assertd(isValid(), string("Reverse element is not valid"));
 
     deque<ReverseElement> optImpl;
 
@@ -293,8 +293,8 @@ deque<ReverseElement> ReverseElement::getInversionOptimizedImplementation(bool h
 
     if(controlCount <= 2 && inversionCount > 0)
     {
-        assert(controlCount > 0, string("Control count must be positive"));
-        assert(inversionCount < 2, string("Too much inversions"));
+        assertd(controlCount > 0, string("Control count must be positive"));
+        assertd(inversionCount < 2, string("Too much inversions"));
 
         if(controlCount == 1)       // CNOT
         {
@@ -323,7 +323,7 @@ deque<ReverseElement> ReverseElement::getInversionOptimizedImplementation(bool h
             uint positiveBitPosition =
                     findPositiveBitPosition(restControlMask);
 
-            assert(positiveBitPosition != uintUndefined,
+            assertd(positiveBitPosition != uintUndefined,
                    string("Positive bit position not found"));
 
             restControlMask   ^= (uint)1 << positiveBitPosition;
@@ -370,7 +370,7 @@ word ReverseElement::getFreeInputMask() const
 {
     word freeInputMask = (((word)1 << n) - 1 ) & ~(targetMask | controlMask);
     uint freeInputPos = findPositiveBitPosition(freeInputMask);
-    assert(freeInputPos != uintUndefined, string("Free input not found"));
+    assertd(freeInputPos != uintUndefined, string("Free input not found"));
 
     freeInputMask = (uint)1 << freeInputPos;
     return freeInputMask;
@@ -378,9 +378,9 @@ word ReverseElement::getFreeInputMask() const
 
 deque<ReverseElement> ReverseElement::getImplementation(bool heavyRight /* = true */) const
 {
-    assert(isValid(), string("Reverse element is not valid"));
+    assertd(isValid(), string("Reverse element is not valid"));
 
-    assert((inversionMask & ~controlMask ) == 0, string("Invalid inversion mask"));
+    assertd((inversionMask & ~controlMask ) == 0, string("Invalid inversion mask"));
     deque<ReverseElement> implementation;
     
     if(inversionMask)
@@ -432,7 +432,7 @@ deque<ReverseElement> ReverseElement::getImplementation(bool heavyRight /* = tru
 ////    uint controlCount = countNonZeroBits(controlMask);
 ////
 ////    // check control count
-////    assert(controlCount + 1 <= n, string("Too much controls"));
+////    assertd(controlCount + 1 <= n, string("Too much controls"));
 ////
 ////#if defined(ADDITIONAL_MEMORY_TECHNIQUE)
 ////    implementation.push_back(ReverseElement(n, targetMask, controlMask));
@@ -481,7 +481,7 @@ ReverseElement
 ReverseElement::getLeftmostElement(bool heavyRight /* = true */) const
 {
     uint firstControlPos = findPositiveBitPosition(controlMask);
-    assert(firstControlPos != uintUndefined, string("First control not found"));
+    assertd(firstControlPos != uintUndefined, string("First control not found"));
     word firstControlMask = 1 << firstControlPos;
 
     // we need one free input for implementation
@@ -512,14 +512,14 @@ ReverseElement::getLeftmostElement(bool heavyRight /* = true */) const
         }
     }
 
-    assert(false, string("Dead code"));
+    assertd(false, string("Dead code"));
 }
 
 ReverseElement
 ReverseElement::getRightmostElement(bool heavyRight /* = true */) const
 {
     uint firstControlPos = findPositiveBitPosition(controlMask);
-    assert(firstControlPos != uintUndefined, string("First control not found"));
+    assertd(firstControlPos != uintUndefined, string("First control not found"));
     word firstControlMask = 1 << firstControlPos;
 
     // we need one free input for implementation
@@ -558,16 +558,16 @@ ReverseElement::getRightmostElement(bool heavyRight /* = true */) const
         }
     }
 
-    assert(false, string("Dead code"));
+    assertd(false, string("Dead code"));
 }
 
 ReverseElement
 ReverseElement::getFinalImplementation() const
 {
-    assert(inversionMask == 0, string("Can't get final implementation due to inversions"));
+    assertd(inversionMask == 0, string("Can't get final implementation due to inversions"));
 
     uint controlCount = countNonZeroBits(controlMask);
-    assert(controlCount < 3, string("Too much controls"));
+    assertd(controlCount < 3, string("Too much controls"));
 
     ReverseElement element(n, targetMask, controlMask);
     return element;

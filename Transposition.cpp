@@ -23,7 +23,7 @@ Transposition::Transposition(word left, word right, bool needSort /* = false */)
         stream << "Transposition constructor failed with x = ";
         stream << left << " and y = " << right;
 
-        assert(false, stream.str());
+        assertd(false, stream.str());
     }
 
     x = left;
@@ -162,7 +162,7 @@ TransposPair::TransposPair(const Transposition &theFirst, const Transposition &t
         ostringstream stream;
         stream << "TransposPair constructor failed with first and second equal to ";
         stream << (string)first;
-        assert(false, stream.str());
+        assertd(false, stream.str());
     }
 
     first.sort();
@@ -284,7 +284,7 @@ uint TransposPair::getEstimateImplComplexity() const
 
 deque<ReverseElement> TransposPair::getImplementation()
 {
-    assert(n != uintUndefined, string("Number of inputs is not specified"));
+    assertd(n != uintUndefined, string("Number of inputs is not specified"));
 
     deque<ReverseElement> conjugationElements;
 
@@ -315,7 +315,7 @@ deque<ReverseElement> TransposPair::getImplementation()
 
 uint TransposPair::getPrecomputedComplexity() const
 {
-    assert(n > 3, string("Can't get estimated complexity for n < 4"));
+    assertd(n > 3, string("Can't get estimated complexity for n < 4"));
 
     uint complexity = 3 * (1 << (n - 4)) - 2;
     if(!isIndependent())
@@ -392,7 +392,7 @@ uint TransposPair::findYControlBit()
                 }
 
                 uint tempWeight = count(temp);
-                assert(tempWeight != 0, string("Error in algorithm"));
+                assertd(tempWeight != 0, string("Error in algorithm"));
 
                 s += tempWeight - 1;
             }
@@ -405,7 +405,7 @@ uint TransposPair::findYControlBit()
             }
 
             uint tempWeight = count(temp);
-            assert(tempWeight != 0, string("Error in algorithm"));
+            assertd(tempWeight != 0, string("Error in algorithm"));
 
             s += tempWeight - 1;
 
@@ -426,7 +426,7 @@ uint TransposPair::findYControlBit()
         }
     }
 
-    assert(yControlBitPosition != uintUndefined,
+    assertd(yControlBitPosition != uintUndefined,
            string("Control bit in Y not found"));
 
     return yControlBitPosition;
@@ -583,7 +583,7 @@ uint TransposPair::findZControlBit(uint yControlBitPosition)
         }
     }
 
-    assert(zControlBitPosition != uintUndefined,
+    assertd(zControlBitPosition != uintUndefined,
            string("Control bit in Z not found"));
 
     return zControlBitPosition;
@@ -694,7 +694,7 @@ deque<ReverseElement> TransposPair::transformW(uint yControlBitPosition, uint zC
                 ++index;
             }
 
-            assert(kBitPosition != uintUndefined,
+            assertd(kBitPosition != uintUndefined,
                    string("Control bit k in W not found"));
 
             // fix problems

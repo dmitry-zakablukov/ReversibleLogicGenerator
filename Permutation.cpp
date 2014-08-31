@@ -126,6 +126,21 @@ void Permutation::completeToEven()
     }
 }
 
+void Permutation::completeToEven(word truthTableSize)
+{
+    assertd(countNonZeroBits(truthTableSize) == 1,
+        string("Table size is not power of 2"));
+
+    Cycle& firstCycle = **begin();
+    word diff = firstCycle[0] ^ firstCycle[1];
+
+    shared_ptr<Cycle> lastCycle(new Cycle());
+    lastCycle->append(truthTableSize);
+    lastCycle->append(truthTableSize ^ diff);
+
+    append(lastCycle);
+}
+
 Permutation::operator string()
 {
     ostringstream result;
@@ -246,7 +261,7 @@ Permutation Permutation::multiplyByTranspositions(
         }
     }
 
-    assert(!nextCycle->length(),
+    assertd(!nextCycle->length(),
         string("Permutation::multiplyByTranspositions() failed because of last cycle"));
 
     Permutation result(newCycles);

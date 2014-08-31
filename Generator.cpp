@@ -231,7 +231,7 @@ void Generator::implementPartialResult(PartialGenerator& partialGenerator,
     bool isLeftMultiplication, Scheme* scheme, Scheme::iterator* targetIter)
 {
     deque<ReverseElement> elements = partialGenerator.implementPartialResult();
-    assert(elements.size(), string("Generator: partial result is empty"));
+    assertd(elements.size(), string("Generator: partial result is empty"));
 
     Scheme::iterator localIterator = *targetIter;
     forrcin(element, elements)

@@ -72,20 +72,8 @@ Permutation PermutationUtils::createPermutation(const PermutationTable& table)
 
     if(!permutation.isEven())
     {
-        // doesn't work, can change permutation on input values
-        //permutation.completeToEven();
-
         word tableSize = table.size();
-        assert(countNonZeroBits(tableSize) == 1, string("Table size is not power of 2"));
-
-        Cycle& firstCycle = **permutation.begin();
-        word diff = firstCycle[0] ^ firstCycle[1];
-
-        shared_ptr<Cycle> lastCycle(new Cycle());
-        lastCycle->append(tableSize);
-        lastCycle->append(tableSize ^ diff);
-
-        permutation.append(lastCycle);
+        permutation.completeToEven(tableSize);
     }
 
     assert(permutation.isEven(), string("Can't complete permutation to even"));
@@ -119,11 +107,11 @@ vector<PermutationUtils::Piece> PermutationUtils::findPieces(const PermutationTa
 
         while(z != x)
         {
-            assert(z < transformCount, string("Too big index"));
+            assertd(z < transformCount, string("Too big index"));
             word& temp = table[z];
 
             ++length;
-            assert(length < transformCount, string("Too big piece"));
+            assertd(length < transformCount, string("Too big piece"));
 
             if(temp != z && temp != wordUndefined)
             {

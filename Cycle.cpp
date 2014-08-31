@@ -33,7 +33,7 @@ bool Cycle::isFinal() const
 
 void Cycle::append(word element)
 {
-    assert(!finalized, string("Failed to append element to finalized cycle"));
+    assertd(!finalized, string("Failed to append element to finalized cycle"));
 
     auto pos = find(elements.cbegin(), elements.cend(), element);
     if(pos == elements.cend())
@@ -48,7 +48,7 @@ void Cycle::append(word element)
     {
         ostringstream stream;
         stream << "Failed to append " << element << " to cycle";
-        assert(false, stream.str());
+        assertd(false, stream.str());
     }
 }
 
@@ -231,10 +231,10 @@ void Cycle::multiplyByTranspositions(shared_ptr<list<Transposition>> transpositi
         }
     }
 
-    assert(visitedElements.size() == elementCount,
+    assertd(visitedElements.size() == elementCount,
         string("Cycle::multiplyByTranspositions() failed because not all elements processed"));
 
-    assert(!nextCycle->length(),
+    assertd(!nextCycle->length(),
         string("Cycle::multiplyByTranspositions() failed because of last cycle"));
 }
 

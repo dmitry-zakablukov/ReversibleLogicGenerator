@@ -14,11 +14,15 @@ private:
     string message;
 };
 
+// debug assert
 #if defined(DEBUG) || defined(_DEBUG)
-    #define assert(condition, message)  if(!(condition)) throw AssertionError( move((message)) );
+    #define assertd(condition, message)  if(!(condition)) throw AssertionError( move((message)) );
 #else
-    #define assert(condition, message)
+    #define assertd(condition, message)
 #endif  // DEBUG
+
+// assert
+#define assert(condition, message)  if(!(condition)) throw AssertionError( move((message)) );
 
 #define forin(name, collection) for(auto (name) = (collection).begin(); (name) != (collection).end(); ++(name))
 #define forcin(name, collection) for(auto (name) = (collection).cbegin(); (name) != (collection).cend(); ++(name))
