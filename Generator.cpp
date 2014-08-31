@@ -28,7 +28,7 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
 
     *log << "Permutation creation time: ";
     *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    *log << " sec\n";
+    *log << " sec" << endl;
 
     totalTime += time;
 
@@ -72,8 +72,8 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
 
     *log << "Scheme synthesis time: ";
     *log << setiosflags(ios::fixed) << setprecision(5) << time;
-    *log << " ms\n";
-    *log << "Complexity before optimization: " << scheme.size() << '\n';
+    *log << " ms" << endl;
+    *log << "Complexity before optimization: " << scheme.size() << endl;
 
     totalTime += time;
     time = 0;
@@ -117,14 +117,14 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
 
     *log << "Optimization time: ";
     *log << setiosflags(ios::fixed) << setprecision(5) << time;
-    *log << " ms\n";
-    *log << "Complexity after optimization: " << scheme.size() << '\n';
+    *log << " ms" << endl;
+    *log << "Complexity after optimization: " << scheme.size() << endl;
 
     totalTime += time;
 
     *log << "Total time: ";
     *log << setiosflags(ios::fixed) << setprecision(5) << totalTime;
-    *log << " ms\n";
+    *log << " ms" << endl;
 
     //string repres = SchemePrinter::schemeToString(n, scheme, false);
     //log << repres;
