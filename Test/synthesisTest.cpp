@@ -1,6 +1,6 @@
 #include "std.hpp"
 
-vector<word> getDiscreteLogWithPrimitiveElement(Gf2Field& field)
+TruthTable getDiscreteLogWithPrimitiveElement(Gf2Field& field)
 {
     word maxElement = (word)(1 << field.getDegree());
     word elementCount = maxElement - 1;
@@ -8,7 +8,7 @@ vector<word> getDiscreteLogWithPrimitiveElement(Gf2Field& field)
     word primitiveElement = field.getPrimitiveElement();
     assert(primitiveElement != wordUndefined, string("Field has no primitive elements"));
 
-    vector<word> table;
+    TruthTable table;
     table.resize(maxElement);
 
     table[0] = 0;
@@ -180,14 +180,17 @@ void testSynthesis( int argc, const char* argv[] )
         try
         {
             Gf2Field field(polynomial);
-            vector<word> table = getDiscreteLogWithPrimitiveElement(field);
+            TruthTable table = getDiscreteLogWithPrimitiveElement(field);
 
             outputFile << "Input: " << polynomial << endl;
             outputFile << "Polynomial: " << polynomialToString(polynomial) << endl;
             outputFile << "Primitive element: " << polynomialToString(field.getPrimitiveElement()) << endl;
 
-            Generator generator;
-            auto scheme = generator.generate(table, outputFile);
+            //Generator generator;
+            //auto scheme = generator.generate(table, outputFile);
+
+            GeneratorWithMemory generator;
+            auto scheme = generator.generateFast(table, outputFile);
 
             if (scheme.size() < 1000)
             {

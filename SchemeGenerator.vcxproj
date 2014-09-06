@@ -129,6 +129,7 @@
     <ClCompile Include="Cycle.cpp" />
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="Generator.cpp" />
+    <ClCompile Include="GeneratorWithMemory.cpp" />
     <ClCompile Include="PartialGenerator.cpp" />
     <ClCompile Include="PartialResultParams.cpp" />
     <ClCompile Include="Permutation.cpp" />
@@ -150,6 +151,7 @@
     <ClInclude Include="Cycle.hpp" />
     <ClInclude Include="Element.hpp" />
     <ClInclude Include="Generator.hpp" />
+    <ClInclude Include="GeneratorWithMemory.hpp" />
     <ClInclude Include="PartialGenerator.hpp" />
     <ClInclude Include="PartialResultParams.hpp" />
     <ClInclude Include="Permutation.hpp" />

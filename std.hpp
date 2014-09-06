@@ -60,3 +60,4 @@ typedef size_t uint;
 #include "PartialResultParams.hpp"
 #include "PartialGenerator.hpp"
 #include "Generator.hpp"
+#include "GeneratorWithMemory.hpp"

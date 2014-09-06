@@ -3,9 +3,9 @@
 namespace ReversibleLogic
 {
 
-PermutationTable PermutationUtils::expandTable(const PermutationTable& table)
+TruthTable PermutationUtils::expandTable(const TruthTable& table)
 {
-    PermutationTable expandedTable;
+    TruthTable expandedTable;
 
 #if defined(ADDITIONAL_MEMORY_TECHNIQUE)
     uint tableSize = table.size();
@@ -54,9 +54,9 @@ PermutationTable PermutationUtils::expandTable(const PermutationTable& table)
     return expandedTable;
 }
 
-Permutation PermutationUtils::createPermutation(const PermutationTable& table)
+Permutation PermutationUtils::createPermutation(const TruthTable& table)
 {
-    PermutationTable expandedTable = expandTable(table);
+    TruthTable expandedTable = expandTable(table);
 
     vector<Piece> pieces = findPieces(expandedTable);
     vector<Piece> cycles = mergePieces(pieces);
@@ -81,9 +81,9 @@ Permutation PermutationUtils::createPermutation(const PermutationTable& table)
     return permutation;
 }
 
-vector<PermutationUtils::Piece> PermutationUtils::findPieces(const PermutationTable& inputTable)
+vector<PermutationUtils::Piece> PermutationUtils::findPieces(const TruthTable& inputTable)
 {
-    PermutationTable table = inputTable;
+    TruthTable table = inputTable;
     vector<Piece> pieces;
 
     uint transformCount = table.size();

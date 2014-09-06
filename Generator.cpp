@@ -10,7 +10,7 @@ Generator::Generator()
 {
 }
 
-Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
+Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
 {
     log = &outputLog;
 
@@ -246,7 +246,7 @@ void Generator::implementPartialResult(PartialGenerator& partialGenerator,
     *targetIter = localIterator;
 }
 
-void Generator::checkPermutationValidity(const PermutationTable& table)
+void Generator::checkPermutationValidity(const TruthTable& table)
 {
     set<word> inputs;
     set<word> outputs;
@@ -267,7 +267,7 @@ void Generator::checkPermutationValidity(const PermutationTable& table)
            string("Number of outputs in permutation table is too small"));
 }
 
-tuple<uint, Permutation> Generator::getPermutation(const PermutationTable& table)
+tuple<uint, Permutation> Generator::getPermutation(const TruthTable& table)
 {
     Permutation permutation = PermutationUtils::createPermutation(table);
 
@@ -295,7 +295,7 @@ tuple<uint, Permutation> Generator::getPermutation(const PermutationTable& table
     return tie(n, permutation);
 }
 
-bool Generator::checkSchemeAgainstPermutationVector(const Scheme& scheme, const PermutationTable& table)
+bool Generator::checkSchemeAgainstPermutationVector(const Scheme& scheme, const TruthTable& table)
 {
     bool result = true;
     uint transformCount = table.size();

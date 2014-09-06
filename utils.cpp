@@ -47,3 +47,17 @@ uint findPositiveBitPosition(word value, uint startPos /* = 0 */)
 
     return position;
 }
+
+uint getSignificantBitCount(word value)
+{
+    uint count = 0;
+    word mask = 1;
+    
+    while (mask <= value)
+    {
+        mask <<= 1;
+        ++count;
+    }
+
+    return count;
+}

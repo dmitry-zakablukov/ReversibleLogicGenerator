@@ -1,6 +1,6 @@
 #pragma once
 
-typedef vector<word> PermutationTable;
+typedef vector<word> TruthTable;
 
 class AssertionError: public exception
 {
@@ -33,6 +33,7 @@ private:
 
 uint countNonZeroBits(word value);
 uint findPositiveBitPosition(word value, uint startPos = 0);
+uint getSignificantBitCount(word value);
 
 template< typename T >
 deque<T> conjugate(deque<T> target, deque<T> conjugations, bool withReverse = false)
