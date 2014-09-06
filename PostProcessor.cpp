@@ -2,7 +2,10 @@
 
 // define this to use full optimization scheme
 // comment this to use fast optimization scheme
-// #define USE_FULL_OPTIMIZATION_SCHEME
+//#define USE_FULL_OPTIMIZATION_SCHEME
+
+// define this to turn off optimization completely
+//#define TURN_OFF_OPTIMIZATION
 
 namespace ReversibleLogic
 {
@@ -244,32 +247,23 @@ void swapElementsWithTransferOptimization(const ReverseElement& leftElement, con
 //////////////////////////////////////////////////////////////////////////
 PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
 {
+#if defined(TURN_OFF_OPTIMIZATION)
+    return scheme;
+#endif //TURN_OFF_OPTIMIZATION
+
     OptScheme optimizedScheme = scheme;
+    
     uint lengthBefore = uintUndefined;
     uint lengthAfter  = uintUndefined;
-
     isNegativeControlInputsAllowed = true;
-    
-    //// debug: generator 4.0 - test scheme synthesis
-    //return scheme;
-
-    optimizedScheme = removeDuplicates(optimizedScheme);
 
     bool needOptimization = true;
-    uint step = 0;
-    while(needOptimization /*&& step < 1*/)
+    while(needOptimization)
     {
+        optimizedScheme = removeDuplicates(optimizedScheme);
+        
         needOptimization = false;
         optimizedScheme = mergeOptimization(optimizedScheme, &needOptimization);
-
-        bool additionalOptimized = false;
-        optimizedScheme = reduceConnectionsOptimization(optimizedScheme, &additionalOptimized);
-        needOptimization = needOptimization || additionalOptimized;
-
-        optimizedScheme = transferOptimization(optimizedScheme, &additionalOptimized);
-        needOptimization = needOptimization || additionalOptimized;
-
-        ++step;
     }
 
     // final implementation
@@ -277,30 +271,14 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     implementation = optimizedScheme;
 
     implementation = getFullScheme(optimizedScheme);
-    //isNegativeControlInputsAllowed = false;
-    
+    implementation = removeDuplicates(implementation);
+
     needOptimization = true;
-    //step = 0;
-    while(needOptimization/* && step < 1*/)
+    while(needOptimization)
     {
         needOptimization = false;
         implementation = transferOptimization(implementation, &needOptimization);
-        implementation = removeDuplicates(implementation);
-        //++step;
     }
-
-    //implementation = getFullScheme(implementation);
-    //isNegativeControlInputsAllowed = false;
-    //
-    //needOptimization = true;
-    ////step = 0;
-    //while (needOptimization/* && step < 1*/)
-    //{
-    //    needOptimization = false;
-    //    implementation = transferOptimization(implementation, &needOptimization);
-    //    implementation = removeDuplicates(implementation);
-    //    //++step;
-    //}
 
     return implementation;
 }

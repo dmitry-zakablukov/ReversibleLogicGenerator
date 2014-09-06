@@ -109,7 +109,6 @@ Scheme Generator::generate(const PermutationTable& table, ostream& outputLog)
         }
 
         bool isValid = checkSchemeAgainstPermutationVector(scheme, table);
-        //debug
         assert(isValid, string("Generated scheme is not valid"));
 
         time /= numIterCount;
