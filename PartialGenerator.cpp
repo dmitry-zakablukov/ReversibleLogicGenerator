@@ -19,6 +19,7 @@ void PartialGenerator::setPermutation(const Permutation& thePermutation, uint in
     n = inputCount;
 
     assertd(n != uintUndefined, string("PartialGenerator: input count not defined"));
+    partialResultParams.edge.n = n;
 }
 
 const Permutation& PartialGenerator::getPermutation() const
@@ -460,8 +461,8 @@ deque<ReverseElement> PartialGenerator::implementEdge()
 
     BooleanEdge& edge = partialResultParams.edge;
 
-    word baseValue = edge.getBaseValue(n);
-    word baseMask  = edge.getBaseMask(n);
+    word baseValue = edge.getBaseValue();
+    word baseMask  = edge.getBaseMask();
 
     deque<ReverseElement> elements;
     word mask = 1;

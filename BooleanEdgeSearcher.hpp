@@ -3,7 +3,7 @@
 // Simple struct for representing boolean edge
 struct BooleanEdge
 {
-    BooleanEdge();
+    BooleanEdge(uint n);
 
     /// Returns true, if edge is like **...*
     bool isFull() const;
@@ -12,11 +12,14 @@ struct BooleanEdge
     /// By default edge is constructed as not valid
     bool isValid() const;
 
+    bool has(word x) const;
+
     word getCapacity() const;
 
-    word getBaseMask(uint n) const;
-    word getBaseValue(uint n) const;
+    word getBaseMask() const;
+    word getBaseValue() const;
 
+    uint n = uintUndefined;
     word baseValue;
     word starsMask;
     bool full;
@@ -28,9 +31,14 @@ struct BooleanEdge
 class BooleanEdgeSearcher
 {
 public:
-    explicit BooleanEdgeSearcher(shared_ptr<list<ReversibleLogic::Transposition>> inputSet,
+    explicit BooleanEdgeSearcher(shared_ptr<list<ReversibleLogic::Transposition>> input,
         uint n, word initialMask);
-    ~BooleanEdgeSearcher();
+
+    explicit BooleanEdgeSearcher(const unordered_set<word>& inputs, uint n);
+
+    ~BooleanEdgeSearcher() = default;
+
+    void setExplicitEdgeFlag(bool value);
 
     BooleanEdge findEdge();
 
@@ -38,6 +46,8 @@ public:
         shared_ptr<list<ReversibleLogic::Transposition>> transpositions);
 
     shared_ptr<list<ReversibleLogic::Transposition>> getEdgeSubset(BooleanEdge edge, uint n);
+
+    shared_ptr<unordered_set<word>> getEdgeSet(BooleanEdge edge);
 
 private:
     void validateInputSettings();
@@ -50,9 +60,11 @@ private:
     /// Returns true, if edge cover subset of input set
     bool checkEdge(BooleanEdge* edge);
 
-    shared_ptr<list<ReversibleLogic::Transposition>> inputSet;
+    unordered_set<word> inputSet;
     uint n;
     word initialMask;
+
+    bool explicitEdgeFlag = false;
 
     vector<uint> frequencyTable;
 };

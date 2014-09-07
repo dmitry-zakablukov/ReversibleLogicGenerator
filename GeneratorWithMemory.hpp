@@ -15,6 +15,9 @@ public:
 
 private:
     void detectBitCount(const TruthTable& table, uint* n, uint* m);
+
+    void generateCoordinateFunction(Scheme* scheme,
+        uint n, uint m, uint coord, unordered_set<word>& inputs);
 };
 
 } //ReversibleLogic

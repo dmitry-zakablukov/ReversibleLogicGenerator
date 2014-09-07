@@ -11,6 +11,8 @@ public:
     typedef vector<ReverseElement> OptScheme;
     OptScheme optimize(const OptScheme& scheme);
 
+    Scheme optimize(const Scheme& scheme);
+
 private:
     enum
     {

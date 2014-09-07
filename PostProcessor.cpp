@@ -245,6 +245,24 @@ void swapElementsWithTransferOptimization(const ReverseElement& leftElement, con
 }
 
 //////////////////////////////////////////////////////////////////////////
+ReversibleLogic::Scheme PostProcessor::optimize(const Scheme& scheme)
+{
+    uint elementCount = scheme.size();
+    OptScheme optimizedScheme(elementCount);
+
+    for (uint index = 0; index < elementCount; ++index)
+        optimizedScheme[index] = scheme[index];
+
+    optimizedScheme = optimize(optimizedScheme);
+    elementCount = optimizedScheme.size();
+
+    Scheme result(elementCount);
+    for (uint index = 0; index < elementCount; ++index)
+        result[index] = optimizedScheme[index];
+
+    return result;
+}
+
 PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
 {
 #if defined(TURN_OFF_OPTIMIZATION)
@@ -278,6 +296,13 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     {
         needOptimization = false;
         implementation = transferOptimization(implementation, &needOptimization);
+    }
+
+    needOptimization = true;
+    while (needOptimization)
+    {
+        needOptimization = false;
+        implementation = mergeOptimization(implementation, &needOptimization);
     }
 
     return implementation;

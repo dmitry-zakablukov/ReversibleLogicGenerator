@@ -85,27 +85,7 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
             uint count = numIterCount;
 
             while (count--)
-            {
-                PostProcessor optimizer;
-
-                uint elementCount = scheme.size();
-                PostProcessor::OptScheme optimizedScheme(elementCount);
-
-                for (uint index = 0; index < elementCount; ++index)
-                {
-                    optimizedScheme[index] = scheme[index];
-                }
-
-                optimizedScheme = optimizer.optimize(optimizedScheme);
-
-                elementCount = optimizedScheme.size();
-                scheme.resize(elementCount);
-
-                for (uint index = 0; index < elementCount; ++index)
-                {
-                    scheme[index] = optimizedScheme[index];
-                }
-            }
+                scheme = PostProcessor().optimize(scheme);
         }
 
         bool isValid = checkSchemeAgainstPermutationVector(scheme, table);

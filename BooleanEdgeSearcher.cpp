@@ -3,8 +3,9 @@
 //////////////////////////////////////////////////////////////////////////
 // struct BooleanEdge
 
-BooleanEdge::BooleanEdge()
-    : baseValue(wordUndefined)
+BooleanEdge::BooleanEdge(uint n)
+    : n(n)
+    , baseValue(wordUndefined)
     , starsMask(wordUndefined)
     , full(false)
     , coveredTranspositionCount(0)
@@ -33,7 +34,7 @@ word BooleanEdge::getCapacity() const
     return edgeCapacity;
 }
 
-word BooleanEdge::getBaseMask(uint n) const
+word BooleanEdge::getBaseMask() const
 {
     word fullMask = ((word)1 << n) - 1;
     word baseMask = fullMask & ~starsMask;
@@ -41,44 +42,64 @@ word BooleanEdge::getBaseMask(uint n) const
     return baseMask;
 }
 
-word BooleanEdge::getBaseValue(uint n) const
+word BooleanEdge::getBaseValue() const
 {
-    word baseMask = getBaseMask(n);
+    word baseMask = getBaseMask();
     return baseValue & baseMask;
+}
+
+bool BooleanEdge::has(word x) const
+{
+    return (x & getBaseMask()) == getBaseValue();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // class BooleanEdgeSearcher
 
 BooleanEdgeSearcher::BooleanEdgeSearcher(
-    shared_ptr<list<ReversibleLogic::Transposition>> inputSet,
+    shared_ptr<list<ReversibleLogic::Transposition>> input,
     uint n, word initialMask)
-    : inputSet(inputSet)
+    : inputSet()
     , n(n)
     , initialMask(initialMask)
+    , frequencyTable()
+{
+    for (auto& transp : *input)
+    {
+        inputSet.insert(transp.getX());
+        inputSet.insert(transp.getY());
+    }
+
+    validateInputSettings();
+}
+
+BooleanEdgeSearcher::BooleanEdgeSearcher(const unordered_set<word>& inputs, uint n)
+    : inputSet(inputs)
+    , n(n)
+    , initialMask(0)
     , frequencyTable()
 {
     validateInputSettings();
 }
 
-BooleanEdgeSearcher::~BooleanEdgeSearcher()
+void BooleanEdgeSearcher::setExplicitEdgeFlag(bool value)
 {
-    inputSet = 0;
+    explicitEdgeFlag = value;
 }
 
 void BooleanEdgeSearcher::validateInputSettings()
 {
-    assertd(inputSet, string("Empty input set"));
+    assertd(inputSet.size(), string("Empty input set"));
     assertd(n != uintUndefined, string("n is not defined"));
     assertd(initialMask <= (word)((1 << n) - 1), string("Initial mask is not valid"));
 }
 
 BooleanEdge BooleanEdgeSearcher::findEdge()
 {
-    BooleanEdge edge;
-    uint inputLength = inputSet->size();
+    BooleanEdge edge(n);
+    uint inputLength = inputSet.size();
 
-    if(inputLength == ((uint)1 << (n - 1)))
+    if(inputLength == ((uint)1 << n))
     {
         // this is full boolean cube
         edge.starsMask = initialMask;
@@ -87,8 +108,8 @@ BooleanEdge BooleanEdgeSearcher::findEdge()
     else
     {
         // find upper bound for edge dimension
-        uint maxEdgeDimension = findMaxEdgeDimension(inputLength * 2);
-        uint minEdgeDimension = countNonZeroBits(initialMask);
+        uint maxEdgeDimension = findMaxEdgeDimension(inputLength);
+        uint minEdgeDimension = min((uint)1, countNonZeroBits(initialMask));
 
         // find maximum edge
         while(minEdgeDimension <= maxEdgeDimension)
@@ -136,7 +157,7 @@ void BooleanEdgeSearcher::findEdge(BooleanEdge* bestEdge, word edgeMask,
     }
     else
     {
-        BooleanEdge edge;
+        BooleanEdge edge(n);
         edge.starsMask = edgeMask;
 
         bool isValid = checkEdge(&edge);
@@ -163,73 +184,52 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
     word fullMask = ((word)1 << n) - 1;
     word mask = (fullMask ^ edge->starsMask) & fullMask;
 
-    for (auto& transp : *inputSet)
+    for (auto& x : inputSet)
     {
-        word x = transp.getX();
-        word y = transp.getY();
-
         assertd(x < maxEntriesCount, string("Invalid x value in input set"));
-        assertd(y < maxEntriesCount, string("Invalid y value in input set"));
 
-        // process x
+        word entry = x & mask;
+        uint& counter = frequencyTable[entry];
+        ++counter;
+
+        if (counter == edgeCapacity)
         {
-            word entry = x & mask;
-            uint& counter = frequencyTable[entry];
-            ++counter;
+            // edge generates subset in input set
+            edge->baseValue = entry;
+            edge->coveredTranspositionCount = edgeCapacity;
 
-            if(counter == edgeCapacity)
+            result = true;
+            break;
+        }
+    }
+
+    if (!result && !explicitEdgeFlag)
+    {
+        uint bestIndex = 0;
+        uint maxCounter = 0;
+
+        uint index = 0;
+        if (edge->starsMask == ((1 << n) - 1))
+        {
+            index = 1;
+        }
+
+        for (; index < maxEntriesCount; ++index)
+        {
+            uint counter = frequencyTable[index];
+            if (counter > maxCounter)
             {
-                // edge generates subset in input set
-                edge->baseValue = entry;
-                edge->coveredTranspositionCount = edgeCapacity;
-
-                result = true;
-                break;
+                maxCounter = counter;
+                bestIndex = index;
             }
         }
 
-        // process y
+        if (maxCounter * 2 > edgeCapacity)
         {
-            word entry = y & mask;
-            uint& counter = frequencyTable[entry];
-            ++counter;
-
-            if(counter == edgeCapacity)
-            {
-                // edge generates subset in input set
-                edge->baseValue = entry;
-                edge->coveredTranspositionCount = edgeCapacity;
-
-                result = true;
-                break;
-            }
+            edge->baseValue = bestIndex;
+            edge->coveredTranspositionCount = maxCounter;
+            result = true;
         }
-    }
-
-    uint bestIndex = 0;
-    uint maxCounter = 0;
-
-    uint index = 0;
-    if(edge->starsMask == ((1 << n) - 1))
-    {
-        index = 1;
-    }
-
-    for(; index < maxEntriesCount; ++index)
-    {
-        uint counter = frequencyTable[index];
-        if(counter > maxCounter)
-        {
-            maxCounter = counter;
-            bestIndex = index;
-        }
-    }
-
-    if(maxCounter * 2 > edgeCapacity)
-    {
-        edge->baseValue = bestIndex;
-        edge->coveredTranspositionCount = maxCounter;
-        result = true;
     }
 
     return result;
@@ -241,8 +241,8 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::filterTran
 {
     using namespace ReversibleLogic;
 
-    word baseValue = edge.getBaseValue(n);
-    word baseMask  = edge.getBaseMask(n);
+    word baseValue = edge.getBaseValue();
+    word baseMask  = edge.getBaseMask();
 
     shared_ptr<list<Transposition>> filteredResult(new list<Transposition>);
     for (auto& transp : *transpositions)
@@ -263,31 +263,38 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::getEdgeSub
 {
     using namespace ReversibleLogic;
 
-    word baseValue = edge.getBaseValue(n);
-    word baseMask  = edge.getBaseMask(n);
+    word starsMask = edge.starsMask;
+    uint starCount = countNonZeroBits(starsMask);
 
-    word totalCount = (word)1 << n;
+    vector<word> stars;
+    stars.reserve(starCount);
+
+    uint pos = findPositiveBitPosition(starsMask, 0);
+    while (pos != uintUndefined)
+    {
+        stars.push_back((word)1 << pos);
+        pos = findPositiveBitPosition(starsMask, pos + 1);
+    }
+    assertd(stars.size() == starCount, string("Not all star masks found"));
+
+    word totalCount = (word)1 << starCount;
     unordered_set<word> visitedElements;
-
-    // generate transpositions with ||diff|| = 1
-    uint pos = findPositiveBitPosition(initialMask);
-    word diff = (word)1 << pos;
-
-    // debug
-    diff = initialMask;
+    word baseValue = edge.getBaseValue();
 
     shared_ptr<list<Transposition>> subset(new list<Transposition>);
-    for(word x = 0; x < totalCount; ++x)
+    for(word index = 0; index < totalCount; ++index)
     {
+        word x = baseValue;
+        for (uint starPos = 0; starPos < starCount; ++starPos)
+        {
+            word mask = (word)1 << starPos;
+            x ^= ((index & mask) != 0) * stars[starPos];
+        }
+
+        word y = x ^ initialMask;
         if(visitedElements.find(x) == visitedElements.cend())
         {
-            word value = x & baseMask;
-            word y = x ^ diff;
-
-            if(value == baseValue)
-            {
-                subset->push_back(Transposition(x, y));
-            }
+            subset->push_back(Transposition(x, y));
 
             visitedElements.insert(x);
             visitedElements.insert(y);
@@ -295,4 +302,40 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::getEdgeSub
     }
 
     return subset;
+}
+
+shared_ptr<unordered_set<word>> BooleanEdgeSearcher::getEdgeSet(BooleanEdge edge)
+{
+    shared_ptr<unordered_set<word>> edgeSet(new unordered_set<word>);
+
+    word starsMask = edge.starsMask;
+    uint starCount = countNonZeroBits(starsMask);
+
+    vector<word> stars;
+    stars.reserve(starCount);
+
+    uint pos = findPositiveBitPosition(starsMask, 0);
+    while (pos != uintUndefined)
+    {
+        stars.push_back((word)1 << pos);
+        pos = findPositiveBitPosition(starsMask, pos + 1);
+    }
+    assertd(stars.size() == starCount, string("Not all star masks found"));
+
+    word totalCount = (word)1 << starCount;
+    word baseValue = edge.getBaseValue();
+
+    for (word index = 0; index < totalCount; ++index)
+    {
+        word x = baseValue;
+        for (uint starPos = 0; starPos < starCount; ++starPos)
+        {
+            word mask = (word)1 << starPos;
+            x ^= ((index & mask) != 0) * stars[starPos];
+        }
+
+        edgeSet->insert(x);
+    }
+
+    return edgeSet;
 }

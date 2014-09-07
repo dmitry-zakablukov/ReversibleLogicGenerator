@@ -5,7 +5,7 @@ PartialResultParams::PartialResultParams()
     : type(tNone)
     , distancesSum(0)
     , transpositions(0)
-    , edge()
+    , edge(uintUndefined)
 {
     memset(&params, 0, sizeof(params));
 }
