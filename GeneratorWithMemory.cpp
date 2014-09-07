@@ -27,7 +27,13 @@ Scheme GeneratorWithMemory::generateFast(const TruthTable& table, ostream& outpu
         generateCoordinateFunction(&scheme, n, m, coord, inputs);
     }
 
+    outputLog << "Complexity before optimization: " << scheme.size() << endl;
     scheme = PostProcessor().optimize(scheme);
+    outputLog << "Complexity after optimization: " << scheme.size() << endl;
+
+    bool isValid = checkSchemeValidity(scheme, n, m, table);
+    assert(isValid, string("Generated scheme is not valid"));
+
     return scheme;
 }
 
@@ -94,6 +100,36 @@ void GeneratorWithMemory::generateCoordinateFunction(Scheme* scheme,
             break;
         }
     }
+}
+
+bool GeneratorWithMemory::checkSchemeValidity(const Scheme& scheme,
+    uint n, uint m, const TruthTable& table)
+{
+    auto extractFunc = [=](word x)
+    {
+        word mask = ((word)1 << m) - 1;
+        word y = (x >> n) & mask;
+
+        return y;
+    };
+
+    bool isValid = true;
+
+    word count = (word)1 << n;
+    for (word x = 0; x < count; ++x)
+    {
+        word y = x;
+        for (auto& element : scheme)
+            y = element.getValue(y);
+
+        if (table[x] != extractFunc(y))
+        {
+            isValid = false;
+            break;
+        }
+    }
+
+    return isValid;
 }
 
 } //namespace ReversibleLogic

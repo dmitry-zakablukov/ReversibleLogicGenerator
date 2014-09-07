@@ -18,6 +18,9 @@ private:
 
     void generateCoordinateFunction(Scheme* scheme,
         uint n, uint m, uint coord, unordered_set<word>& inputs);
+
+    bool checkSchemeValidity(const Scheme& scheme, uint n, uint m,
+        const TruthTable& table);
 };
 
 } //ReversibleLogic
