@@ -1,5 +1,31 @@
 #include "std.hpp"
 
+TruthTable getDiscretePowerWithPrimitiveElement(Gf2Field& field)
+{
+    word maxElement = (word)(1 << field.getDegree());
+    word elementCount = maxElement - 1;
+
+    word primitiveElement = field.getPrimitiveElement();
+    assert(primitiveElement != wordUndefined, string("Field has no primitive elements"));
+
+    TruthTable table;
+    table.resize(maxElement);
+
+    table[0] = 1;
+    table[1] = primitiveElement;
+    table[elementCount] = 0;
+
+    // fill rest table
+    word z = primitiveElement;
+    for (word deg = 2; deg < elementCount; ++deg)
+    {
+        z = field.mul(z, primitiveElement);
+        table[deg] = z;
+    }
+
+    return table;
+}
+
 TruthTable getDiscreteLogWithPrimitiveElement(Gf2Field& field)
 {
     word maxElement = (word)(1 << field.getDegree());
@@ -11,16 +37,16 @@ TruthTable getDiscreteLogWithPrimitiveElement(Gf2Field& field)
     TruthTable table;
     table.resize(maxElement);
 
-    table[0] = 0;
-    table[1] = primitiveElement;
-    table[elementCount] = 1;
+    table[0] = elementCount;
+    table[1] = 0;
+    table[primitiveElement] = 1;
 
     // fill rest table
     word z = primitiveElement;
     for (word deg = 2; deg < elementCount; ++deg)
     {
         z = field.mul(z, primitiveElement);
-        table[deg] = z;
+        table[z] = deg;
     }
 
     return table;
@@ -180,7 +206,10 @@ void testSynthesis( int argc, const char* argv[] )
         try
         {
             Gf2Field field(polynomial);
-            TruthTable table = getDiscreteLogWithPrimitiveElement(field);
+
+            TruthTable table;
+            //table = getDiscretePowerWithPrimitiveElement(field);
+            table = getDiscreteLogWithPrimitiveElement(field);
 
             outputFile << "Input: " << polynomial << endl;
             outputFile << "Polynomial: " << polynomialToString(polynomial) << endl;

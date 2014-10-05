@@ -27,9 +27,7 @@ Scheme GeneratorWithMemory::generateFast(const TruthTable& table, ostream& outpu
         generateCoordinateFunction(&scheme, n, m, coord, inputs);
     }
 
-    outputLog << "Complexity before optimization: " << scheme.size() << endl;
-    scheme = PostProcessor().optimize(scheme);
-    outputLog << "Complexity after optimization: " << scheme.size() << endl;
+    outputLog << "Complexity after all optimizations: " << scheme.size() << endl;
 
     bool isValid = checkSchemeValidity(scheme, n, m, table);
     assert(isValid, string("Generated scheme is not valid"));
@@ -59,6 +57,7 @@ void GeneratorWithMemory::generateCoordinateFunction(Scheme* scheme,
 {
     assertd(scheme, string("Null pointer (GeneratorWithMemory::generateCoordinateFunction)"));
 
+    Scheme subScheme;
     while (inputs.size())
     {
         BooleanEdgeSearcher edgeSearcher(inputs, n);
@@ -82,7 +81,7 @@ void GeneratorWithMemory::generateCoordinateFunction(Scheme* scheme,
             word controlMask = edge.getBaseMask();
             word inversionMask = edge.getBaseValue() ^ controlMask;
 
-            scheme->push_back(ReverseElement(n + m, targetMask, controlMask, inversionMask));
+            subScheme.push_back(ReverseElement(n + m, targetMask, controlMask, inversionMask));
         }
         else
         {
@@ -93,13 +92,16 @@ void GeneratorWithMemory::generateCoordinateFunction(Scheme* scheme,
                 word controlMask = ((word)1 << n) - 1;
                 word inversionMask = x ^ controlMask;
 
-                scheme->push_back(ReverseElement(n + m, targetMask, controlMask, inversionMask));
+                subScheme.push_back(ReverseElement(n + m, targetMask, controlMask, inversionMask));
             }
 
             // brake main loop
             break;
         }
     }
+
+    subScheme = PostProcessor().optimize(subScheme);
+    scheme->insert(scheme->end(), subScheme.cbegin(), subScheme.cend());
 }
 
 bool GeneratorWithMemory::checkSchemeValidity(const Scheme& scheme,
