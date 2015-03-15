@@ -8,7 +8,7 @@
 //#define TURN_OFF_OPTIMIZATION
 
 // define this to apply "get full scheme" step
-//#define USE_GET_FULL_SCHEME_STEP
+#define USE_GET_FULL_SCHEME_STEP
 
 namespace ReversibleLogic
 {
@@ -292,6 +292,8 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     implementation = optimizedScheme;
 
 #if defined(USE_GET_FULL_SCHEME_STEP)
+    isNegativeControlInputsAllowed = false;
+
     implementation = getFullScheme(optimizedScheme);
     implementation = removeDuplicates(implementation);
 
@@ -300,14 +302,18 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     {
         needOptimization = false;
         implementation = transferOptimization(implementation, &needOptimization);
+
+        bool additional = false;
+        implementation = mergeOptimization(implementation, &additional);
+        needOptimization = needOptimization || additional;
     }
 
-    needOptimization = true;
-    while (needOptimization)
-    {
-        needOptimization = false;
-        implementation = mergeOptimization(implementation, &needOptimization);
-    }
+    //needOptimization = true;
+    //while (needOptimization)
+    //{
+    //    needOptimization = false;
+    //    implementation = mergeOptimization(implementation, &needOptimization);
+    //}
 #endif //USE_GET_FULL_SCHEME_STEP
 
     return implementation;

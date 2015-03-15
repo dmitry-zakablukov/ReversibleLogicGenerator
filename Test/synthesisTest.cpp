@@ -182,6 +182,27 @@ TruthTable getDiscreteLogWithPrimitiveElement(Gf2Field& field, DegreeChooseFunc 
     return table;
 }
 
+TruthTable getHwb(uint n)
+{
+    word count = 1 << n;
+    word mask = count - 1;
+    
+    TruthTable table;
+    table.resize(count);
+
+    for (word x = 0; x < count; ++x)
+    {
+        uint weight = countNonZeroBits(x);
+
+        word y = ((x << weight) & mask) |
+            ((x >> (n - weight)) & mask);
+
+        table[x] = y;
+    }
+
+    return table;
+}
+
 vector<word> getLinearWithMemory()
 {
     using namespace ReversibleLogic;
@@ -350,41 +371,42 @@ void testSynthesis( int argc, const char* argv[] )
             }
 
             TruthTable table;
+            table = getHwb(9);
 
-            typedef struct 
+            //typedef struct 
+            //{
+            //    DegreeChooseFunc func;
+            //    const char* desc;
+            //} TaskInfo;
+            //
+            //const uint numTaskCount = 8;
+            //TaskInfo tasks[numTaskCount] =
+            //{
+            //    { chooseMinDegree, "Minimum degree:" },
+            //    { chooseMaxDegree, "Maximum degree:" },
+            //    { chooseDegreeWithMinDistance, "Degree with minimum distance:" },
+            //    { chooseRandomDegree, "Random degree:" },
+            //    { chooseRandomDegree, "Random degree:" },
+            //    { chooseRandomDegree, "Random degree:" },
+            //    { chooseRandomDegree, "Random degree:" },
+            //    { chooseRandomDegree, "Random degree:" },
+            //};
+            //
+            //srand((uint)time(0));
+            //
+            //for (uint taskIndex = 0; taskIndex < 2 /*numTaskCount*/; ++taskIndex)
             {
-                DegreeChooseFunc func;
-                const char* desc;
-            } TaskInfo;
+                //const TaskInfo& task = tasks[taskIndex];
+                //
+                //outputFile << task.desc << endl;
+                //
+                //table = getDiscreteLogWithPrimitiveElement(field, task.func);
 
-            const uint numTaskCount = 8;
-            TaskInfo tasks[numTaskCount] =
-            {
-                { chooseMinDegree, "Minimum degree:" },
-                { chooseMaxDegree, "Maximum degree:" },
-                { chooseDegreeWithMinDistance, "Degree with minimum distance:" },
-                { chooseRandomDegree, "Random degree:" },
-                { chooseRandomDegree, "Random degree:" },
-                { chooseRandomDegree, "Random degree:" },
-                { chooseRandomDegree, "Random degree:" },
-                { chooseRandomDegree, "Random degree:" },
-            };
+                Generator generator;
+                auto scheme = generator.generate(table, outputFile);
 
-            srand((uint)time(0));
-
-            for (uint taskIndex = 0; taskIndex < 2 /*numTaskCount*/; ++taskIndex)
-            {
-                const TaskInfo& task = tasks[taskIndex];
-
-                outputFile << task.desc << endl;
-
-                table = getDiscreteLogWithPrimitiveElement(field, task.func);
-
-                //Generator generator;
-                //auto scheme = generator.generate(table, outputFile);
-
-                GeneratorWithMemory generator;
-                auto scheme = generator.generateFast(table, outputFile);
+                //GeneratorWithMemory generator;
+                //auto scheme = generator.generateFast(table, outputFile);
 
                 if (scheme.size() < 1000)
                 {
