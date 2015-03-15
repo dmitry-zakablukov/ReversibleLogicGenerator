@@ -517,17 +517,11 @@ deque<ReverseElement> PartialGenerator::implementSingleTransposition(const Trans
     diff ^= targetMask;
 
     // main element
-    word mainElementInversionMask = 0;
-    if(x & targetMask) // target in B_10 (x_i == 1, y_i == 0)
-    {
-        mainElementInversionMask =
-            (~(x ^ diff)) & fullMask;
-    }
-    else // target in B_01 (x_i == 0, y_i == 1)
-    {
-        mainElementInversionMask =
-            (~(y ^ diff)) & fullMask;
-    }
+    bool targetInB10 = (x & targetMask); //(x_i == 1, y_i == 0)
+    word base = (targetInB10 ? y : x);
+
+    word mainElementInversionMask = ~(base ^ targetMask);
+    mainElementInversionMask &= fullMask;
 
     ReverseElement element(n, targetMask, fullMask ^ targetMask,
         mainElementInversionMask);
