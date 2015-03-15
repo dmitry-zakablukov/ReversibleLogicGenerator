@@ -157,32 +157,32 @@ void generalSynthesis(int argc, const char* argv[])
     try
     {
         TruthTable table;
-        table = getHwb(7);
+        //table = getHwb(7);
+        table = getRd53();
+
+        Generator generator;
+        auto scheme = generator.generate(table, outputFile);
+
+        if (scheme.size() < 1000)
         {
-            Generator generator;
-            auto scheme = generator.generate(table, outputFile);
+            const char* const strSchemesFolder = "schemes/";
 
-            if (scheme.size() < 1000)
+            if (_access(strSchemesFolder, 0))
             {
-                const char* const strSchemesFolder = "schemes/";
-
-                if (_access(strSchemesFolder, 0))
-                {
-                    _mkdir(strSchemesFolder);
-                }
-
-                ostringstream schemeFileName;
-                schemeFileName << strSchemesFolder << "result_scheme.txt";
-
-                outputFile << "Scheme file: " << schemeFileName.str() << endl;
-
-                string schemeString = SchemePrinter::schemeToString(scheme, false); // vertical
-                //string schemeString = SchemePrinter::schemeToString(scheme, true); // horizontal
-
-                ofstream schemeFile(schemeFileName.str());
-                schemeFile << schemeString;
-                schemeFile.close();
+                _mkdir(strSchemesFolder);
             }
+
+            ostringstream schemeFileName;
+            schemeFileName << strSchemesFolder << "result_scheme.txt";
+
+            outputFile << "Scheme file: " << schemeFileName.str() << endl;
+
+            //string schemeString = SchemePrinter::schemeToString(scheme, false); // vertical
+            string schemeString = SchemePrinter::schemeToString(scheme, true); // horizontal
+
+            ofstream schemeFile(schemeFileName.str());
+            schemeFile << schemeString;
+            schemeFile.close();
         }
     }
     catch (exception& ex)

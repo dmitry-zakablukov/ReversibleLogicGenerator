@@ -362,16 +362,16 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     }
 
     isNegativeControlInputsAllowed = false;
-
+    
     implementation = getFullScheme(implementation, fstSimple);
     implementation = removeDuplicates(implementation);
-
+    
     needOptimization = true;
     while (needOptimization)
     {
         needOptimization = false;
         implementation = transferOptimization(implementation, &needOptimization);
-
+    
         bool additional = false;
         implementation = mergeOptimization(implementation, &additional);
         needOptimization = needOptimization || additional;
