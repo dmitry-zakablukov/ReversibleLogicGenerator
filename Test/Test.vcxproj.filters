@@ -20,9 +20,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="synthesisTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -32,13 +29,16 @@
     <ClCompile Include="Gf2Field.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="generalSynthesis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="discreteLogSynthesis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="std.hpp">
       <Filter>etc</Filter>
-    </ClInclude>
-    <ClInclude Include="synthesisTest.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
@@ -47,6 +47,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Gf2Field.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="generalSynthesis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="discreteLogSynthesis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

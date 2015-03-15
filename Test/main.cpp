@@ -2,7 +2,8 @@
 
 int main(int argc, const char* argv[])
 {
-    testSynthesis(argc, argv);
+    generalSynthesis(argc, argv);
+    //discreteLogSynthesis(argc, argv);
     //testOptimization(argc, argv);
 
     //system("pause");
