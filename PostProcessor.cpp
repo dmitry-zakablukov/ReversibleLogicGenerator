@@ -88,6 +88,40 @@ bool selectForMergeOptimization(const ReverseElement& left,
     return false;
 }
 
+bool selectForMergeOptimizationWithoutInversions(const ReverseElement& left,
+    const ReverseElement& right)
+{
+    // (01)(11) -> (*1)
+    // (1*)(10) -> (11)
+
+    if (left.getTargetMask() == right.getTargetMask())
+    {
+        word  leftControlMask = left.getControlMask();
+        word rightControlMask = right.getControlMask();
+
+        word  leftInversionMask = left.getInversionMask();
+        word rightInversionMask = right.getInversionMask();
+
+        word controlsDiff = leftControlMask   ^ rightControlMask;
+        word inversionsDiff = leftInversionMask ^ rightInversionMask;
+
+        // (01)(11) -> (*1)
+        if (leftControlMask == rightControlMask &&
+            countNonZeroBits(inversionsDiff) == 1)
+        {
+            return true;
+        }
+
+        // (1*)(10) -> (11)
+        if (controlsDiff == inversionsDiff && countNonZeroBits(controlsDiff) == 1)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool selectForTransferOptimization(const ReverseElement& left,
     const ReverseElement& right)
 {
@@ -295,9 +329,9 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     implementation = optimizedScheme;
 
 #if defined(USE_GET_FULL_SCHEME_STEP)
-    isNegativeControlInputsAllowed = false;
+    isNegativeControlInputsAllowed = true;
 
-    implementation = getFullScheme(optimizedScheme);
+    implementation = getFullScheme(implementation, fstRecursive);
     implementation = removeDuplicates(implementation);
 
     needOptimization = true;
@@ -311,12 +345,37 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
         needOptimization = needOptimization || additional;
     }
 
-    //needOptimization = true;
-    //while (needOptimization)
-    //{
-    //    needOptimization = false;
-    //    implementation = mergeOptimization(implementation, &needOptimization);
-    //}
+    isNegativeControlInputsAllowed = true;
+    
+    implementation = getFullScheme(implementation, fstSimple);
+    implementation = removeDuplicates(implementation);
+    
+    needOptimization = true;
+    while (needOptimization)
+    {
+        needOptimization = false;
+        implementation = transferOptimization(implementation, &needOptimization);
+    
+        bool additional = false;
+        implementation = mergeOptimization(implementation, &additional);
+        needOptimization = needOptimization || additional;
+    }
+
+    isNegativeControlInputsAllowed = false;
+
+    implementation = getFullScheme(implementation, fstSimple);
+    implementation = removeDuplicates(implementation);
+
+    needOptimization = true;
+    while (needOptimization)
+    {
+        needOptimization = false;
+        implementation = transferOptimization(implementation, &needOptimization);
+
+        bool additional = false;
+        implementation = mergeOptimization(implementation, &additional);
+        needOptimization = needOptimization || additional;
+    }
 #endif //USE_GET_FULL_SCHEME_STEP
 
     return implementation;
@@ -455,7 +514,13 @@ PostProcessor::OptScheme PostProcessor::removeDuplicates(const OptScheme& scheme
 
 PostProcessor::OptScheme PostProcessor::mergeOptimization(OptScheme& scheme, bool* optimized)
 {
-    return generalOptimization(scheme, optimized, selectForMergeOptimization,
+    auto selectFunc = (
+        isNegativeControlInputsAllowed ?
+        selectForMergeOptimization :
+        selectForMergeOptimizationWithoutInversions
+    );
+
+    return generalOptimization(scheme, optimized, selectFunc,
         swapElementsWithMerge, false, false);
 }
 
@@ -492,7 +557,8 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
     return optimizedScheme;
 }
 
-PostProcessor::OptScheme PostProcessor::getFullScheme(const OptScheme& scheme, bool heavyRight /*= true*/)
+PostProcessor::OptScheme PostProcessor::getFullScheme(const OptScheme& scheme,
+    FullSchemeType type, bool heavyRight /*= true*/)
 {
     OptScheme fullScheme;
     uint elementCount = scheme.size();
@@ -500,7 +566,25 @@ PostProcessor::OptScheme PostProcessor::getFullScheme(const OptScheme& scheme, b
     for(uint index = 0; index < elementCount; ++index)
     {
         const ReverseElement& element = scheme[index];
-        auto impl = element.getImplementation(heavyRight);
+        deque<ReverseElement> impl;
+        
+        switch (type)
+        {
+        case fstSimple:
+            impl = element.getSimpleImplementation();
+            break;
+
+        case fstRecursive:
+            impl = element.getRecursiveImplementation();
+            break;
+
+        case fstToffoli:
+            impl = element.getToffoliOnlyImplementation(heavyRight);
+            break;
+
+        default:
+            assert(false, string("Dead code in switch"));
+        }
 
         bufferize(fullScheme);
         fullScheme.insert(fullScheme.end(), impl.begin(), impl.end());

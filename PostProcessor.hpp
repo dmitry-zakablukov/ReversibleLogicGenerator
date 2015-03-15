@@ -56,7 +56,14 @@ private:
         SelectionFunc selectFunc, SwapFunc swapFunc,
         bool searchPairFromEnd, bool lessComplexityRequired);
 
-    OptScheme getFullScheme(const OptScheme& scheme, bool heavyRight = true);
+    enum FullSchemeType
+    {
+        fstSimple,
+        fstRecursive,
+        fstToffoli,
+    };
+
+    OptScheme getFullScheme(const OptScheme& scheme, FullSchemeType type, bool heavyRight = true);
     OptScheme getFinalSchemeImplementation(const OptScheme& scheme);
 
     // Returns true in optimizationSucceeded param if optimization tactics

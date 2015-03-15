@@ -52,7 +52,15 @@ public:
     word getValue(word input) const;
 
     deque<ReverseElement> getInversionOptimizedImplementation(bool heavyRight = true) const;
-    deque<ReverseElement> getImplementation(bool heavyRight = true) const;
+
+    /// All inversion inputs replaced by straights with additional NOT elements from left and right
+    deque<ReverseElement> getSimpleImplementation() const;
+
+    /// All inversion inputs replaced recursively by two elements: (0xx) -> (*xx)(1xx)
+    deque<ReverseElement> getRecursiveImplementation() const;
+
+    /// All k-CNOT elements replaced by 2-CNOT elements at most
+    deque<ReverseElement> getToffoliOnlyImplementation(bool heavyRight = true) const;
 
     ReverseElement getLeftmostElement(bool heavyRight = true) const;
     ReverseElement getRightmostElement(bool heavyRight = true) const;
