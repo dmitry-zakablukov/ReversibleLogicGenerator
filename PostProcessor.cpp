@@ -10,6 +10,9 @@
 // define this to apply "get full scheme" step
 #define USE_GET_FULL_SCHEME_STEP
 
+// maximum depth while searching second element for applying optimization
+#define MAX_ELEMENT_SEARCH_DEPTH 20
+
 namespace ReversibleLogic
 {
 
@@ -553,6 +556,9 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
             !schemeOptimized && (searchPairFromEnd ? rightIndex > leftIndex : rightIndex < elementCount);
             rightIndex += (searchPairFromEnd ? -1 : 1))
         {
+            if (abs(leftIndex - rightIndex) > MAX_ELEMENT_SEARCH_DEPTH)
+                break;
+
             uint newLeftIndex  = uintUndefined;
             uint newRightIndex = uintUndefined;
 
