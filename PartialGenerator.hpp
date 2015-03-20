@@ -43,6 +43,21 @@ private:
     deque<ReverseElement> implementEdge();
     deque<ReverseElement> implementPairOfTranspositions();
     deque<ReverseElement> implementSingleTransposition(const Transposition& transp);
+    
+    /// Implement multiple independent transpositions as one k-CNOT and many CNOT gates
+    deque<ReverseElement> implementIndependentTranspositions(shared_ptr<list<Transposition>> transp);
+
+    /// matrix.size() rows and m columns
+    vector<word> transposeMatrix(const vector<word>& matrix, uint m) const;
+
+    struct MatrixMix
+    {
+        vector<word> matrix; //new matrix after mix
+        vector<word> columns; //new columns of this matrix
+        unordered_map<uint, uint> columnIndexMap; //index mapping for original matrix
+    };
+
+    MatrixMix getMatrixMix(const vector<word>& columns, uint k) const;
 
     Permutation permutation;
     uint n;

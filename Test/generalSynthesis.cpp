@@ -157,8 +157,8 @@ void generalSynthesis(int argc, const char* argv[])
     try
     {
         TruthTable table;
-        //table = getHwb(7);
-        table = getRd53();
+        table = getHwb(4);
+        //table = getRd53();
 
         Generator generator;
         auto scheme = generator.generate(table, outputFile);

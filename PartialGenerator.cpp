@@ -547,4 +547,107 @@ deque<ReverseElement> PartialGenerator::implementSingleTransposition(const Trans
     return elements;
 }
 
+deque<ReverseElement> PartialGenerator::implementIndependentTranspositions(shared_ptr<list<Transposition>> transp)
+{
+    deque<ReverseElement> elements;
+
+    uint k = transp->size() * 2;
+
+    assertd(countNonZeroBits(k) == 1,
+        string("implementIndependentTranspositions(): only power of 2 is allowed for vector count"));
+
+    uint baseVectorCount = (uint)(log(k) / log(2));
+
+    // make matrix
+    vector<word> matrix;
+    matrix.reserve(k);
+
+    for (const Transposition& t : *transp)
+    {
+        matrix.push_back(t.getX());
+        matrix.push_back(t.getY());
+    }
+
+    // transpose matrix
+    vector<word> transposedMatrix = transposeMatrix(matrix, n);
+
+    return elements;
+}
+
+vector<word> PartialGenerator::transposeMatrix(const vector<word>& matrix, uint m) const
+{
+    vector<word> transposed;
+    transposed.reserve(m);
+
+    uint k = matrix.size();
+    word mask = 1;
+
+    for (uint index = 0; index < m; ++index)
+    {
+        word column = 0;
+        uint pos = 1;
+
+        for (auto row : matrix)
+        {
+            if (row & mask)
+                column |= pos;
+
+            pos <<= 1;
+        }
+
+        transposed.push_back(column);
+        mask <<= 1;
+    }
+
+    return transposed;
+}
+
+PartialGenerator::MatrixMix PartialGenerator::getMatrixMix(const vector<word>& columns, uint k) const
+{
+    assert(columns.size() == n, string("getMatrixMix(): there are should be n columns"));
+
+    MatrixMix mix;
+    mix.columns.reserve(columns.size());
+
+    struct Key
+    {
+        uint index;
+        int dist;
+    };
+
+    vector<Key> keys;
+    keys.reserve(n);
+
+    uint index = 0;
+    for (auto column : columns)
+    {
+        uint weight = countNonZeroBits(column);
+        int dist = abs((int)(k / 2 - weight));
+
+        keys.push_back( { index, dist } );
+        ++index;
+    }
+
+    auto sortFunc = [](const Key& leftKey, const Key& rightKey)
+    {
+        return leftKey.dist < rightKey.dist;
+    };
+
+    sort(keys.begin(), keys.end(), sortFunc);
+
+    // make new columns
+    for (uint index = 0; index < k; ++index)
+    {
+        uint columnIndex = keys[index].index;
+
+        mix.columns.push_back(columns[columnIndex]);
+        mix.columnIndexMap[index] = columnIndex;
+    }
+
+    // make matrix from columns
+    mix.matrix = transposeMatrix(mix.columns, k);
+
+    return mix;
+}
+
 } //namespace ReversibleLogic
