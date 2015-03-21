@@ -25,6 +25,7 @@ public:
 
     bool operator ==(const Cycle& another) const;
     bool has(const Transposition& target) const;
+    bool has(word x) const;
 
     operator string() const;
 

@@ -49,7 +49,7 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
                 Scheme localScheme;
                 Scheme::iterator targetIter = localScheme.end();
 
-                //// debug
+                /////debug
                 //cout << "Permutation: " << (string)permutation << "\n";
 
                 shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());

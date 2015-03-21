@@ -124,6 +124,21 @@ bool Cycle::has(const Transposition& target) const
     return result;
 }
 
+bool Cycle::has(word x) const
+{
+    bool result = false;
+    for (auto e : elements)
+    {
+        if (e == x)
+        {
+            result = true;
+            break;
+        }
+    }
+
+    return result;
+}
+
 Cycle::operator string() const
 {
     ostringstream result;
