@@ -74,6 +74,8 @@ private:
     deque<ReverseElement> transformRowToCanonicalForm(MatrixMix* mix, uint rowIndex,
         uint matrixWidth, uint baseVectorCount, word canonicalForm) const;
 
+    word getRealMask(MatrixMix* mix, word inputMask) const;
+
     void applyModificationToMatrix(MatrixMix* mix, word controlMask, word targetMask) const;
 
     Permutation permutation;
