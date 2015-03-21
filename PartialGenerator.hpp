@@ -57,7 +57,24 @@ private:
         unordered_map<uint, uint> columnIndexMap; //index mapping for original matrix
     };
 
-    MatrixMix getMatrixMix(const vector<word>& columns, uint k) const;
+    /// Removes copies of columns in matrix
+    deque<ReverseElement> removeColumnsCopies(const vector<word>& transposedMatrix, uint k,
+        MatrixMix* output, word* inversionMask) const;
+
+    /// Columns with weight close to k / 2 go first
+    MatrixMix reorderMatrixColumns(const MatrixMix& mix, uint k) const;
+
+    /// Make canonical form of matrix
+    deque<ReverseElement> transformMatrixToCanonicalForm(MatrixMix* mix, uint matrixWidth,
+        word* inversionMask) const;
+
+    void findBestRowInMatrix(const vector<word>& matrix, word pattern, word mask,
+        uint* xIndex, uint* yIndex) const;
+
+    deque<ReverseElement> transformRowToCanonicalForm(MatrixMix* mix, uint rowIndex,
+        uint matrixWidth, uint baseVectorCount, word canonicalForm) const;
+
+    void applyModificationToMatrix(MatrixMix* mix, word controlMask, word targetMask) const;
 
     Permutation permutation;
     uint n;

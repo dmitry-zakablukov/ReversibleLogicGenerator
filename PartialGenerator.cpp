@@ -517,7 +517,7 @@ deque<ReverseElement> PartialGenerator::implementSingleTransposition(const Trans
     diff ^= targetMask;
 
     // main element
-    bool targetInB10 = (x & targetMask); //(x_i == 1, y_i == 0)
+    bool targetInB10 = (x & targetMask) != 0; //(x_i == 1, y_i == 0)
     word base = (targetInB10 ? y : x);
 
     word mainElementInversionMask = ~(base ^ targetMask);
@@ -571,6 +571,35 @@ deque<ReverseElement> PartialGenerator::implementIndependentTranspositions(share
     // transpose matrix
     vector<word> transposedMatrix = transposeMatrix(matrix, n);
 
+    // remove columns copies
+    MatrixMix mix;
+    word inversionMask = 0;
+
+    {
+        auto conjugationElements = removeColumnsCopies(transposedMatrix, k, &mix, &inversionMask);
+        elements.insert(elements.cend(), conjugationElements.cbegin(), conjugationElements.cend());
+    }
+
+    // reorder columns
+    uint matrixWidth = mix.columns.size();
+    mix = reorderMatrixColumns(mix, k);
+
+    // transform matrix to canonical form
+    {
+        auto conjugationElements = transformMatrixToCanonicalForm(&mix, matrixWidth, &inversionMask);
+        elements.insert(elements.cend(), conjugationElements.cbegin(), conjugationElements.cend());
+    }
+
+    // conjugate core element
+    {
+        word controlMask = (1 << n) - 1;
+        for (uint index = 0; index < baseVectorCount; ++index)
+            controlMask ^= 1 << mix.columnIndexMap[index];
+
+        ReverseElement element(n, mix.columnIndexMap[1], controlMask, inversionMask);
+        elements = conjugate(deque<ReverseElement>{ element }, elements);
+    }
+
     return elements;
 }
 
@@ -602,12 +631,91 @@ vector<word> PartialGenerator::transposeMatrix(const vector<word>& matrix, uint 
     return transposed;
 }
 
-PartialGenerator::MatrixMix PartialGenerator::getMatrixMix(const vector<word>& columns, uint k) const
+deque<ReverseElement> PartialGenerator::removeColumnsCopies(const vector<word>& transposedMatrix, uint k,
+    MatrixMix* output, word* inversionMask) const
 {
-    assert(columns.size() == n, string("getMatrixMix(): there are should be n columns"));
+    assertd(output && inversionMask, string("removeColumnsCopies(): null ptr"));
 
-    MatrixMix mix;
-    mix.columns.reserve(columns.size());
+    // 1) find unique columns
+    uint columnCount = transposedMatrix.size();
+    unordered_map<word, list<uint>> columnToIndicesMap;
+
+    for (uint index = 0; index < columnCount; ++index)
+    {
+        list<uint>& indices = columnToIndicesMap[transposedMatrix[index]];
+        indices.push_back(index);
+    }
+
+    // 2) remove copies
+    deque<ReverseElement> elements;
+    unordered_set<word> visited;
+
+    word mask = (1 << k) - 1;
+    for (const auto& iter : columnToIndicesMap)
+    {
+        word column = iter.first;
+        if (visited.find(column) != visited.cend())
+            continue;
+
+        if (column == mask)
+            continue; //do nothing
+
+        const list<uint>& indices = iter.second;
+
+        if (column == 0)
+        {
+            for (auto index : indices)
+                *inversionMask |= 1 << index;
+
+            continue;
+        }
+
+        // complementary column
+        word complementaryColumn = ~column & mask;
+        if (columnToIndicesMap.find(complementaryColumn) != columnToIndicesMap.cend())
+        {
+            const list<uint>& complementaryIndices = columnToIndicesMap[complementaryColumn];
+            visited.insert(complementaryColumn);
+
+            for (auto citer = ++indices.cbegin(); citer != indices.cend(); ++citer)
+            {
+                ReverseElement element(n, 1 << *citer, 1 << *(complementaryIndices.cbegin()));
+                elements.push_back(element);
+            }
+
+            for (auto citer = complementaryIndices.cbegin();
+                citer != complementaryIndices.cend(); ++citer)
+            {
+                ReverseElement element(n, 1 << *citer, 1 << *(indices.cbegin()));
+                elements.push_back(element);
+            }
+        }
+        else
+        {
+            for (auto citer = ++indices.cbegin(); citer != indices.cend(); ++citer)
+            {
+                ReverseElement element(n, 1 << *citer, 1 << *(indices.cbegin()));
+                elements.push_back(element);
+
+                *inversionMask |= *citer;
+            }
+        }
+
+        output->columns.push_back(column);
+        output->columnIndexMap[output->columns.size() - 1] = *(indices.cbegin());
+
+        visited.insert(column);
+    }
+
+    return elements;
+}
+
+PartialGenerator::MatrixMix PartialGenerator::reorderMatrixColumns(const MatrixMix& mix, uint k) const
+{
+    uint m = mix.columns.size();
+
+    MatrixMix outputMix;
+    outputMix.columns.reserve(m);
 
     struct Key
     {
@@ -616,10 +724,10 @@ PartialGenerator::MatrixMix PartialGenerator::getMatrixMix(const vector<word>& c
     };
 
     vector<Key> keys;
-    keys.reserve(n);
+    keys.reserve(m);
 
     uint index = 0;
-    for (auto column : columns)
+    for (auto column : mix.columns)
     {
         uint weight = countNonZeroBits(column);
         int dist = abs((int)(k / 2 - weight));
@@ -640,14 +748,215 @@ PartialGenerator::MatrixMix PartialGenerator::getMatrixMix(const vector<word>& c
     {
         uint columnIndex = keys[index].index;
 
-        mix.columns.push_back(columns[columnIndex]);
-        mix.columnIndexMap[index] = columnIndex;
+        outputMix.columns.push_back(mix.columns[columnIndex]);
+        outputMix.columnIndexMap[index] = mix.columnIndexMap.at(columnIndex);
     }
 
     // make matrix from columns
-    mix.matrix = transposeMatrix(mix.columns, k);
+    outputMix.matrix = transposeMatrix(outputMix.columns, k);
 
-    return mix;
+    return outputMix;
+}
+
+deque<ReverseElement> PartialGenerator::transformMatrixToCanonicalForm(MatrixMix* mix, uint matrixWidth,
+    word* inversionMask) const
+{
+    assertd(mix && inversionMask, string("transformMatrixToCanonicalForm(): null ptr"));
+
+    deque<ReverseElement> elements;
+
+    uint k = mix->matrix.size();
+    assertd(countNonZeroBits(k) == 1,
+        string("transformMatrixToCanonicalForm(): only power of 2 is allowed for vector count"));
+
+    uint baseVectorCount = (uint)(log(k) / log(2));
+    assert(baseVectorCount >= matrixWidth, string("transformMatrixToCanonicalForm(): wrong base vector count"));
+
+    if (baseVectorCount == matrixWidth)
+    {
+        // bad case, no temp storage
+        uint firstInversionPos = findPositiveBitPosition(*inversionMask);
+        if (firstInversionPos == uintUndefined)
+        {
+            // the worst case, find first column not from mix->columns
+            unordered_set<uint> forbiddenIndices;
+            for (auto iter : mix->columnIndexMap)
+                forbiddenIndices.insert(iter.second);
+
+            for (uint index = 0; index < n; ++index)
+            {
+                if (forbiddenIndices.find(index) != forbiddenIndices.cend())
+                    continue;
+
+                elements.push_back(ReverseElement(n, 1 << index));
+                firstInversionPos = index;
+                
+                break;
+            }
+
+            assert(firstInversionPos != uintUndefined,
+                string("transformMatrixToCanonicalForm(): temp column not found"));
+        }
+        else
+        {
+            *inversionMask ^= 1 << firstInversionPos;
+        }
+
+        // add temporary column
+        mix->columnIndexMap[matrixWidth] = firstInversionPos;
+
+        ++matrixWidth;
+    }
+
+    // transformation itself
+    uint baseMask = (1 << baseVectorCount) - 1;
+    for (uint index = 0; index < k; index += 2)
+    {
+        uint xIndex = wordUndefined;
+        uint yIndex = wordUndefined;
+
+        findBestRowInMatrix(mix->matrix, index, baseMask, &xIndex, &yIndex);
+        assertd(xIndex == (yIndex ^ 1), string("transformMatrixToCanonicalForm(): wrong indices found"));
+
+    }
+
+    return elements;
+}
+
+void PartialGenerator::findBestRowInMatrix(const vector<word>& matrix, word pattern, word mask,
+    uint* xIndex, uint* yIndex) const
+{
+    assertd(xIndex && yIndex, string("findBestRowInMatrix(): null ptr"));
+
+    uint xBestIndex = uintUndefined;
+    uint yBestIndex = uintUndefined;
+
+    word xBest = wordUndefined;
+    word yBest = wordUndefined;
+
+    uint minDist = uintUndefined;
+
+    uint rowCount = matrix.size();
+    assertd((rowCount & 1) == 0, string("findBestRowInMatrix(): wrong row count"));
+
+    for (uint index = 0; index < rowCount; index += 2)
+    {
+        uint xInd = index;
+        uint yInd = index + 1;
+
+        word x = (matrix[xInd] ^ pattern) & mask;
+        word y = (matrix[yInd] ^ pattern) & mask;
+
+        uint xWeight = countNonZeroBits(x);
+        uint yWeight = countNonZeroBits(y);
+        
+        uint dist = xWeight + yWeight;
+        if (dist > minDist)
+            continue;
+
+        if (yWeight < xWeight || ((x & 1) == 1 && (y & 1) == 0))
+        {
+            swap(x, y);
+            swap(xWeight, yWeight);
+            swap(xInd, yInd);
+        }
+
+        if (dist < minDist || xBest > x)
+        {
+            minDist = dist;
+
+            xBest = x;
+            yBest = y;
+
+            xBestIndex = xInd;
+            yBestIndex = yInd;
+        }
+    }
+
+    assertd(xBestIndex != uintUndefined && yBestIndex != uintUndefined,
+        string("findBestRowInMatrix(): row not found"));
+
+    *xIndex = xBestIndex;
+    *yIndex = yBestIndex;
+}
+
+deque<ReverseElement> PartialGenerator::transformRowToCanonicalForm(MatrixMix* mix, uint rowIndex,
+    uint matrixWidth, uint baseVectorCount, word canonicalForm) const
+{
+    assertd(mix, string("transformRowToCanonicalForm(): null ptr"));
+    assertd(rowIndex < mix->matrix.size(), string("transformRowToCanonicalForm(): invalid index parameter"));
+
+    word baseMask = (1 << baseVectorCount) - 1;
+
+    word row = mix->matrix[rowIndex];
+    word baseDiff = (canonicalForm ^ row) & baseMask;
+    word outerDiff = row & ~baseMask;
+
+    // 1) check if row is already in canonical form
+    if (!baseDiff && !outerDiff)
+        return deque<ReverseElement>();
+
+    deque<ReverseElement> elements;
+
+    // 2) find non-zero element not form basis columns
+    uint firstNonZeroElementPos = findPositiveBitPosition(outerDiff, baseVectorCount);
+    if (firstNonZeroElementPos == uintUndefined)
+    {
+        // 3) make non-zero element from first non-basis column
+        firstNonZeroElementPos = baseVectorCount;
+
+        ReverseElement element(n, 1 << firstNonZeroElementPos, row & baseMask);
+        elements.push_back(element);
+
+        applyModificationToMatrix(mix, row & baseMask, 1 << firstNonZeroElementPos);
+    }
+
+    // 4) make almost canonical row
+    {
+        word diff = baseDiff ^ outerDiff;
+        if (diff & (1 << firstNonZeroElementPos))
+            diff ^= 1 << firstNonZeroElementPos;
+
+        uint mask = 1;
+        while (mask <= diff)
+        {
+            if (diff & mask)
+            {
+                ReverseElement element(n, mask, 1 << firstNonZeroElementPos);
+                elements.push_back(element);
+
+                applyModificationToMatrix(mix, 1 << firstNonZeroElementPos, mask);
+            }
+
+            mask <<= 1;
+        }
+    }
+
+    // 5) remove non-zero element not form basis columns (== make canonical form)
+    {
+        ReverseElement element(n, 1 << firstNonZeroElementPos, canonicalForm);
+        elements.push_back(element);
+
+        applyModificationToMatrix(mix, canonicalForm, 1 << firstNonZeroElementPos);
+    }
+
+    assertd(mix->matrix[rowIndex] == canonicalForm,
+        string("transformRowToCanonicalForm(): transformation of row to canonical form is invalid"));
+
+    return elements;
+}
+
+void PartialGenerator::applyModificationToMatrix(MatrixMix* mix, word controlMask, word targetMask) const
+{
+    assertd(mix, string("applyModificationToMatrix(): null ptr"));
+    assertd(countNonZeroBits(targetMask) == 1,
+        string("applyModificationToMatrix(): invalid target mask parameter"));
+
+    for (auto& row : mix->matrix)
+    {
+        if ((row & controlMask) == controlMask)
+            row ^= targetMask;
+    }
 }
 
 } //namespace ReversibleLogic
