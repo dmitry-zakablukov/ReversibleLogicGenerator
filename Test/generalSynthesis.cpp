@@ -143,21 +143,23 @@ void generalSynthesis(int argc, const char* argv[])
     using namespace ReversibleLogic;
 
     const char strDefaultOutputFileName[] = "results.txt";
+    string resultsFileName;
 
-    ofstream outputFile;
     if(argc > 1)
     {
-        outputFile.open(argv[1]);
+        resultsFileName = argv[1];
     }
     else
     {
-        outputFile.open(strDefaultOutputFileName);
+        resultsFileName = strDefaultOutputFileName;
     }
+
+    ofstream outputFile(resultsFileName);
 
     try
     {
         TruthTable table;
-        table = getHwb(4);
+        table = getHwb(5);
         //table = getRd53();
 
         Generator generator;
@@ -183,6 +185,10 @@ void generalSynthesis(int argc, const char* argv[])
             ofstream schemeFile(schemeFileName.str());
             schemeFile << schemeString;
             schemeFile.close();
+
+            ofstream tfcFile(schemeFileName.str() + ".tfc");
+            TfcFormatter::format(tfcFile, scheme);
+            tfcFile.close();
         }
     }
     catch (exception& ex)
