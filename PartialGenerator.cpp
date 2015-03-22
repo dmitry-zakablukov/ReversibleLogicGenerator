@@ -195,8 +195,27 @@ shared_ptr<list<Transposition>> PartialGenerator::getCommonPair()
         }
         else
         {
-            transpositions->push_back(Transposition(cycle[0], cycle[1]));
-            transpositions->push_back(Transposition(cycle[0], cycle[2]));
+            word x = cycle[0];
+            word y = cycle[1];
+
+            transpositions->push_back(Transposition(x, y));
+
+            uint mask = 1;
+            while (true)
+            {
+                word a = x ^ mask;
+                word b = y ^ mask;
+
+                if (!cycle.has(a) && !cycle.has(b))
+                {
+                    transpositions->push_back(Transposition(a, b));
+                    break;
+                }
+
+                mask <<= 1;
+            }
+
+            assert(transpositions->size() == 2, string("wrong representation of 3-cycle"));
         }
     }
 
