@@ -61,3 +61,49 @@ uint getSignificantBitCount(word value)
 
     return count;
 }
+
+string trim(const string& value)
+{
+    uint size = value.size();
+
+    // find first non-space character
+    string::const_iterator first = value.cbegin();
+    while (isspace(*first))
+        ++first;
+
+    // find last non-space character
+    string::const_reverse_iterator lastReverse = value.crbegin();
+    while (isspace(*lastReverse))
+        ++lastReverse;
+
+    string::const_iterator last = lastReverse.base();
+
+    string result;
+    result.reserve(size);
+
+    while (first != last)
+        result.push_back(*first++);
+
+    return result;
+}
+
+string removeQuotes(const string& value)
+{
+    if (value.size() == 0)
+        return value;
+
+    uint start = 0;
+    uint count = value.size();
+
+    if (value.front() == '"')
+    {
+        ++start;
+        --count;
+    }
+
+    if (value.back() == '"')
+        --count;
+
+    string result = value.substr(start, count);
+    return result;
+}

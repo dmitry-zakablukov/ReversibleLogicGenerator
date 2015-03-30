@@ -103,3 +103,6 @@ inline void toVector(const list<T>& container, vector<T>* output)
         output->push_back(element);
     }
 }
+
+string trim(const string& value);
+string removeQuotes(const string& value);

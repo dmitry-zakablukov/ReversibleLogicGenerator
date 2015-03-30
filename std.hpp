@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <memory>
 #include <ctime>
+#include <fstream>
 
 #include <direct.h> //mkdir
 #include <io.h> //access
@@ -62,3 +63,6 @@ typedef size_t uint;
 #include "PartialGenerator.hpp"
 #include "Generator.hpp"
 #include "GeneratorWithMemory.hpp"
+#include "Values.h"
+#include "IniParser.h"
+#include "ProgramOptions.h"

@@ -35,9 +35,6 @@
     <ClCompile Include="discreteLogSynthesis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IniParser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="std.hpp">
@@ -56,9 +53,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="discreteLogSynthesis.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="IniParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

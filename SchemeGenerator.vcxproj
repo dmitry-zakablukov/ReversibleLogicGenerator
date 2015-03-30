@@ -130,11 +130,13 @@
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="Generator.cpp" />
     <ClCompile Include="GeneratorWithMemory.cpp" />
+    <ClCompile Include="IniParser.cpp" />
     <ClCompile Include="PartialGenerator.cpp" />
     <ClCompile Include="PartialResultParams.cpp" />
     <ClCompile Include="Permutation.cpp" />
     <ClCompile Include="PermutationUtils.cpp" />
     <ClCompile Include="PostProcessor.cpp" />
+    <ClCompile Include="ProgramOptions.cpp" />
     <ClCompile Include="Range.cpp" />
     <ClCompile Include="std.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -146,6 +148,7 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transposition.cpp" />
     <ClCompile Include="utils.cpp" />
+    <ClCompile Include="Values.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BooleanEdgeSearcher.hpp" />
@@ -153,11 +156,13 @@
     <ClInclude Include="Element.hpp" />
     <ClInclude Include="Generator.hpp" />
     <ClInclude Include="GeneratorWithMemory.hpp" />
+    <ClInclude Include="IniParser.h" />
     <ClInclude Include="PartialGenerator.hpp" />
     <ClInclude Include="PartialResultParams.hpp" />
     <ClInclude Include="Permutation.hpp" />
     <ClInclude Include="PermutationUtils.hpp" />
     <ClInclude Include="PostProcessor.hpp" />
+    <ClInclude Include="ProgramOptions.h" />
     <ClInclude Include="Range.hpp" />
     <ClInclude Include="SchemePrinter.hpp" />
     <ClInclude Include="SchemePrinterImpl.hpp" />
@@ -166,6 +171,7 @@
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transposition.hpp" />
     <ClInclude Include="utils.hpp" />
+    <ClInclude Include="Values.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

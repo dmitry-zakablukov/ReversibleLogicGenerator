@@ -1,8 +1,5 @@
 #pragma once
 
-// system
-#include <fstream>
-
 // libraries
 #include "../../SchemeGenerator/std.hpp"
 
@@ -11,4 +8,3 @@
 #include "discreteLogSynthesis.h"
 #include "optimizationTest.h"
 #include "Gf2Field.hpp"
-#include "IniParser.h"
