@@ -36,6 +36,24 @@ shared_ptr<Cycle> Permutation::getCycle(uint index) const
     return *iter;
 }
 
+uint Permutation::getElementCount() const
+{
+    uint count = 0;
+    for (auto cycle : cycles)
+        count += cycle->length();
+
+    return count;
+}
+
+uint Permutation::getTranspositionsCount() const
+{
+    uint count = 0;
+    for (auto cycle : cycles)
+        count += cycle->length() - 1;
+
+    return count;
+}
+
 bool Permutation::isEmpty() const
 {
     //uint cycleCount = cycles.size();
@@ -141,7 +159,7 @@ void Permutation::completeToEven(word truthTableSize)
     append(lastCycle);
 }
 
-Permutation::operator string()
+Permutation::operator string() const
 {
     ostringstream result;
     result << "[ ";
@@ -168,36 +186,36 @@ vector<shared_ptr<Cycle>>::const_iterator Permutation::end() const
 Permutation Permutation::multiplyByTranspositions(
     shared_ptr<list<Transposition>> transpositions, bool isLeftMultiplication) const
 {
+    return multiplyByTranspositions(*transpositions, isLeftMultiplication);
+}
+
+ReversibleLogic::Permutation Permutation::multiplyByTranspositions(const list<Transposition>& transpositions,
+    bool isLeftMultiplication) const
+{
     vector<shared_ptr<Cycle>> newCycles;
 
     // remember all elements in transpositions and in this permutation
     unordered_set<word> storage;
-    for (auto& transp : *transpositions)
+    for (const auto& transp : transpositions)
     {
         word x = transp.getX();
         word y = transp.getY();
 
-        if(storage.find(x) == storage.cend())
-        {
+        if (storage.find(x) == storage.cend())
             storage.insert(x);
-        }
 
-        if(storage.find(y) == storage.cend())
-        {
+        if (storage.find(y) == storage.cend())
             storage.insert(y);
-        }
     }
 
     for (auto cycle : *this)
     {
         uint elementCount = cycle->length();
-        for(uint index = 0; index < elementCount; ++index)
+        for (uint index = 0; index < elementCount; ++index)
         {
             word element = (*cycle)[index];
-            if(storage.find(element) == storage.cend())
-            {
+            if (storage.find(element) == storage.cend())
                 storage.insert(element);
-            }
         }
     }
 
@@ -208,19 +226,19 @@ Permutation Permutation::multiplyByTranspositions(
 
     for (word x : storage)
     {
-        if(visitedElements.find(x) == end)
+        if (visitedElements.find(x) == end)
         {
-            while(!nextCycle->isFinal())
+            while (!nextCycle->isFinal())
             {
                 word y = x;
-                if(isLeftMultiplication)
+                if (isLeftMultiplication)
                 {
                     // multiply in reverse order for common pair case
                     // for other cases this reverse order won't affect on result
 
                     //for (auto& transp : *transpositions)
                     //    y = transp.getOutput(y);
-                    for (auto iter = transpositions->rbegin(); iter != transpositions->rend(); ++iter)
+                    for (auto iter = transpositions.crbegin(); iter != transpositions.crend(); ++iter)
                         y = iter->getOutput(y);
 
                     for (auto cycle : *this)
@@ -236,23 +254,25 @@ Permutation Permutation::multiplyByTranspositions(
 
                     //for (auto& transp : *transpositions)
                     //    y = transp.getOutput(y);
-                    for (auto iter = transpositions->rbegin(); iter != transpositions->rend(); ++iter)
+                    for (auto iter = transpositions.crbegin(); iter != transpositions.crend(); ++iter)
                         y = iter->getOutput(y);
                 }
 
-                if(nextCycle->isEmpty())
-                {
+                if (nextCycle->isEmpty())
                     nextCycle->append(x);
-                }
+
                 nextCycle->append(y);
 
                 visitedElements.insert(x);
                 x = y;
             }
 
+            /////debug
+            //cout << "New cycle:\n" << (string)*nextCycle << endl;
+
             // skip fixed point
             uint cycleLength = nextCycle->length();
-            if(cycleLength > 1)
+            if (cycleLength > 1)
             {
                 newCycles.push_back(nextCycle);
             }
@@ -277,6 +297,23 @@ uint Permutation::getDistancesSum() const
     }
 
     return sum;
+}
+
+ReversibleLogic::Permutation Permutation::clone() const
+{
+    vector<shared_ptr<Cycle>> cyclesCopy;
+    cyclesCopy.reserve(cycles.size());
+
+    for (auto cycle : cycles)
+    {
+        shared_ptr<Cycle> cycleCopy(new Cycle());
+        *cycleCopy = *cycle;
+
+        cyclesCopy.push_back(cycleCopy);
+    }
+
+    Permutation result(cyclesCopy);
+    return result;
 }
 
 }   // namespace ReversibleLogic

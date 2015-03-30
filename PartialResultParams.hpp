@@ -14,6 +14,7 @@ struct PartialResultParams
         tNone = 0,
         tCommonPair,
         tSameDiffPair,
+        tPack,
         tEdge,
         tFullEdge,
     };
@@ -27,6 +28,7 @@ struct PartialResultParams
     struct
     {
         word edgeCapacity;  // tFullEdge and tEdge
+        word packSize;      // tPack
         word diff;          // tSameDiffPair
 
         struct              // tCommonPair

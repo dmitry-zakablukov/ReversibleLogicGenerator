@@ -39,7 +39,7 @@ public:
     /// Finds all possible transpositions from cycle which have specified Hamming distance
     /// @diff - Hamming distance which should have all returned transpositions
     /// @result - output list for adding found transpositions
-    void disjointByDiff(word diff, shared_ptr<list<Transposition>> result);
+    void disjointByDiff(word diff, shared_ptr<list<Transposition>> result) const;
 
     void multiplyByTranspositions(shared_ptr<list<Transposition>> transpositions,
         bool isLeftMultiplication, vector<shared_ptr<Cycle>>* output) const;
@@ -57,10 +57,10 @@ private:
     /// Gets all possible transpositions with specified Hamming distance @diff
     /// from vector of elements @input and puts them to @result
     void getTranspositionsByDiff(const vector<word>& input, word diff,
-        shared_ptr<list<Transposition>> result);
+        shared_ptr<list<Transposition>> result) const;
 
     void getTranspositionsByDiff(const vector<word>& input, word diff,
-        uint xIndex, uint yIndex, shared_ptr<list<Transposition>> result);
+        uint xIndex, uint yIndex, shared_ptr<list<Transposition>> result) const;
 
     vector<word> elements;
     bool finalized;

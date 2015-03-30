@@ -48,6 +48,10 @@ bool PartialResultParams::isBetterThan(const PartialResultParams& another) const
             }
             break;
 
+        case tPack:
+            isLeftBetter = params.packSize >= another.params.packSize;
+            break;
+
         case tCommonPair:
             {
                 uint leftSum = 0;
@@ -101,6 +105,10 @@ word PartialResultParams::getCoveredTranspositionsCount() const
     case tFullEdge:
     case tEdge:
         count = params.edgeCapacity / 2;
+        break;
+
+    case tPack:
+        count = params.packSize;
         break;
 
     case tSameDiffPair:

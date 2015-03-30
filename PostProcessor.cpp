@@ -13,6 +13,9 @@
 // maximum depth while searching second element for applying optimization
 #define MAX_ELEMENT_SEARCH_DEPTH 20
 
+// maximum sub-scheme size to optimized
+#define MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION 100
+
 namespace ReversibleLogic
 {
 
@@ -544,14 +547,47 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
     *optimized = false;
 
     OptScheme optimizedScheme = scheme;
-    bool repeat = true;
 
-    while (repeat)
+    bool repeatOuter = true;
+    while (repeatOuter)
     {
-        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectFunc,
-            swapFunc, &repeat, searchPairFromEnd, lessComplexityRequired);
+        repeatOuter = false;
 
-        *optimized = *optimized || repeat;
+        uint schemeSize = optimizedScheme.size();
+        uint stepCount = (schemeSize + MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION - 1) /
+            MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION;
+
+        OptScheme::const_iterator first = optimizedScheme.cbegin();
+        uint currentProgress = 0;
+
+        OptScheme tempScheme;
+        for (uint step = 0; step < stepCount; ++step)
+        {
+            OptScheme::const_iterator last;
+            if (currentProgress + MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION <= schemeSize)
+                last = first + MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION;
+            else
+                last = first + (schemeSize - currentProgress);
+
+            OptScheme subScheme(first, last);
+            bool repeatInner = true;
+
+            while (repeatInner)
+            {
+                subScheme = tryOptimizationTactics(subScheme, selectFunc,
+                    swapFunc, &repeatInner, searchPairFromEnd, lessComplexityRequired);
+
+                *optimized = *optimized || repeatInner;
+                repeatOuter = repeatOuter || repeatInner;
+            }
+
+            tempScheme.insert(tempScheme.end(), subScheme.cbegin(), subScheme.cend());
+
+            currentProgress += MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION;
+            first = last;
+        }
+
+        optimizedScheme = tempScheme;
     }
 
     return optimizedScheme;

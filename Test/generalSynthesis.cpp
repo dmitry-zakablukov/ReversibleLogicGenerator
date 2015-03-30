@@ -159,13 +159,12 @@ void generalSynthesis(int argc, const char* argv[])
     try
     {
         TruthTable table;
-        table = getHwb(5);
+        table = getHwb(11);
         //table = getRd53();
 
         Generator generator;
         auto scheme = generator.generate(table, outputFile);
 
-        if (scheme.size() < 1000)
         {
             const char* const strSchemesFolder = "schemes/";
 
@@ -183,7 +182,10 @@ void generalSynthesis(int argc, const char* argv[])
             string schemeString = SchemePrinter::schemeToString(scheme, true); // horizontal
 
             ofstream schemeFile(schemeFileName.str());
-            schemeFile << schemeString;
+            if (scheme.size() < 1000)
+                schemeFile << schemeString;
+            else
+                schemeFile << "Scheme too large" << endl;
             schemeFile.close();
 
             ofstream tfcFile(schemeFileName.str() + ".tfc");

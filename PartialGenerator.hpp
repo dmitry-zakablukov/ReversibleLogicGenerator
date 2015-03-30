@@ -8,7 +8,9 @@ namespace ReversibleLogic
 class PartialGenerator
 {
 public:
-    PartialGenerator();
+    static const uint numMaxPackSize;
+
+    PartialGenerator(uint packSize = numMaxPackSize);
     ~PartialGenerator();
 
     void setPermutation(const Permutation& thePermutation, uint inputCount);
@@ -30,6 +32,10 @@ public:
 private:
     PartialResultParams getPartialResult(shared_ptr<list<Transposition>> transpositions,
         word diff, const PartialResultParams& bestParams);
+
+    shared_ptr<list<Transposition>> getTranspositionsPack(const unordered_map<word, uint>& frequencyMap);
+    void getTranspositionsPack(shared_ptr<list<Transposition>> result, Permutation* permCopy,
+        unordered_set<word>* visited);
 
     shared_ptr<list<Transposition>> getCommonPair();
 
@@ -82,6 +88,8 @@ private:
     uint n;
 
     PartialResultParams partialResultParams;
+
+    uint maxPackSize;
 };
 
 } //namespace ReversibleLogic

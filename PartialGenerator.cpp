@@ -3,10 +3,16 @@
 namespace ReversibleLogic
 {
 
-PartialGenerator::PartialGenerator()
+// Number of transpositions in pack to synthesize at once
+const uint PartialGenerator::numMaxPackSize = 8;
+
+PartialGenerator::PartialGenerator(uint packSize /*= numMaxPackSize*/)
     : permutation()
     , n(uintUndefined)
+    , maxPackSize(packSize)
 {
+    assert(countNonZeroBits(maxPackSize) == 1,
+        string("Transpositions pack size should be power of 2"));
 }
 
 PartialGenerator::~PartialGenerator()
@@ -136,9 +142,24 @@ void PartialGenerator::prepareForGeneration()
         }
 
         PartialResultParams result = getPartialResult(transpositions, diff, bestResult);
-        if(result.edge.coveredTranspositionCount > bestResult.edge.coveredTranspositionCount)
+        if (result.isBetterThan(bestResult) ||
+            result.edge.coveredTranspositionCount > bestResult.edge.coveredTranspositionCount)
         {
             bestResult = result;
+        }
+    }
+
+    if (bestResult.type != PartialResultParams::tFullEdge &&
+        bestResult.type != PartialResultParams::tEdge)
+    {
+        // try to retrieve transpositions pack
+        shared_ptr<list<Transposition>> transpositions = getTranspositionsPack(frequencyMap);
+    
+        if (transpositions->size())
+        {
+            bestResult.type = PartialResultParams::tPack;
+            bestResult.transpositions = transpositions;
+            bestResult.params.packSize = transpositions->size();
         }
     }
 
@@ -170,6 +191,127 @@ void PartialGenerator::prepareForGeneration()
 
     partialResultParams = bestResult;
     partialResultParams.distancesSum = permutation.getDistancesSum();
+}
+
+shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const unordered_map<word, uint>& frequencyMap)
+{
+    // we should obtain no more than @maxPackSize transpositions
+    // if there are not enough transpositions, result list size should be power of two
+
+    unordered_set<word> visited;
+
+    shared_ptr<list<Transposition>> result(new list<Transposition>);
+    shared_ptr<list<Transposition>> temp(new list<Transposition>);
+
+    Permutation permCopy = permutation.clone();
+    bool stopFlag = false;
+
+    for (auto iter : frequencyMap)
+    {
+        word diff = iter.first;
+        temp->resize(0);
+        
+        for (auto cycle : permCopy)
+            cycle->disjointByDiff(diff, temp);
+
+        temp->remove_if(
+            [&](const Transposition& t)
+            {
+                return visited.find(t.getX()) != visited.cend() ||
+                    visited.find(t.getY()) != visited.cend();
+            }
+        );
+
+        stopFlag = temp->size() == 0;
+        if (stopFlag)
+            break;
+
+        // it really doesn't matter what multiplication is (left or right)
+        // but this is only because we trying to obtain independent transpositions
+        permCopy = permCopy.multiplyByTranspositions(temp, true); 
+
+        for (auto& t : *temp)
+        {
+            result->push_front(t);
+
+            visited.insert(t.getX());
+            visited.insert(t.getY());
+        }
+
+        if (result->size() >= maxPackSize)
+            break;
+    }
+
+    if (result->size() > maxPackSize)
+    {
+        result->resize(maxPackSize);
+    }
+    else
+    {
+        // trying to get maximum possible number 
+        getTranspositionsPack(result, &permCopy, &visited);
+
+        uint size = result->size();
+
+        // make from @size power of 2
+        word maxSize = maxPackSize;
+        while (maxSize > size)
+            maxSize >>= 1;
+
+        assert(maxSize, string("getTranspositionsPack(): error with calculation of result max size"));
+        result->resize(maxSize);
+    }
+
+    return result;
+}
+
+void PartialGenerator::getTranspositionsPack(shared_ptr<list<Transposition>> result,
+    Permutation* permCopy, unordered_set<word>* visited)
+{
+    uint maxSize = maxPackSize - result->size();
+    if (!maxSize)
+        return;
+
+    list<Transposition> temp;
+        
+    for (auto cycle : *permCopy)
+    {
+        uint pos = 0;
+        word buffer[2] = {}; //for x and y
+
+        uint elementCount = cycle->length();
+        for (uint index = 0; index < elementCount; ++index)
+        {
+            word element = (*cycle)[index];
+            if (visited->find(element) == visited->cend())
+            {
+                buffer[pos++] = element;
+                visited->insert(element);
+            }
+
+            if (pos == 2)
+                break;
+        }
+
+        if (pos == 2)
+        {
+            temp.push_back(Transposition(buffer[0], buffer[1]));
+        }
+    }
+
+    uint tempSize = temp.size();
+    if (tempSize == 0)
+        return;
+
+    if (tempSize > maxSize)
+        temp.resize(maxSize);
+
+    result->insert(result->begin(), temp.crbegin(), temp.crend());
+    if (result->size() < maxPackSize)
+    {
+        *permCopy = permCopy->multiplyByTranspositions(temp, true);
+        getTranspositionsPack(result, permCopy, visited);
+    }
 }
 
 shared_ptr<list<Transposition>> PartialGenerator::getCommonPair()
@@ -464,6 +606,10 @@ deque<ReverseElement> PartialGenerator::implementPartialResult()
         synthesisResult = implementEdge();
         break;
 
+    case PartialResultParams::tPack:
+        synthesisResult = implementIndependentTranspositions(partialResultParams.transpositions);
+        break;
+
     case PartialResultParams::tSameDiffPair:
     case PartialResultParams::tCommonPair:
         //synthesisResult = implementPairOfTranspositions();
@@ -572,6 +718,8 @@ deque<ReverseElement> PartialGenerator::implementIndependentTranspositions(share
     deque<ReverseElement> elements;
 
     uint k = transp->size() * 2;
+    assert(k <= countNonZeroBits((word)-1),
+        string("implementIndependentTranspositions(): too many rows"));
 
     assertd(countNonZeroBits(k) == 1,
         string("implementIndependentTranspositions(): only power of 2 is allowed for vector count"));
@@ -620,36 +768,36 @@ deque<ReverseElement> PartialGenerator::implementIndependentTranspositions(share
         elements = conjugate(deque<ReverseElement>{ element }, elements);
     }
 
-    ///debug: check validity of elements
-    {
-        unordered_map<word, word> table;
-        for (uint index = 0; index < (1 << n); ++index)
-        {
-            word x = index;
-            word y = x;
-
-            for (const ReverseElement& element : elements)
-                y = element.getValue(y);
-
-            if (y != x)
-                table[x] = y;
-        }
-
-        assertd(table.size() == k,
-            string("implementIndependentTranspositions(): validity check failed (count)"));
-
-        for (auto& t : *transp)
-        {
-            word x = t.getX();
-            word y = t.getY();
-
-            assertd(table[x] == y,
-                string("implementIndependentTranspositions(): validity check failed (x)"));
-
-            assertd(table[y] == x,
-                string("implementIndependentTranspositions(): validity check failed (y)"));
-        }
-    }
+    /////debug: check validity of elements
+    //{
+    //    unordered_map<word, word> table;
+    //    for (uint index = 0; index < ((uint)1 << n); ++index)
+    //    {
+    //        word x = index;
+    //        word y = x;
+    //
+    //        for (const ReverseElement& element : elements)
+    //            y = element.getValue(y);
+    //
+    //        if (y != x)
+    //            table[x] = y;
+    //    }
+    //
+    //    assertd(table.size() == k,
+    //        string("implementIndependentTranspositions(): validity check failed (count)"));
+    //
+    //    for (auto& t : *transp)
+    //    {
+    //        word x = t.getX();
+    //        word y = t.getY();
+    //
+    //        assertd(table[x] == y,
+    //            string("implementIndependentTranspositions(): validity check failed (x)"));
+    //
+    //        assertd(table[y] == x,
+    //            string("implementIndependentTranspositions(): validity check failed (y)"));
+    //    }
+    //}
 
 
     return elements;

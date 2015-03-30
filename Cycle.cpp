@@ -276,25 +276,18 @@ void Cycle::prepareForDisjoint(unordered_map<word, uint>* frequencyMap)
             word y = elements[modIndex(index + step)];
             word diff = x ^ y;
 
-            if(frequencyMap->count(diff))
-            {
-                (*frequencyMap)[diff] += 1;
-            }
-            else
-            {
-                (*frequencyMap)[diff] = 1;
-            }
+            ++((*frequencyMap)[diff]);
         }
     }
 }
 
-void Cycle::disjointByDiff(word diff, shared_ptr<list<Transposition>> result)
+void Cycle::disjointByDiff(word diff, shared_ptr<list<Transposition>> result) const
 {
     getTranspositionsByDiff(elements, diff, result);
 }
 
 void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
-    shared_ptr<list<Transposition>> result)
+    shared_ptr<list<Transposition>> result) const
 {
     unordered_map<word, uint> elementToIndexMap;
     unordered_set<word> elementStorage;
@@ -381,7 +374,7 @@ void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
 }
 
 void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
-    uint xIndex, uint yIndex, shared_ptr<list<Transposition>> result)
+    uint xIndex, uint yIndex, shared_ptr<list<Transposition>> result) const
 {
     uint distance = yIndex - xIndex;
 

@@ -56,10 +56,8 @@ void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container&
 {
     for (const ReverseElement& element : scheme)
     {
-        assert(element.getInversionMask() == 0,
-            string("TFC format doesn't support elements with inverted control inputs"));
-
         word controlMask = element.getControlMask();
+        word inversionMask = element.getInversionMask();
         uint count = countNonZeroBits(controlMask) + 1; //plus target line
 
         out << 't' << count << ' ';
@@ -70,7 +68,13 @@ void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container&
         while (mask <= controlMask)
         {
             if (controlMask & mask)
-                out << variables[index] << ',';
+            {
+                out << variables[index];
+                if (inversionMask & mask)
+                    out << '\'';
+
+                out << ',';
+            }                
 
             ++index;
             mask <<= 1;

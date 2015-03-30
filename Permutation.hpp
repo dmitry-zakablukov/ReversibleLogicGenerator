@@ -15,6 +15,9 @@ public:
     uint length() const;
     shared_ptr<Cycle> getCycle(uint index) const;
 
+    uint getElementCount() const;
+    uint getTranspositionsCount() const;
+
     bool isEmpty() const;
 
     bool isEven() const;
@@ -22,7 +25,7 @@ public:
     void completeToEven();
     void completeToEven(word truthTableSize);
 
-    operator string();
+    operator string() const;
 
     // range-based for loop
     vector<shared_ptr<Cycle>>::const_iterator begin() const;
@@ -31,7 +34,12 @@ public:
     Permutation multiplyByTranspositions(shared_ptr<list<Transposition>> transpositions,
         bool isLeftMultiplication) const;
 
+    Permutation multiplyByTranspositions(const list<Transposition>& transpositions,
+        bool isLeftMultiplication) const;
+
     uint getDistancesSum() const;
+
+    Permutation clone() const;
 
 private:
     vector<shared_ptr<Cycle>> cycles;
