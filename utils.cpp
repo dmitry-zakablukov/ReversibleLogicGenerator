@@ -89,7 +89,7 @@ string trim(const string& value)
 
 string removeQuotes(const string& value)
 {
-    if (value.size() == 0)
+    if (value.empty())
         return value;
 
     uint start = 0;

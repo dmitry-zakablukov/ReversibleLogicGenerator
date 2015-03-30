@@ -3,14 +3,14 @@
 namespace ReversibleLogic
 {
 
-// Number of transpositions in pack to synthesize at once
-const uint PartialGenerator::numMaxPackSize = 8;
-
-PartialGenerator::PartialGenerator(uint packSize /*= numMaxPackSize*/)
+PartialGenerator::PartialGenerator(uint packSize /*= uintUndefined*/)
     : permutation()
     , n(uintUndefined)
     , maxPackSize(packSize)
 {
+    if (maxPackSize == uintUndefined)
+        maxPackSize = ProgramOptions::get().transpositionsPackSize;
+
     assert(countNonZeroBits(maxPackSize) == 1,
         string("Transpositions pack size should be power of 2"));
 }

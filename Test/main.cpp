@@ -9,7 +9,7 @@ int main(int argc, const char* argv[])
         ProgramOptions::get().init(values);
     }
 
-    generalSynthesis(argc, argv);
+    generalSynthesis();
     //discreteLogSynthesis(argc, argv);
     //testOptimization(argc, argv);
 

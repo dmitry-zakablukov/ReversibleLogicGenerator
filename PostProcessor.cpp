@@ -308,9 +308,8 @@ ReversibleLogic::Scheme PostProcessor::optimize(const Scheme& scheme)
 
 PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
 {
-#if defined(TURN_OFF_OPTIMIZATION)
-    return scheme;
-#endif //TURN_OFF_OPTIMIZATION
+    if (!ProgramOptions::get().doPostOptimization)
+        return scheme;
 
     OptScheme optimizedScheme = scheme;
     

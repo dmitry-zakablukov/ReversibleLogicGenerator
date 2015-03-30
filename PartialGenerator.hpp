@@ -8,9 +8,7 @@ namespace ReversibleLogic
 class PartialGenerator
 {
 public:
-    static const uint numMaxPackSize;
-
-    PartialGenerator(uint packSize = numMaxPackSize);
+    PartialGenerator(uint packSize = uintUndefined);
     ~PartialGenerator();
 
     void setPermutation(const Permutation& thePermutation, uint inputCount);

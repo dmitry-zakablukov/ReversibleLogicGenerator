@@ -138,26 +138,19 @@ TruthTable getBadCase()
     return table;
 }
 
-void generalSynthesis(int argc, const char* argv[])
+void generalSynthesis()
 {
     using namespace ReversibleLogic;
 
-    const char strDefaultOutputFileName[] = "results.txt";
-    string resultsFileName;
+    const ProgramOptions& options = ProgramOptions::get();
 
-    if(argc > 1)
-    {
-        resultsFileName = argv[1];
-    }
-    else
-    {
-        resultsFileName = strDefaultOutputFileName;
-    }
+    string resultsFileName = options.resultsFile;
+    assert(!resultsFileName.empty(), string("Results file name is empty"));
 
     ofstream outputFile(resultsFileName);
-
     try
     {
+
         TruthTable table;
         table = getHwb(11);
         //table = getRd53();
@@ -166,15 +159,13 @@ void generalSynthesis(int argc, const char* argv[])
         auto scheme = generator.generate(table, outputFile);
 
         {
-            const char* const strSchemesFolder = "schemes/";
-
-            if (_access(strSchemesFolder, 0))
+            if (_access(options.schemesFolder.c_str(), 0))
             {
-                _mkdir(strSchemesFolder);
+                _mkdir(options.schemesFolder.c_str());
             }
 
             ostringstream schemeFileName;
-            schemeFileName << strSchemesFolder << "result_scheme.txt";
+            schemeFileName << options.schemesFolder << options.schemeOutputFile;
 
             outputFile << "Scheme file: " << schemeFileName.str() << endl;
 
@@ -188,7 +179,7 @@ void generalSynthesis(int argc, const char* argv[])
                 schemeFile << "Scheme too large" << endl;
             schemeFile.close();
 
-            ofstream tfcFile(schemeFileName.str() + ".tfc");
+            ofstream tfcFile(options.tfcOutputFile);
             TfcFormatter::format(tfcFile, scheme);
             tfcFile.close();
         }
