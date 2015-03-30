@@ -5,7 +5,7 @@ class Values : public unordered_map<string, list<string>>
 public:
     Values() = default;
 
-    bool getBool(const string& key) const;
-    string getString(const string& key) const;
-    int getInt(const string& key) const;
+    bool getBool(const string& key, bool defaultValue = false) const;
+    string getString(const string& key, const string& defaultValue = string()) const;
+    int getInt(const string& key, int defaultValue = 0) const;
 };

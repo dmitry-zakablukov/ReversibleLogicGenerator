@@ -1,9 +1,9 @@
 #include "std.hpp"
 
-bool Values::getBool(const string& key) const
+bool Values::getBool(const string& key, bool defaultValue /*= false*/) const
 {
-    assert(find(key) != cend(),
-        string("Values::getBool() key doesn't exist"));
+    if (find(key) == cend())
+        return defaultValue;
 
     const list<string>& keyValues = at(key);
 
@@ -23,10 +23,10 @@ bool Values::getBool(const string& key) const
     return result;
 }
 
-string Values::getString(const string& key) const
+string Values::getString(const string& key, const string& defaultValue /*= string()*/) const
 {
-    assert(find(key) != cend(),
-        string("Values::getString() key doesn't exist"));
+    if (find(key) == cend())
+        return defaultValue;
 
     const list<string>& keyValues = at(key);
 
@@ -36,10 +36,10 @@ string Values::getString(const string& key) const
     return keyValues.front();
 }
 
-int Values::getInt(const string& key) const
+int Values::getInt(const string& key, int defaultValue /*= 0*/) const
 {
-    assert(find(key) != cend(),
-        string("Values::getInt() key doesn't exist"));
+    if (find(key) == cend())
+        return defaultValue;
 
     const list<string>& keyValues = at(key);
 

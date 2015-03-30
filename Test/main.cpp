@@ -6,6 +6,7 @@ int main(int argc, const char* argv[])
     {
         ifstream ini(argv[1]);
         Values values = IniParser::parse(ini);
+        ProgramOptions::get().init(values);
     }
 
     generalSynthesis(argc, argv);
