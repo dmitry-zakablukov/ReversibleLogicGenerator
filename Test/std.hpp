@@ -11,3 +11,4 @@
 #include "discreteLogSynthesis.h"
 #include "optimizationTest.h"
 #include "Gf2Field.hpp"
+#include "IniParser.h"

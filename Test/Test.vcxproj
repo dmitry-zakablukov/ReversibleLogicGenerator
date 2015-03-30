@@ -122,6 +122,7 @@
     <ClCompile Include="common.cpp" />
     <ClCompile Include="discreteLogSynthesis.cpp" />
     <ClCompile Include="Gf2Field.cpp" />
+    <ClCompile Include="IniParser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="optimizationTest.cpp" />
     <ClCompile Include="std.cpp">
@@ -136,6 +137,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="discreteLogSynthesis.h" />
     <ClInclude Include="Gf2Field.hpp" />
+    <ClInclude Include="IniParser.h" />
     <ClInclude Include="optimizationTest.h" />
     <ClInclude Include="std.hpp" />
     <ClInclude Include="generalSynthesis.h" />
