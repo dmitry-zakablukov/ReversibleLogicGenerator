@@ -22,6 +22,10 @@ public:
     int transpositionsPackSize = 2;
 
     bool doPostOptimization = true;
+    uint maxElementsDistanceForOptimization = 20;
+    uint maxSubSchemeSizeForOptimization = 100;
+
+    bool isTuningEnabled = false;
 
     Values options;
 

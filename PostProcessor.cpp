@@ -1,21 +1,5 @@
 #include "std.hpp"
 
-// define this to use full optimization scheme
-// comment this to use fast optimization scheme
-//#define USE_FULL_OPTIMIZATION_SCHEME
-
-// define this to turn off optimization completely
-//#define TURN_OFF_OPTIMIZATION
-
-// define this to apply "get full scheme" step
-#define USE_GET_FULL_SCHEME_STEP
-
-// maximum depth while searching second element for applying optimization
-#define MAX_ELEMENT_SEARCH_DEPTH 20
-
-// maximum sub-scheme size to optimized
-#define MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION 100
-
 namespace ReversibleLogic
 {
 
@@ -330,55 +314,56 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     OptScheme implementation;
     implementation = optimizedScheme;
 
-#if defined(USE_GET_FULL_SCHEME_STEP)
-    isNegativeControlInputsAllowed = true;
-
-    implementation = getFullScheme(implementation, fstRecursive);
-    implementation = removeDuplicates(implementation);
-
-    needOptimization = true;
-    while(needOptimization)
+    if (ProgramOptions::get().options.getBool("do-last-optimizations-with-full-scheme"))
     {
-        needOptimization = false;
-        implementation = transferOptimization(implementation, &needOptimization);
+        isNegativeControlInputsAllowed = true;
 
-        bool additional = false;
-        implementation = mergeOptimization(implementation, &additional);
-        needOptimization = needOptimization || additional;
-    }
+        implementation = getFullScheme(implementation, fstRecursive);
+        implementation = removeDuplicates(implementation);
 
-    isNegativeControlInputsAllowed = true;
-    
-    implementation = getFullScheme(implementation, fstSimple);
-    implementation = removeDuplicates(implementation);
-    
-    needOptimization = true;
-    while (needOptimization)
-    {
-        needOptimization = false;
-        implementation = transferOptimization(implementation, &needOptimization);
-    
-        bool additional = false;
-        implementation = mergeOptimization(implementation, &additional);
-        needOptimization = needOptimization || additional;
-    }
+        needOptimization = true;
+        while (needOptimization)
+        {
+            needOptimization = false;
+            implementation = transferOptimization(implementation, &needOptimization);
 
-    isNegativeControlInputsAllowed = false;
-    
-    implementation = getFullScheme(implementation, fstSimple);
-    implementation = removeDuplicates(implementation);
-    
-    needOptimization = true;
-    while (needOptimization)
-    {
-        needOptimization = false;
-        implementation = transferOptimization(implementation, &needOptimization);
-    
-        bool additional = false;
-        implementation = mergeOptimization(implementation, &additional);
-        needOptimization = needOptimization || additional;
+            bool additional = false;
+            implementation = mergeOptimization(implementation, &additional);
+            needOptimization = needOptimization || additional;
+        }
+
+        isNegativeControlInputsAllowed = true;
+
+        implementation = getFullScheme(implementation, fstSimple);
+        implementation = removeDuplicates(implementation);
+
+        needOptimization = true;
+        while (needOptimization)
+        {
+            needOptimization = false;
+            implementation = transferOptimization(implementation, &needOptimization);
+
+            bool additional = false;
+            implementation = mergeOptimization(implementation, &additional);
+            needOptimization = needOptimization || additional;
+        }
+
+        isNegativeControlInputsAllowed = false;
+
+        implementation = getFullScheme(implementation, fstSimple);
+        implementation = removeDuplicates(implementation);
+
+        needOptimization = true;
+        while (needOptimization)
+        {
+            needOptimization = false;
+            implementation = transferOptimization(implementation, &needOptimization);
+
+            bool additional = false;
+            implementation = mergeOptimization(implementation, &additional);
+            needOptimization = needOptimization || additional;
+        }
     }
-#endif //USE_GET_FULL_SCHEME_STEP
 
     return implementation;
 }
@@ -546,6 +531,7 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
     *optimized = false;
 
     OptScheme optimizedScheme = scheme;
+    const uint numMaxSubSchemeSize = ProgramOptions::get().maxSubSchemeSizeForOptimization;
 
     bool repeatOuter = true;
     while (repeatOuter)
@@ -553,8 +539,8 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
         repeatOuter = false;
 
         uint schemeSize = optimizedScheme.size();
-        uint stepCount = (schemeSize + MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION - 1) /
-            MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION;
+        uint stepCount = (schemeSize + numMaxSubSchemeSize - 1) /
+            numMaxSubSchemeSize;
 
         OptScheme::const_iterator first = optimizedScheme.cbegin();
         uint currentProgress = 0;
@@ -563,8 +549,8 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
         for (uint step = 0; step < stepCount; ++step)
         {
             OptScheme::const_iterator last;
-            if (currentProgress + MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION <= schemeSize)
-                last = first + MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION;
+            if (currentProgress + numMaxSubSchemeSize <= schemeSize)
+                last = first + numMaxSubSchemeSize;
             else
                 last = first + (schemeSize - currentProgress);
 
@@ -582,7 +568,7 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
 
             tempScheme.insert(tempScheme.end(), subScheme.cbegin(), subScheme.cend());
 
-            currentProgress += MAX_SUBSCHEME_SIZE_FOR_OPTIMIZATION;
+            currentProgress += numMaxSubSchemeSize;
             first = last;
         }
 
@@ -675,59 +661,62 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
             !schemeOptimized && (searchPairFromEnd ? rightIndex > leftIndex : rightIndex < elementCount);
             rightIndex += (searchPairFromEnd ? -1 : 1))
         {
-            if (abs(leftIndex - rightIndex) > MAX_ELEMENT_SEARCH_DEPTH)
+            if (abs(leftIndex - rightIndex) > (int)ProgramOptions::get().maxElementsDistanceForOptimization)
                 break;
 
-            uint newLeftIndex  = uintUndefined;
+            uint newLeftIndex = uintUndefined;
             uint newRightIndex = uintUndefined;
 
-#if defined(USE_FULL_OPTIMIZATION_SCHEME)
-            SwapResultsPair pair = getSwapResultsPair(scheme, leftIndex, rightIndex);
-
-            if (isSwapResultsPairSuiteOptimizationTactics(selectionFunc, pair,
-                leftIndex, rightIndex, &newLeftIndex, &newRightIndex))
-#else //USE_FULL_OPTIMIZATION_SCHEME
-            const ReverseElement& left = scheme[leftIndex];
-            const ReverseElement& right = scheme[rightIndex];
-
-            // 1) check right element with selection function
-            if (!selectionFunc(left, right))
+            bool isElementsPairGoodForOptimization = false;
+            if (ProgramOptions::get().options.getBool("use-swap-results-optimization-technique"))
             {
-                continue;
+                SwapResultsPair pair = getSwapResultsPair(scheme, leftIndex, rightIndex);
+
+                isElementsPairGoodForOptimization =
+                    isSwapResultsPairSuiteOptimizationTactics(selectionFunc, pair,
+                    leftIndex, rightIndex, &newLeftIndex, &newRightIndex);
             }
-
-            newLeftIndex  = (uint)leftIndex;
-            newRightIndex = (uint)rightIndex;
-
-            // transfer elements if needed
-            if (newLeftIndex + 1 != newRightIndex)
+            else
             {
-                // transfer right element to left at maximum
-                newRightIndex = getMaximumTransferIndex(scheme, right, rightIndex, leftIndex);
-                if (newRightIndex != leftIndex + 1)
+                const ReverseElement& left = scheme[leftIndex];
+                const ReverseElement& right = scheme[rightIndex];
+
+                // 1) check right element with selection function
+                if (!selectionFunc(left, right))
+                    continue;
+
+                newLeftIndex = (uint)leftIndex;
+                newRightIndex = (uint)rightIndex;
+
+                // transfer elements if needed
+                if (newLeftIndex + 1 != newRightIndex)
                 {
-                    // transfer left element to left at maximum (just once)
-                    if (leftElementMaxTransferIndex == uintUndefined)
+                    // transfer right element to left at maximum
+                    newRightIndex = getMaximumTransferIndex(scheme, right, rightIndex, leftIndex);
+                    if (newRightIndex != leftIndex + 1)
                     {
-                        leftElementMaxTransferIndex = getMaximumTransferIndex(scheme, left,
-                            leftIndex, elementCount - 1);
+                        // transfer left element to left at maximum (just once)
+                        if (leftElementMaxTransferIndex == uintUndefined)
+                        {
+                            leftElementMaxTransferIndex = getMaximumTransferIndex(scheme, left,
+                                leftIndex, elementCount - 1);
+                        }
+
+                        newLeftIndex = leftElementMaxTransferIndex;
                     }
 
-                    newLeftIndex = leftElementMaxTransferIndex;
-                }
+                    // compare indices
+                    if (newLeftIndex + 1 >= newRightIndex)
+                        // good right element, try to apply optimization
+                        newLeftIndex = newRightIndex - 1; // keep left element maximum left aligned
+                    else
+                        continue;
 
-                // compare indices
-                if (newLeftIndex + 1 >= newRightIndex)
-                {
-                    // good right element, try to apply optimization
-                    newLeftIndex = newRightIndex - 1; // keep left element maximum left aligned
-                }
-                else
-                {
-                    continue;
+                    isElementsPairGoodForOptimization = true;
                 }
             }
-#endif //USE_FULL_OPTIMIZATION_SCHEME
+        
+            if (isElementsPairGoodForOptimization)
             {
                 // move elements to new positions
                 if (newLeftIndex < (uint)rightIndex)

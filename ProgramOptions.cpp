@@ -6,6 +6,7 @@ shared_ptr<ProgramOptions> ProgramOptions::instance;
 //static
 const ProgramOptions& ProgramOptions::get()
 {
+    assert(instance, string("ProgramOptions::get(): instance is null"));
     return *instance;
 }
 
@@ -34,7 +35,12 @@ void ProgramOptions::load(const Values& values)
     const char* strTfcOutputFile = "tfc-output";
 
     const char* strTranspositionsPackSize = "transpositions-pack-size";
-    const char* strDoPostOptimization     = "do-post-optimization";
+    
+    const char* strDoPostOptimization = "do-post-optimization";
+    const char* strMaxElementsDistanceForOptimization = "max-elements-distance-for-optimization";
+    const char* strMaxSubSchemeSizeForOptimization = "max-sub-scheme-size-for-optimization";
+
+    const char* strEnableTuning = "enable-tuning";
 
     // load common options from input values, default values see in header
 
@@ -48,7 +54,16 @@ void ProgramOptions::load(const Values& values)
     tfcOutputFile = values.getString(strTfcOutputFile, tfcOutputFile);
 
     transpositionsPackSize = values.getInt(strTranspositionsPackSize, transpositionsPackSize);
+
     doPostOptimization = values.getBool(strDoPostOptimization, doPostOptimization);
+
+    maxElementsDistanceForOptimization = values.getInt(strMaxElementsDistanceForOptimization,
+        maxElementsDistanceForOptimization);
+
+    maxSubSchemeSizeForOptimization = values.getInt(strMaxSubSchemeSizeForOptimization,
+        maxSubSchemeSizeForOptimization);
+
+    isTuningEnabled = values.getBool(strEnableTuning, isTuningEnabled);
 
     // save input values
     options = values;
