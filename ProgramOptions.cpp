@@ -1,18 +1,28 @@
 #include "std.hpp"
 
 //static
-ProgramOptions* ProgramOptions::instance = 0;
+shared_ptr<ProgramOptions> ProgramOptions::instance;
 
 //static
-ProgramOptions& ProgramOptions::get()
+const ProgramOptions& ProgramOptions::get()
 {
-    if (!instance)
-        instance = new ProgramOptions(); //bugbug: no delete
-
     return *instance;
 }
 
+//static
 void ProgramOptions::init(const Values& values)
+{
+    instance = shared_ptr<ProgramOptions>(new ProgramOptions());
+    instance->load(values);
+}
+
+//static
+void ProgramOptions::uninit()
+{
+    instance = 0;
+}
+
+void ProgramOptions::load(const Values& values)
 {
     const char* strInputFile   = "input-file";
     const char* strResultsFile = "results-file";

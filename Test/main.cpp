@@ -2,12 +2,14 @@
 
 int main(int argc, const char* argv[])
 {
+    Values values;
     if (argc == 2)
     {
         ifstream ini(argv[1]);
-        Values values = IniParser::parse(ini);
-        ProgramOptions::get().init(values);
+        values = IniParser::parse(ini);
     }
+
+    ProgramOptions::init(values);
 
     generalSynthesis();
     //discreteLogSynthesis(argc, argv);
@@ -15,5 +17,6 @@ int main(int argc, const char* argv[])
 
     //system("pause");
 
+    ProgramOptions::uninit();
     return 0;
 }

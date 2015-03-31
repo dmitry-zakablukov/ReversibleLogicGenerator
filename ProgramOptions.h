@@ -3,9 +3,12 @@
 class ProgramOptions
 {
 public:
-    static ProgramOptions& get();
+    static const ProgramOptions& get();
 
-    void init(const Values& values);
+    static void init(const Values& values);
+    static void uninit();
+
+    void load(const Values& values);
 
     string inputFile = "";
     string resultsFile = "results.txt";
@@ -25,5 +28,5 @@ public:
 private:
     ProgramOptions() = default;
 
-    static ProgramOptions* instance;
+    static shared_ptr<ProgramOptions> instance;
 };
