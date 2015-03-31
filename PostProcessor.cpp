@@ -661,10 +661,10 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
             !schemeOptimized && (searchPairFromEnd ? rightIndex > leftIndex : rightIndex < elementCount);
             rightIndex += (searchPairFromEnd ? -1 : 1))
         {
-            if (abs(leftIndex - rightIndex) > (int)ProgramOptions::get().maxElementsDistanceForOptimization)
+            if ((uint)abs(leftIndex - rightIndex) > ProgramOptions::get().maxElementsDistanceForOptimization)
                 break;
 
-            uint newLeftIndex = uintUndefined;
+            uint newLeftIndex  = uintUndefined;
             uint newRightIndex = uintUndefined;
 
             bool isElementsPairGoodForOptimization = false;
@@ -711,9 +711,9 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
                         newLeftIndex = newRightIndex - 1; // keep left element maximum left aligned
                     else
                         continue;
-
-                    isElementsPairGoodForOptimization = true;
                 }
+
+                isElementsPairGoodForOptimization = true;
             }
         
             if (isElementsPairGoodForOptimization)
