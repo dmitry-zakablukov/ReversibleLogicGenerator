@@ -10,8 +10,8 @@ Values IniParser::parse(ifstream& stream)
         string line;
         getline(stream, line);
 
-        if (line.size() == 0)
-            break;
+        if (isWhiteSpacesOnly(line) || isComment(line))
+            continue;
 
         split(line, &values);
     }
@@ -47,4 +47,31 @@ void IniParser::split(const string& line, Values* values)
 
     list<string>& keyValues = (*values)[key];
     keyValues.push_back(value);
+}
+
+bool IniParser::isWhiteSpacesOnly(const string& line)
+{
+    auto iter = line.cbegin();
+    auto end = line.cend();
+
+    while (iter != end && isspace(*iter))
+        ++iter;
+
+    return iter == end;
+}
+
+bool IniParser::isComment(const string& line)
+{
+    bool result = false;
+
+    auto iter = line.cbegin();
+    auto end = line.cend();
+
+    while (iter != end && isspace(*iter))
+        ++iter;
+
+    if (iter != line.cend() && *iter == '#')
+        result = true;
+
+    return result;
 }

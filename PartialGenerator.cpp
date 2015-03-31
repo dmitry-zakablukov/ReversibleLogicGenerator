@@ -142,7 +142,11 @@ void PartialGenerator::prepareForGeneration()
         }
 
         PartialResultParams result = getPartialResult(transpositions, diff, bestResult);
-        if (result.isBetterThan(bestResult) ||
+
+        bool isResultComparisonNeeded =
+            ProgramOptions::get().options.getBool("compare-results-on-edge-search");
+
+        if ((isResultComparisonNeeded && !bestResult.isBetterThan(result)) ||
             result.edge.coveredTranspositionCount > bestResult.edge.coveredTranspositionCount)
         {
             bestResult = result;
