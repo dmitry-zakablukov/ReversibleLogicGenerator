@@ -35,6 +35,7 @@ void ProgramOptions::load(const Values& values)
     const char* strTfcOutputFile = "tfc-output";
 
     const char* strTranspositionsPackSize = "transpositions-pack-size";
+    const char* strEnableDebugBehavior    = "enable-debug-behavior";
     
     const char* strDoPostOptimization = "do-post-optimization";
     const char* strMaxElementsDistanceForOptimization = "max-elements-distance-for-optimization";
@@ -54,6 +55,7 @@ void ProgramOptions::load(const Values& values)
     tfcOutputFile = values.getString(strTfcOutputFile, tfcOutputFile);
 
     transpositionsPackSize = values.getInt(strTranspositionsPackSize, transpositionsPackSize);
+    isDebugBehaviorEnabled = values.getBool(strEnableDebugBehavior, isDebugBehaviorEnabled);
 
     doPostOptimization = values.getBool(strDoPostOptimization, doPostOptimization);
 

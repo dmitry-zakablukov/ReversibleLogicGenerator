@@ -21,6 +21,8 @@ public:
 
     int transpositionsPackSize = 2;
 
+    bool isDebugBehaviorEnabled = false;
+
     bool doPostOptimization = true;
     uint maxElementsDistanceForOptimization = 20;
     uint maxSubSchemeSizeForOptimization = 100;

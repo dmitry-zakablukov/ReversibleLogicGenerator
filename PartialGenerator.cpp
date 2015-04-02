@@ -707,37 +707,36 @@ deque<ReverseElement> PartialGenerator::implementIndependentTranspositions(share
         elements = conjugate(deque<ReverseElement>{ element }, elements);
     }
 
-    /////debug: check validity of elements
-    //{
-    //    unordered_map<word, word> table;
-    //    for (uint index = 0; index < ((uint)1 << n); ++index)
-    //    {
-    //        word x = index;
-    //        word y = x;
-    //
-    //        for (const ReverseElement& element : elements)
-    //            y = element.getValue(y);
-    //
-    //        if (y != x)
-    //            table[x] = y;
-    //    }
-    //
-    //    assertd(table.size() == k,
-    //        string("implementIndependentTranspositions(): validity check failed (count)"));
-    //
-    //    for (auto& t : *transp)
-    //    {
-    //        word x = t.getX();
-    //        word y = t.getY();
-    //
-    //        assertd(table[x] == y,
-    //            string("implementIndependentTranspositions(): validity check failed (x)"));
-    //
-    //        assertd(table[y] == x,
-    //            string("implementIndependentTranspositions(): validity check failed (y)"));
-    //    }
-    //}
-
+    debugBehavior("PartialGenerator::implementIndependentTranspositions()-check-validity", [&]()->void
+    {
+        unordered_map<word, word> table;
+        for (uint index = 0; index < ((uint)1 << n); ++index)
+        {
+            word x = index;
+            word y = x;
+        
+            for (const ReverseElement& element : elements)
+                y = element.getValue(y);
+        
+            if (y != x)
+                table[x] = y;
+        }
+        
+        assertd(table.size() == k,
+            string("implementIndependentTranspositions(): validity check failed (count)"));
+        
+        for (auto& t : *transp)
+        {
+            word x = t.getX();
+            word y = t.getY();
+        
+            assertd(table[x] == y,
+                string("implementIndependentTranspositions(): validity check failed (x)"));
+        
+            assertd(table[y] == x,
+                string("implementIndependentTranspositions(): validity check failed (y)"));
+        }
+    });
 
     return elements;
 }

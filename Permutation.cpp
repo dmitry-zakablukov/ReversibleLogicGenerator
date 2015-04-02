@@ -266,9 +266,6 @@ ReversibleLogic::Permutation Permutation::multiplyByTranspositions(const list<Tr
                 x = y;
             }
 
-            /////debug
-            //cout << "New cycle:\n" << *nextCycle << endl;
-
             // skip fixed point
             uint cycleLength = nextCycle->length();
             if (cycleLength > 1)

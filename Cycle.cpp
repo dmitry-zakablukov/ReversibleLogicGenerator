@@ -257,9 +257,6 @@ void Cycle::prepareForDisjoint(unordered_map<word, uint>* frequencyMap)
     uint elementCount = length();
     uint stepCount = elementCount / 2;
 
-    //// debug
-    //stepCount = min(stepCount, (uint)1);
-
     for(uint step = 1; step <= stepCount; ++step)
     {
         uint maxIndex = elementCount;

@@ -21,9 +21,10 @@ int main(int argc, const char* argv[])
     {
         string second = argv[1];
         if (second == "/?" || second == "-?" || second == "-h" || second == "--help")
+        {
             printUsage(argv[0]);
-
-        return 0;
+            return 0;
+        }
     }
 
     Values values;

@@ -32,8 +32,10 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
 
     totalTime += time;
 
-    ////debug
-    //*log << permutation << "\n";
+    debugLog("Generator::generate()-dump-permutation", [&](ostream& out)->void
+    {
+        out << permutation << endl;
+    });
 
     Scheme scheme;
 
@@ -48,9 +50,6 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
             {
                 Scheme localScheme;
                 Scheme::iterator targetIter = localScheme.end();
-
-                /////debug
-                //cout << "Permutation: " << permutation << "\n";
 
                 shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
                 partialGenerator->setPermutation(permutation, n);
@@ -105,36 +104,26 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
     *log << setiosflags(ios::fixed) << setprecision(5) << totalTime;
     *log << " ms" << endl;
 
-    //string repres = SchemePrinter::schemeToString(n, scheme, false);
-    //log << repres;
-
-    //repres = SchemePrinter::schemeToString(n, scheme, false);
-    //log << repres;
-
-    //// debug
-    //cout << "Gate complexity: " << scheme.size() << '\n';
-
     return scheme;
 }
 
 shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGenerator> partialGenerator,
     uint n, Scheme* scheme, Scheme::iterator* targetIter)
 {
-    ////////////////////////////////////////////////////////////////////////////
-    //// start of debug
-    //const Permutation& perm = partialGenerator->getPermutation();
-    //uint transpCount = 0;
-    //static uint stepCount = 0;
+    debugLog("Generator::reducePermutation()-dump-transposition-count", [&](ostream& out)->void
+    {
+        const Permutation& perm = partialGenerator->getPermutation();
+        uint transpCount = 0;
+        static uint stepCount = 0;
 
-    //for (auto cycle : perm)
-    //{
-    //    uint elementCount = cycle->length();
-    //    transpCount += elementCount - 1;
-    //}
+        for (auto cycle : perm)
+        {
+            uint elementCount = cycle->length();
+            transpCount += elementCount - 1;
+        }
 
-    //cout << "Step " << ++stepCount << ", transposition count = " << transpCount << '\n';
-    //// end of debug
-    ////////////////////////////////////////////////////////////////////////////
+        out << "Step " << ++stepCount << ", transposition count = " << transpCount << '\n';
+    });
 
     shared_ptr<PartialGenerator> restGenerator = 0;
 
@@ -155,10 +144,12 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
         rightGenerator->setPermutation(rightMultipliedPermutation, n);
         rightGenerator->prepareForGeneration();
 
-        //// debug
-        //cout << "============================\n";
-        //cout << "Left:\n" << leftMultipliedPermutation << '\n';
-        //cout << "\nRight:\n" << rightMultipliedPermutation << '\n\n';
+        debugLog("Generator::reducePermutation()-dump-left-right", [&](ostream& out)->void
+        {
+            out << "============================\n";
+            out << "Left:\n" << leftMultipliedPermutation << '\n';
+            out << "\nRight:\n" << rightMultipliedPermutation << '\n' << endl;
+        });
 
         // compare left and right choices and choose the best
         PartialResultParams leftPartialResultParams  =  leftGenerator->getPartialResultParams();
@@ -166,21 +157,27 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
 
         bool isLeftBetter = leftPartialResultParams.isBetterThan(rightPartialResultParams);
 
-        // for test purpose only
-        // isLeftBetter = false;
+        debugBehavior("Generator::reducePermutation()-right-always-better", [&]()->void
+        {
+            isLeftBetter = false;
+        });
         
         if(isLeftBetter)
         {
-            //// debug
-            //cout << "Left:\n" << leftMultipliedPermutation << '\n';
+            debugLog("Generator::reducePermutation()-dump-left", [&](ostream& out)->void
+            {
+                out << "Left:\n" << leftMultipliedPermutation << endl;
+            });
 
             implementPartialResult(*partialGenerator, true, scheme, targetIter);
             restGenerator = leftGenerator;
         }
         else
         {
-            //// debug
-            //cout << "Right:\n" << rightMultipliedPermutation << '\n';
+            debugLog("Generator::reducePermutation()-dump-right", [&](ostream& out)->void
+            {
+                out << "Right:\n" << rightMultipliedPermutation << endl;
+            });
 
             implementPartialResult(*partialGenerator, false, scheme, targetIter);
             restGenerator = rightGenerator;
@@ -194,8 +191,10 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
         Permutation residualPermutation = partialGenerator->getResidualPermutation(true);
         if(!residualPermutation.isEmpty())
         {
-            //// debug
-            //cout << "Residual:\n" << residualPermutation << '\n';
+            debugLog("Generator::reducePermutation()-dump-residual", [&](ostream& out)->void
+            {
+                out << "Residual:\n" << residualPermutation << endl;
+            });
 
             restGenerator = shared_ptr<PartialGenerator>(new PartialGenerator());
             restGenerator->setPermutation(residualPermutation, n);

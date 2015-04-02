@@ -107,3 +107,42 @@ string removeQuotes(const string& value)
     string result = value.substr(start, count);
     return result;
 }
+
+void debugLog(const string& context, function<void(ostream&)> logFunction)
+{
+    const char* strDebugContext = "debug-context";
+    const char* strDebugLogFileName = "debug-log";
+
+    if (!ProgramOptions::get().isDebugBehaviorEnabled)
+        return;
+
+    const Values& options = ProgramOptions::get().options;
+    if (options.find(strDebugContext) != options.cend()
+        && options.find(strDebugLogFileName) != options.cend())
+    {
+        const list<string>& keyValues = options.at(strDebugContext);
+        if (find(keyValues.cbegin(), keyValues.cend(), context) != keyValues.cend())
+        {
+            const string& fileName = options.getString(strDebugLogFileName);
+            ofstream out(fileName, ofstream::app);
+
+            logFunction(out);
+        }
+    }
+}
+
+void debugBehavior(const string& context, function<void()> debugFunction)
+{
+    const char* strDebugContext = "debug-context";
+
+    if (!ProgramOptions::get().isDebugBehaviorEnabled)
+        return;
+
+    const Values& options = ProgramOptions::get().options;
+    if (options.find(strDebugContext) != options.cend())
+    {
+        const list<string>& keyValues = options.at(strDebugContext);
+        if (find(keyValues.cbegin(), keyValues.cend(), context) != keyValues.cend())
+            debugFunction();
+    }
+}
