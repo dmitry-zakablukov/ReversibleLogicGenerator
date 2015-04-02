@@ -40,53 +40,13 @@ public:
     bool operator ==(const Transposition& another) const;
     bool operator !=(const Transposition& another) const;
 
-    operator string() const;
+    friend ostream& operator <<(ostream& out, const Transposition& t);
 
 private:
     word x;
     word y;
 
     bool empty;
-};
-
-class TransposPair
-{
-public:
-    TransposPair();
-    explicit TransposPair(const Transposition& theFirst,
-                          const Transposition& theSecond);
-
-    void setN(uint value);
-
-    bool isIndependent() const;
-
-    operator string() const;
-
-    uint getEstimateImplComplexity() const;
-
-    deque<ReverseElement> getImplementation();
-
-private:
-    uint getPrecomputedComplexity() const;
-
-    uint findYControlBit();
-    deque<ReverseElement> transformY(uint yControlBitPosition);
-
-    uint findZControlBit(uint yControlBitPosition);
-    deque<ReverseElement> transformZ(uint zControlBitPosition);
-
-    deque<ReverseElement> transformW(uint yControlBitPosition,
-                                     uint zControlBitPosition);
-
-    deque<ReverseElement>
-    getCoreImplementation(uint yControlBitPosition,
-                          uint zControlBitPosition);
-
-    uint n;
-    Transposition first;
-    Transposition second;
-
-    bool independencyFlag;
 };
 
 }   // namespace ReversibleLogic

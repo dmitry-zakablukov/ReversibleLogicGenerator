@@ -33,7 +33,7 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
     totalTime += time;
 
     ////debug
-    //*log << (string)permutation << "\n";
+    //*log << permutation << "\n";
 
     Scheme scheme;
 
@@ -50,7 +50,7 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
                 Scheme::iterator targetIter = localScheme.end();
 
                 /////debug
-                //cout << "Permutation: " << (string)permutation << "\n";
+                //cout << "Permutation: " << permutation << "\n";
 
                 shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
                 partialGenerator->setPermutation(permutation, n);
@@ -157,8 +157,8 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
 
         //// debug
         //cout << "============================\n";
-        //cout << "Left:\n" << (string)leftMultipliedPermutation << '\n';
-        //cout << "\nRight:\n" << (string)rightMultipliedPermutation << '\n\n';
+        //cout << "Left:\n" << leftMultipliedPermutation << '\n';
+        //cout << "\nRight:\n" << rightMultipliedPermutation << '\n\n';
 
         // compare left and right choices and choose the best
         PartialResultParams leftPartialResultParams  =  leftGenerator->getPartialResultParams();
@@ -172,7 +172,7 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
         if(isLeftBetter)
         {
             //// debug
-            //cout << "Left:\n" << (string)leftMultipliedPermutation << '\n';
+            //cout << "Left:\n" << leftMultipliedPermutation << '\n';
 
             implementPartialResult(*partialGenerator, true, scheme, targetIter);
             restGenerator = leftGenerator;
@@ -180,7 +180,7 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
         else
         {
             //// debug
-            //cout << "Right:\n" << (string)rightMultipliedPermutation << '\n';
+            //cout << "Right:\n" << rightMultipliedPermutation << '\n';
 
             implementPartialResult(*partialGenerator, false, scheme, targetIter);
             restGenerator = rightGenerator;
@@ -195,7 +195,7 @@ shared_ptr<PartialGenerator> Generator::reducePermutation(shared_ptr<PartialGene
         if(!residualPermutation.isEmpty())
         {
             //// debug
-            //cout << "Residual:\n" << (string)residualPermutation << '\n';
+            //cout << "Residual:\n" << residualPermutation << '\n';
 
             restGenerator = shared_ptr<PartialGenerator>(new PartialGenerator());
             restGenerator->setPermutation(residualPermutation, n);

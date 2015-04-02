@@ -27,7 +27,7 @@ public:
     bool has(const Transposition& target) const;
     bool has(word x) const;
 
-    operator string() const;
+    friend ostream& operator <<(ostream& out, const Cycle& cycle);
 
     // Returns new value for input if it is in cycle
     // i.e. output = elements[i+1] if input == elements[i]

@@ -159,18 +159,17 @@ void Permutation::completeToEven(word truthTableSize)
     append(lastCycle);
 }
 
-Permutation::operator string() const
+ostream& operator <<(ostream& out, const Permutation& permutation)
 {
-    ostringstream result;
-    result << "[ ";
+    out << "[ ";
 
-    for (auto cycle : *this)
+    for (auto cycle : permutation)
     {
-        result << (string)*cycle << ", ";
+        out << *cycle << ", ";
     }
 
-    result << " ]";
-    return result.str();
+    out << " ]";
+    return out;
 }
 
 vector<shared_ptr<Cycle>>::const_iterator Permutation::begin() const
@@ -268,7 +267,7 @@ ReversibleLogic::Permutation Permutation::multiplyByTranspositions(const list<Tr
             }
 
             /////debug
-            //cout << "New cycle:\n" << (string)*nextCycle << endl;
+            //cout << "New cycle:\n" << *nextCycle << endl;
 
             // skip fixed point
             uint cycleLength = nextCycle->length();

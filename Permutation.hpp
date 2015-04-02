@@ -25,7 +25,7 @@ public:
     void completeToEven();
     void completeToEven(word truthTableSize);
 
-    operator string() const;
+    friend ostream& operator <<(ostream& out, const Permutation& permutation);
 
     // range-based for loop
     vector<shared_ptr<Cycle>>::const_iterator begin() const;

@@ -139,19 +139,18 @@ bool Cycle::has(word x) const
     return result;
 }
 
-Cycle::operator string() const
+ostream& operator <<(ostream& out, const Cycle& cycle)
 {
-    ostringstream result;
-    result << "(";
+    out << "(";
 
-    uint elementCount = length();
+    uint elementCount = cycle.length();
     for(uint index = 0; index < elementCount; ++index)
     {
-        result << elements[index] << ", ";
+        out << cycle.elements[index] << ", ";
     }
 
-    result << ")";
-    return result.str();
+    out << ")";
+    return out;
 }
 
 word Cycle::getOutput(word input) const

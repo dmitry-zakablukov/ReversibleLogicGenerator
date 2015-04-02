@@ -171,7 +171,6 @@ void PartialGenerator::prepareForGeneration()
 
     if(bestResult.type == PartialResultParams::tNone)
     {
-        // bugbug: see processCommonTranspositions() for better pair creation
         shared_ptr<list<Transposition>> transpositions = getCommonPair();
 
         assertd(transpositions->size() > 1,
@@ -529,74 +528,9 @@ PartialGenerator::findBestCandidatePartner(
     return tie(second, minDist);
 }
 
-//void PartialGenerator::processCommonTranspositions()
-//{
-//    // 1) find first
-//    word diff = distKeys.front();
-//    Transposition firstTransp = distMap[diff]->front();
-//
-//    // 2) find second
-//    uint minComplexity = uintUndefined;
-//    Transposition secondTransp;
-//
-//    forin(iter, distKeys)
-//    {
-//        const word& key = *iter;
-//        if(key == diff)
-//        {
-//            continue;
-//        }
-//
-//        // no skipping keys here because we don't know if partial result
-//        // would be left or right multiplied
-//
-//        Transposition transp = distMap[key]->front();
-//        TransposPair pair = TransposPair(firstTransp, transp);
-//        pair.setN(n);
-//
-//        uint complexity = pair.getEstimateImplComplexity();
-//        if(minComplexity == uintUndefined || complexity < minComplexity)
-//        {
-//            minComplexity = complexity;
-//            secondTransp = transp;
-//        }
-//    }
-//
-//    assertd(!secondTransp.isEmpty(), string("Second transposition is empty"));
-//
-//    // fill partial result parameters
-//    partialResultParams.type = PartialResultParams::tCommonPair;
-//
-//    word leftDiff  = firstTransp.getDiff();
-//    word rightDiff = secondTransp.getDiff();
-//
-//    word leftX  = firstTransp.getX();
-//    word rightX = secondTransp.getX();
-//    word distance = (leftX & (~leftDiff)) ^ (rightX & (~rightDiff));
-//
-//    partialResultParams.params.common.leftDiff  = leftDiff;
-//    partialResultParams.params.common.rightDiff = rightDiff;
-//    partialResultParams.params.common.distance  = distance;
-//
-//    transpositionsToSynthesize = shared_ptr<list<Transposition>>(new list<Transposition>);
-//    transpositionsToSynthesize->push_back(firstTransp);
-//    transpositionsToSynthesize->push_back(secondTransp);
-//}
 
 ReversibleLogic::Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication) const
 {
-    //vector<shared_ptr<Cycle>> cycles;
-    //forin(iter, permutation)
-    //{
-    //    const Cycle& cycle = **iter;
-
-    //    cycle.multiplyByTranspositions(partialResultParams.transpositions,
-    //        isLeftMultiplication, &cycles);
-    //}
-
-    //Permutation residualPermutation(cycles);
-    //return residualPermutation;
-
     return permutation.multiplyByTranspositions(partialResultParams.transpositions, isLeftMultiplication);
 }
 
@@ -618,8 +552,7 @@ deque<ReverseElement> PartialGenerator::implementPartialResult()
 
     case PartialResultParams::tSameDiffPair:
     case PartialResultParams::tCommonPair:
-        //synthesisResult = implementPairOfTranspositions();
-        synthesisResult = implementIndependentTranspositions(partialResultParams.transpositions);
+        synthesisResult = implementPairOfTranspositions();
         break;
     }   
 
