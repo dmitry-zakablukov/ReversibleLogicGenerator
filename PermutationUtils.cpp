@@ -3,62 +3,9 @@
 namespace ReversibleLogic
 {
 
-TruthTable PermutationUtils::expandTable(const TruthTable& table)
-{
-    TruthTable expandedTable;
-
-#if defined(ADDITIONAL_MEMORY_TECHNIQUE)
-    uint tableSize = table.size();
-    expandedTable.resize(tableSize * 4);
-
-    for(uint index = 0; index < tableSize; ++index)
-    {
-        word x = index;
-        word y = table[index];
-
-        if(y == x)
-        {
-            x = index << 2;
-            expandedTable[x] = x;
-
-            ++x;
-            expandedTable[x] = x;
-
-            ++x;
-            expandedTable[x] = x;
-
-            ++x;
-            expandedTable[x] = x;
-        }
-        else
-        {
-            // 00 -> 01
-            x = index << 2;
-            y = (table[index] << 2) | 1;
-
-            expandedTable[x] = y;
-            expandedTable[y] = x;
-
-            // 10 -> 11
-            x ^= 2;
-            y ^= 2;
-
-            expandedTable[x] = y;
-            expandedTable[y] = x;
-        }
-    }
-#else //ADDITIONAL_MEMORY_TECHNIQUE
-    expandedTable = table;
-#endif //ADDITIONAL_MEMORY_TECHNIQUE
-
-    return expandedTable;
-}
-
 Permutation PermutationUtils::createPermutation(const TruthTable& table)
 {
-    TruthTable expandedTable = expandTable(table);
-
-    vector<Piece> pieces = findPieces(expandedTable);
+    vector<Piece> pieces = findPieces(table);
     vector<Piece> cycles = mergePieces(pieces);
 
     uint cycleCount = cycles.size();

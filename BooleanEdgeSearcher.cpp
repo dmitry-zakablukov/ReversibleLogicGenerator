@@ -28,7 +28,7 @@ word BooleanEdge::getCapacity() const
     if(starsMask != wordUndefined)
     {
         uint starsCount = countNonZeroBits(starsMask);
-        edgeCapacity = (uint)1 << starsCount;
+        edgeCapacity = (word)1 << starsCount;
     }
 
     return edgeCapacity;

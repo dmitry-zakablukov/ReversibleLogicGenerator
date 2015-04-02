@@ -41,9 +41,6 @@ typedef size_t uint;
 #define uintUndefined (size_t)(-1)
 #define wordUndefined (word)(-1)
 
-// Optimization techniques
-//#define ADDITIONAL_MEMORY_TECHNIQUE
-
 // headers
 #include "Timer.hpp"
 #include "Range.hpp"

@@ -11,9 +11,6 @@ public:
     static Permutation createPermutation(const TruthTable& inputTable);
 
 private:
-    // Applies various optimization techniques to the table
-    static TruthTable expandTable(const TruthTable& table);
-
     static vector<Piece> findPieces(const TruthTable& table);
     static vector<Piece> mergePieces(const vector<Piece>& pieces);
 };
