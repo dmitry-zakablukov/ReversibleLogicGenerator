@@ -52,24 +52,16 @@ bool selectForMergeOptimization(const ReverseElement& left,
         word inversionsDiff = leftInversionMask ^ rightInversionMask;
 
         // (01)(11) -> (*1)
-        if (leftControlMask == rightControlMask &&
-            countNonZeroBits(inversionsDiff) == 1)
-        {
+        if (leftControlMask == rightControlMask && countNonZeroBits(inversionsDiff) == 1)
             return true;
-        }
  
         // (0*)(01) -> (00)
-        if (leftInversionMask == rightInversionMask &&
-            countNonZeroBits(controlsDiff) == 1)
-        {
+        if (leftInversionMask == rightInversionMask && countNonZeroBits(controlsDiff) == 1)
             return true;
-        }
 
         // (1*)(10) -> (11)
         if (controlsDiff == inversionsDiff && countNonZeroBits(controlsDiff) == 1)
-        {
             return true;
-        }
     }
 
     return false;
@@ -93,17 +85,12 @@ bool selectForMergeOptimizationWithoutInversions(const ReverseElement& left,
         word inversionsDiff = leftInversionMask ^ rightInversionMask;
 
         // (01)(11) -> (*1)
-        if (leftControlMask == rightControlMask &&
-            countNonZeroBits(inversionsDiff) == 1)
-        {
+        if (leftControlMask == rightControlMask && countNonZeroBits(inversionsDiff) == 1)
             return true;
-        }
 
         // (1*)(10) -> (11)
         if (controlsDiff == inversionsDiff && countNonZeroBits(controlsDiff) == 1)
-        {
             return true;
-        }
     }
 
     return false;
@@ -375,9 +362,7 @@ void PostProcessor::prepareSchemeForOptimization(const OptScheme& scheme,
     optimizations->resize(elementCount);
 
     for(uint index = 0; index < elementCount; ++index)
-    {
         (*optimizations)[index] = OptimizationParams();
-    }
 }
 
 PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& scheme,
@@ -401,9 +386,7 @@ PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& sche
             }
             // leave element as is
             else if(optimization.asis)
-            {
                 optimizedScheme.insert(optimizedScheme.end(), scheme[index]);
-            }
             else
             {
                 if(optimization.inversions) //inversions
@@ -413,9 +396,7 @@ PostProcessor::OptScheme PostProcessor::applyOptimizations(const OptScheme& sche
                     optimizedScheme.insert(optimizedScheme.end(), impl.begin(), impl.end());
                 }
                 else //leave element as is
-                {
                     optimizedScheme.insert(optimizedScheme.end(), scheme[index]);
-                }
             }
         }
     }
@@ -432,18 +413,12 @@ uint PostProcessor::findInversedElementsSequence(const OptScheme& scheme, uint s
     for(uint index = startPosition + 1; index < elementCount; ++index)
     {
         if(scheme[index].getInversionMask() == targetMask)
-        {
             ++sequenceLength;
-        }
         else
-        {
             break;
-        }
 
         if(sequenceLength > 2)
-        {
             break;
-        }
     }
 
     return sequenceLength;
@@ -539,8 +514,7 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
         repeatOuter = false;
 
         uint schemeSize = optimizedScheme.size();
-        uint stepCount = (schemeSize + numMaxSubSchemeSize - 1) /
-            numMaxSubSchemeSize;
+        uint stepCount = (schemeSize + numMaxSubSchemeSize - 1) / numMaxSubSchemeSize;
 
         OptScheme::const_iterator first = optimizedScheme.cbegin();
         uint currentProgress = 0;
@@ -555,8 +529,8 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
                 last = first + (schemeSize - currentProgress);
 
             OptScheme subScheme(first, last);
-            bool repeatInner = true;
 
+            bool repeatInner = true;
             while (repeatInner)
             {
                 subScheme = tryOptimizationTactics(subScheme, selectFunc,
@@ -1001,20 +975,16 @@ uint PostProcessor::getMaximumTransferIndex(const OptScheme& scheme,
 
     int step = 1;
     if (startIndex > stopIndex)
-    {
         // from right to left
         step = -1;
-    }
 
     uint index = startIndex;
     while (index != stopIndex)
     {
         const ReverseElement& neighborElement = scheme[index];
         if (!target.isSwappable(neighborElement))
-        {
             // stop search if not swappable
             break;
-        }
 
         index += step;
     }
