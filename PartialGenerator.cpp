@@ -203,10 +203,10 @@ shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const un
     // we should obtain no more than @maxPackSize transpositions
     // if there are not enough transpositions, result list size should be power of two
 
-    bool reversOrder = true;
+    bool reverseOrder = true;
     if (ProgramOptions::get().isTuningEnabled)
-        reversOrder = ProgramOptions::get().options.getBool(
-        "transpositions-pack-in-reverse-order", reversOrder);
+        reverseOrder = ProgramOptions::get().options.getBool(
+        "transpositions-pack-in-reverse-order", reverseOrder);
 
     unordered_set<word> visited;
 
@@ -242,7 +242,7 @@ shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const un
 
         for (auto& t : *temp)
         {
-            if (reversOrder)
+            if (reverseOrder)
                 result->push_front(t);
             else
                 result->push_back(t);
@@ -260,7 +260,7 @@ shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const un
     else
     {
         // trying to get maximum possible number 
-        getTranspositionsPack(result, &permCopy, &visited, reversOrder);
+        getTranspositionsPack(result, &permCopy, &visited, reverseOrder);
 
         uint size = result->size();
 
