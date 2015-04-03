@@ -203,6 +203,11 @@ shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const un
     // we should obtain no more than @maxPackSize transpositions
     // if there are not enough transpositions, result list size should be power of two
 
+    bool reversOrder = true;
+    if (ProgramOptions::get().isTuningEnabled)
+        reversOrder = ProgramOptions::get().options.getBool(
+        "transpositions-pack-in-reverse-order", reversOrder);
+
     unordered_set<word> visited;
 
     shared_ptr<list<Transposition>> result(new list<Transposition>);
@@ -237,7 +242,10 @@ shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const un
 
         for (auto& t : *temp)
         {
-            result->push_front(t);
+            if (reversOrder)
+                result->push_front(t);
+            else
+                result->push_back(t);
 
             visited.insert(t.getX());
             visited.insert(t.getY());
@@ -248,13 +256,11 @@ shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const un
     }
 
     if (result->size() > maxPackSize)
-    {
         result->resize(maxPackSize);
-    }
     else
     {
         // trying to get maximum possible number 
-        getTranspositionsPack(result, &permCopy, &visited);
+        getTranspositionsPack(result, &permCopy, &visited, reversOrder);
 
         uint size = result->size();
 
@@ -271,7 +277,7 @@ shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const un
 }
 
 void PartialGenerator::getTranspositionsPack(shared_ptr<list<Transposition>> result,
-    Permutation* permCopy, unordered_set<word>* visited)
+    Permutation* permCopy, unordered_set<word>* visited, bool reverseOrder)
 {
     uint maxSize = maxPackSize - result->size();
     if (!maxSize)
@@ -311,11 +317,15 @@ void PartialGenerator::getTranspositionsPack(shared_ptr<list<Transposition>> res
     if (tempSize > maxSize)
         temp.resize(maxSize);
 
-    result->insert(result->begin(), temp.crbegin(), temp.crend());
+    if (reverseOrder)
+        result->insert(result->begin(), temp.crbegin(), temp.crend());
+    else
+        result->insert(result->end(), temp.cbegin(), temp.cend());
+
     if (result->size() < maxPackSize)
     {
         *permCopy = permCopy->multiplyByTranspositions(temp, true);
-        getTranspositionsPack(result, permCopy, visited);
+        getTranspositionsPack(result, permCopy, visited, reverseOrder);
     }
 }
 

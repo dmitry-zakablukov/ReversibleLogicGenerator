@@ -218,11 +218,8 @@ ReversibleLogic::Permutation Permutation::multiplyByTranspositions(const list<Tr
                 word y = x;
                 if (isLeftMultiplication)
                 {
-                    // multiply in reverse order for common pair case
+                    // multiply in reverse order for tCommonPair--tPack cases
                     // for other cases this reverse order won't affect on result
-
-                    //for (auto& transp : *transpositions)
-                    //    y = transp.getOutput(y);
                     for (auto iter = transpositions.crbegin(); iter != transpositions.crend(); ++iter)
                         y = iter->getOutput(y);
 
@@ -234,11 +231,8 @@ ReversibleLogic::Permutation Permutation::multiplyByTranspositions(const list<Tr
                     for (auto cycle : *this)
                         y = cycle->getOutput(y);
 
-                    // multiply in reverse order for common pair case
+                    // multiply in reverse order for tCommonPair--tPack cases
                     // for other cases this reverse order won't affect on result
-
-                    //for (auto& transp : *transpositions)
-                    //    y = transp.getOutput(y);
                     for (auto iter = transpositions.crbegin(); iter != transpositions.crend(); ++iter)
                         y = iter->getOutput(y);
                 }

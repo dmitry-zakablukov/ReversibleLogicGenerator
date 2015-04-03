@@ -32,7 +32,7 @@ private:
 
     shared_ptr<list<Transposition>> getTranspositionsPack(const unordered_map<word, uint>& frequencyMap);
     void getTranspositionsPack(shared_ptr<list<Transposition>> result, Permutation* permCopy,
-        unordered_set<word>* visited);
+        unordered_set<word>* visited, bool reverseOrder);
 
     shared_ptr<list<Transposition>> getCommonPair();
 
