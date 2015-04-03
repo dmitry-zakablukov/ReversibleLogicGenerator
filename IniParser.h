@@ -3,10 +3,9 @@
 class IniParser
 {
 public:
-    static Values parse(ifstream& stream);
+    static Values parse(istream& stream);
 
 private:
-    static bool isWhiteSpacesOnly(const string& line);
     static bool isComment(const string& line);
     static void split(const string& line, Values* values);
 };

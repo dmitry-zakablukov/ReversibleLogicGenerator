@@ -8,23 +8,63 @@ class TfcFormatter
 public:
     TfcFormatter() = default;
 
+    Scheme parse(istream& stream);
+
     template<typename Container>
-    void format(ostream& out, const Container& scheme) const;
+    void format(ostream& out, const Container& scheme);
 
 private:
-    char getVariableName(uint value) const;
+    string getVariableName(uint value) const;
 
-    void writeVariablesLine(ostream& out, const vector<char>& variables) const;
-    void writeInputLine(ostream& out, const vector<char>& variables) const;
-    void writeOutputLine(ostream& out, const vector<char>& variables) const;
+    /// Parsing methods
+    enum MarkerType
+    {
+        mtUnknown = 0,
+        mtComment,
+        mtVariables,
+        mtInputs,
+        mtOutputs,
+        mtConstants,
+        mtBegin,
+        mtEnd,
+        mtToffoliElement,
+    };
 
-    void writeHeaderLine(ostream& out, const vector<char>& variables, const char* prefix) const;
+    MarkerType parseMarkerType(const string& line) const;
+
+    struct Markers
+    {
+        Markers() = default;
+
+        bool variablesParsed = false;
+        bool inputsParsed = false;
+        bool outputsParsed = false;
+        bool constantsParsed = false;
+        bool beginParsed = false;
+        bool endParsed = false;
+
+        bool singleElement = false;
+    };
+
+    void checkMarker(Markers* markers, MarkerType type) const;
+    void parseVariables(const string& line);
+    void parseElement(const string& line, Scheme* scheme) const;
+
+    /// Formatting methods
+    void fillIndexToVariableMap(uint n);
+
+    void writeVariablesLine(ostream& out) const;
+    void writeInputLine(ostream& out) const;
+    void writeOutputLine(ostream& out) const;
+    void writeConstantsLine(ostream& out) const;
+
+    void writeHeaderLine(ostream& out, const char* prefix) const;
 
     void writeBegin(ostream& out) const;
     void writeEnd(ostream& out) const;
 
     template<typename Container>
-    void writeMainBody(ostream& out, const Container& scheme, const vector<char>& variables) const;
+    void writeMainBody(ostream& out, const Container& scheme) const;
 
     static const char* strVariablesPrefix;
     static const char* strInputsPrefix;
@@ -32,10 +72,17 @@ private:
     static const char* strConstantsPrefix;
     static const char* strBeginKeyword;
     static const char* strEndKeyword;
+
+    unordered_map<string, int> variableToIndexMap;
+    unordered_map<int, string> indexToVariableMap;
+
+    string inputsLine;
+    string outputsLine;
+    string constantsLine;
 };
 
 template<typename Container>
-void ReversibleLogic::TfcFormatter::format(ostream& out, const Container& scheme) const
+void ReversibleLogic::TfcFormatter::format(ostream& out, const Container& scheme)
 {
     uint elementCount = scheme.size();
 
@@ -45,24 +92,20 @@ void ReversibleLogic::TfcFormatter::format(ostream& out, const Container& scheme
         n = scheme.front().getInputCount();
     }
 
-    vector<char> variables;
-    variables.reserve(n);
+    fillIndexToVariableMap(n);
 
-    for (uint index = 0; index < n; ++index)
-        variables.push_back(getVariableName(index));
-
-    writeVariablesLine(out, variables);
-    writeInputLine(out, variables);
-    writeOutputLine(out, variables);
+    writeVariablesLine(out);
+    writeInputLine(out);
+    writeOutputLine(out);
+    writeConstantsLine(out);
 
     writeBegin(out);
-    writeMainBody(out, scheme, variables);
+    writeMainBody(out, scheme);
     writeEnd(out);
 }
 
 template<typename Container>
-void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container& scheme,
-    const vector<char>& variables) const
+void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container& scheme) const
 {
     for (const ReverseElement& element : scheme)
     {
@@ -79,7 +122,7 @@ void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container&
         {
             if (controlMask & mask)
             {
-                out << variables[index];
+                out << indexToVariableMap.at(index);
                 if (inversionMask & mask)
                     out << '\'';
 
@@ -93,7 +136,7 @@ void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container&
         word targetMask = element.getTargetMask();
         uint targetIndex = findPositiveBitPosition(targetMask);
 
-        out << variables[targetIndex] << endl;
+        out << indexToVariableMap.at(targetIndex) << endl;
     }
 }
 

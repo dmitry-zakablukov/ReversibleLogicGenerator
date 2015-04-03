@@ -1,7 +1,7 @@
 #include "std.hpp"
 
 //static
-Values IniParser::parse(ifstream& stream)
+Values IniParser::parse(istream& stream)
 {
     Values values;
 
@@ -43,17 +43,6 @@ void IniParser::split(const string& line, Values* values)
 
     list<string>& keyValues = (*values)[key];
     keyValues.push_back(value);
-}
-
-bool IniParser::isWhiteSpacesOnly(const string& line)
-{
-    auto iter = line.cbegin();
-    auto end = line.cend();
-
-    while (iter != end && isspace(*iter))
-        ++iter;
-
-    return iter == end;
 }
 
 bool IniParser::isComment(const string& line)

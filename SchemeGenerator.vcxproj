@@ -128,6 +128,7 @@
     <ClCompile Include="BooleanEdgeSearcher.cpp" />
     <ClCompile Include="Cycle.cpp" />
     <ClCompile Include="Element.cpp" />
+    <ClCompile Include="Exceptions.cpp" />
     <ClCompile Include="Generator.cpp" />
     <ClCompile Include="GeneratorWithMemory.cpp" />
     <ClCompile Include="IniParser.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="BooleanEdgeSearcher.hpp" />
     <ClInclude Include="Cycle.hpp" />
     <ClInclude Include="Element.hpp" />
+    <ClInclude Include="Exceptions.h" />
     <ClInclude Include="Generator.hpp" />
     <ClInclude Include="GeneratorWithMemory.hpp" />
     <ClInclude Include="IniParser.h" />

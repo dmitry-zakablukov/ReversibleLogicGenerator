@@ -1,8 +1,14 @@
 #include "std.hpp"
 
+
+bool Values::has(const string& key) const
+{
+    return find(key) != cend();
+}
+
 bool Values::getBool(const string& key, bool defaultValue /*= false*/) const
 {
-    if (find(key) == cend())
+    if (!has(key))
         return defaultValue;
 
     const list<string>& keyValues = at(key);
@@ -25,7 +31,7 @@ bool Values::getBool(const string& key, bool defaultValue /*= false*/) const
 
 string Values::getString(const string& key, const string& defaultValue /*= string()*/) const
 {
-    if (find(key) == cend())
+    if (!has(key))
         return defaultValue;
 
     const list<string>& keyValues = at(key);
@@ -38,7 +44,7 @@ string Values::getString(const string& key, const string& defaultValue /*= strin
 
 int Values::getInt(const string& key, int defaultValue /*= 0*/) const
 {
-    if (find(key) == cend())
+    if (!has(key))
         return defaultValue;
 
     const list<string>& keyValues = at(key);
@@ -47,4 +53,9 @@ int Values::getInt(const string& key, int defaultValue /*= 0*/) const
         string("Values::getInt() more than one values"));
 
     return stoi(keyValues.front());
+}
+
+const list<string>& Values::operator[](const string& key) const
+{
+    return at(key);
 }

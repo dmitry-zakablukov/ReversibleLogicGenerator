@@ -2,20 +2,6 @@
 
 typedef vector<word> TruthTable;
 
-class AssertionError: public exception
-{
-public:
-    AssertionError();
-    AssertionError(string&& message);
-
-    virtual ~AssertionError() = default;
-
-    virtual const char* what() const;
-
-private:
-    string message;
-};
-
 // debug assert
 #if defined(DEBUG) || defined(_DEBUG)
     #define assertd(condition, message)  if(!(condition)) throw AssertionError( move((message)) );
@@ -106,8 +92,10 @@ inline void toVector(const list<T>& container, vector<T>* output)
     }
 }
 
+bool isWhiteSpacesOnly(const string& line);
 string trim(const string& value);
 string removeQuotes(const string& value);
+vector<string> split(const string& value, char symbol);
 
 string getFileName(const string& path);
 string appendPath(const string& left, const string& right);

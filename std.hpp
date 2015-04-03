@@ -45,6 +45,7 @@ typedef size_t uint;
 #include "Timer.hpp"
 #include "Range.hpp"
 
+#include "Exceptions.h"
 #include "utils.hpp"
 #include "Element.hpp"
 #include "Transposition.hpp"

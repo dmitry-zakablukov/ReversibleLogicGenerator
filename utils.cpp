@@ -1,21 +1,5 @@
 #include "std.hpp"
 
-AssertionError::AssertionError()
-    : message()
-{
-
-}
-
-AssertionError::AssertionError(string&& message)
-    : message( move(message))
-{
-}
-
-const char* AssertionError::what() const
-{
-    return message.c_str();
-}
-
 uint countNonZeroBits(word value)
 {
     uint count = 0;
@@ -60,6 +44,17 @@ uint getSignificantBitCount(word value)
     }
 
     return count;
+}
+
+bool isWhiteSpacesOnly(const string& line)
+{
+    auto iter = line.cbegin();
+    auto end = line.cend();
+
+    while (iter != end && isspace(*iter))
+        ++iter;
+
+    return iter == end;
 }
 
 string trim(const string& value)
@@ -108,6 +103,33 @@ string removeQuotes(const string& value)
     return result;
 }
 
+vector<string> split(const string& value, char symbol)
+{
+    int count = std::count(value.cbegin(), value.cend(), symbol);
+    if (!count)
+        return vector<string>();
+
+    ++count;
+
+    vector<string> parts;
+    parts.reserve(count);
+
+    auto start = value.cbegin();
+    auto end = value.cend();
+
+    int pos = 0;
+    while (count--)
+    {
+        auto iter = std::find(start, end, symbol);
+        parts.push_back(string(start, iter));
+
+        if (iter != end)
+            start = iter + 1;
+    }
+
+    return parts;
+}
+
 string getFileName(const string& path)
 {
     auto pos = path.rfind('\\');
@@ -146,7 +168,7 @@ void debugLog(const string& context, function<void(ostream&)> logFunction)
     if (options.find(strDebugContext) != options.cend()
         && options.find(strDebugLogFileName) != options.cend())
     {
-        const list<string>& keyValues = options.at(strDebugContext);
+        auto keyValues = options[strDebugContext];
         if (find(keyValues.cbegin(), keyValues.cend(), context) != keyValues.cend())
         {
             const string& fileName = options.getString(strDebugLogFileName);
@@ -167,7 +189,7 @@ void debugBehavior(const string& context, function<void()> debugFunction)
     const Values& options = ProgramOptions::get().options;
     if (options.find(strDebugContext) != options.cend())
     {
-        const list<string>& keyValues = options.at(strDebugContext);
+        auto keyValues = options[strDebugContext];
         if (find(keyValues.cbegin(), keyValues.cend(), context) != keyValues.cend())
             debugFunction();
     }
