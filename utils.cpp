@@ -108,6 +108,32 @@ string removeQuotes(const string& value)
     return result;
 }
 
+string getFileName(const string& path)
+{
+    auto pos = path.rfind('\\');
+    if (pos == string::npos)
+        return path;
+
+    string fileName = path.substr(pos + 1);
+    return fileName;
+}
+
+string appendPath(const string& left, const string& right)
+{
+    const char cDelimiter = '\\';
+
+    string path;
+    if (left.size() == 0)
+        path = ".\\";
+    else
+        path = left;
+
+    if (path.back() != cDelimiter && (right.size() == 0 || right.front() != cDelimiter))
+        path += cDelimiter;
+
+    return path + right;
+}
+
 void debugLog(const string& context, function<void(ostream&)> logFunction)
 {
     const char* strDebugContext = "debug-context";

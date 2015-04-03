@@ -107,5 +107,8 @@ inline void toVector(const list<T>& container, vector<T>* output)
 string trim(const string& value);
 string removeQuotes(const string& value);
 
+string getFileName(const string& path);
+string appendPath(const string& left, const string& right);
+
 void debugLog(const string& context, function<void(ostream&)> logFunction);
 void debugBehavior(const string& context, function<void()> debugFunction);

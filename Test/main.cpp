@@ -2,14 +2,8 @@
 
 void printUsage(const string& fullProgramPath)
 {
-    string shortName = fullProgramPath;
-
-    auto pos = fullProgramPath.rfind('\\');
-    if (pos != string::npos)
-        shortName = shortName.substr(pos + 1);
-
     cout << 
-        "Usage: " << shortName << " [config_file_name]\n"
+        "Usage: " << getFileName(fullProgramPath) << " [config_file_name]\n"
         "    config_file_name - configuration file containing options (see config.ini);\n"
         "                       if not specified, default options would be used"
         << endl;
