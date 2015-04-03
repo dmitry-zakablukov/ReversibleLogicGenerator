@@ -17,7 +17,7 @@ InvalidFormatException::InvalidFormatException(string&& message)
 
 void InvalidFormatException::setMessage(string&& newMessage)
 {
-    message = move(message);
+    message = move(newMessage);
 }
 
 const char* InvalidFormatException::what() const

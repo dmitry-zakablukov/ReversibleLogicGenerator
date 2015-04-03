@@ -107,7 +107,7 @@ vector<string> split(const string& value, char symbol)
 {
     int count = std::count(value.cbegin(), value.cend(), symbol);
     if (!count)
-        return vector<string>();
+        return vector<string>({ value });
 
     ++count;
 
