@@ -59,12 +59,24 @@ bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
 
 void PartialGenerator::prepareForGeneration()
 {
+    // tuning options
+    bool isResultComparisonNeeded = false;
+    bool sortByWeightNotFrequency = false;
+
+    const ProgramOptions& options = ProgramOptions::get();
+    if (options.isTuningEnabled)
+    {
+        isResultComparisonNeeded = options.options.getBool("compare-results-on-edge-search",
+            isResultComparisonNeeded);
+
+        sortByWeightNotFrequency = options.options.getBool("sort-by-weight-not-frequency",
+            sortByWeightNotFrequency);
+    }
+
     // prepare all cycles in permutation for disjoint
     unordered_map<word, uint> frequencyMap;
     for (auto cycle : permutation)
-    {
         cycle->prepareForDisjoint(&frequencyMap);
-    }
 
     // sort keys by length
     auto sortFunction = [&](const word& left, const word& right) -> bool
@@ -75,17 +87,19 @@ void PartialGenerator::prepareForGeneration()
         uint  leftFreq = frequencyMap[ left];
         uint rightFreq = frequencyMap[right];
 
-        bool isLess = (leftFreq > rightFreq);
-        if(leftFreq == rightFreq)
+        bool isLess = false;
+        if (sortByWeightNotFrequency)
         {
             isLess = (leftWeight < rightWeight);
+            if(leftWeight == rightWeight)
+                isLess = (leftFreq > rightFreq);
         }
-
-        //bool isLess = (leftWeight < rightWeight);
-        //if(leftWeight == rightWeight)
-        //{
-        //    isLess = (leftFreq > rightFreq);
-        //}
+        else
+        {
+            isLess = (leftFreq > rightFreq);
+            if(leftFreq == rightFreq)
+                isLess = (leftWeight < rightWeight);
+        }
 
         return isLess;
     };
@@ -94,59 +108,28 @@ void PartialGenerator::prepareForGeneration()
     keys.reserve(frequencyMap.size());
 
     for (auto iter : frequencyMap)
-    {
         keys.push_back(iter.first);
-    }
 
     sort(keys.begin(), keys.end(), sortFunction);
 
     // now find the best diff for disjoint
     PartialResultParams bestResult;
-    uint weight = uintUndefined;
+    shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
  
     uint keyCount = keys.size();
-    for(uint index = 0; index < keyCount; ++index)
+    for (uint index = 0; index < keyCount; ++index)
     {
         word diff = keys[index];
         uint freq = frequencyMap[diff];
 
-        //if(weight == uintUndefined)
-        //{
-        //    weight = countNonZeroBits(diff);
-        //}
-        //else if(countNonZeroBits(diff) > weight)
-        //{
-        //    break;
-        //}
-
-        if(freq < bestResult.getCoveredTranspositionsCount())
-        {
-            // even theoretically we can't get more transpositions than we already have on previous step
-            //break;
-        }
-
-        shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
+        transpositions->resize(0);
         for (auto cycle : permutation)
-        {
             cycle->disjointByDiff(diff, transpositions);
-        }
 
-        uint transpositionCount = transpositions->size();
-        //if(transpositionCount < bestResult.getCoveredTranspositionsCount()
-        //    || transpositionCount == 1)
-        if(transpositionCount == 1)
-        {
-            // real number of transpositions is lower than theoretical, so go to next diff
-            // also skip this step if transposition count equals 1
+        if (transpositions->size() == 1)
             continue;
-        }
 
         PartialResultParams result = getPartialResult(transpositions, diff, bestResult);
-
-        bool isResultComparisonNeeded = false;
-        if (ProgramOptions::get().isTuningEnabled)
-            isResultComparisonNeeded = ProgramOptions::get().options.getBool(
-                "compare-results-on-edge-search");
 
         if ((isResultComparisonNeeded && !bestResult.isBetterThan(result)) ||
             result.edge.coveredTranspositionCount > bestResult.edge.coveredTranspositionCount)
@@ -305,9 +288,7 @@ void PartialGenerator::getTranspositionsPack(shared_ptr<list<Transposition>> res
         }
 
         if (pos == 2)
-        {
             temp.push_back(Transposition(buffer[0], buffer[1]));
-        }
     }
 
     uint tempSize = temp.size();
@@ -397,7 +378,6 @@ PartialResultParams PartialGenerator::getPartialResult(
 
             edge = BooleanEdgeSearcher(result.transpositions, n, diff).findEdge();
             result.edge = edge;
-            //result.edge = BooleanEdgeSearcher(result.transpositions, n, diff).findEdge();
 
             result.params.diff = diff;
             result.params.edgeCapacity = edge.getCapacity();
@@ -617,7 +597,7 @@ deque<ReverseElement> PartialGenerator::implementPairOfTranspositions()
 
 deque<ReverseElement> PartialGenerator::implementSingleTransposition(const Transposition& transp)
 {
-    /// New method: use maximum control inputs as possible with inversion
+    // new method: use maximum control inputs as possible with inversion
     deque<ReverseElement> conjugationElements;
     deque<ReverseElement> elements;
 
