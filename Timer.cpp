@@ -14,9 +14,7 @@ float Timer::getElapsedMs() const
 {
     float elapsedTime = 0;
     if( endTime > startTime )
-    {
-        elapsedTime = 1000.0f * ( endTime - startTime ) / CLOCKS_PER_SEC;
-    }
+        elapsedTime = 1000.0f * (endTime - startTime) / CLOCKS_PER_SEC;
 
     return elapsedTime;
 }
@@ -33,7 +31,5 @@ AutoTimer::~AutoTimer()
 {
     timer.stop();
     if( elapsedTime )
-    {
         *elapsedTime = timer.getElapsedMs();
-    }
 }

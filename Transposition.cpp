@@ -3,14 +3,6 @@
 namespace ReversibleLogic
 {
 
-Transposition::Transposition()
-    : x(0)
-    , y(0)
-    , empty(true)
-{
-
-}
-
 Transposition::Transposition(word left, word right, bool needSort /* = false */)
     : empty(false)
 {
@@ -27,9 +19,7 @@ Transposition::Transposition(word left, word right, bool needSort /* = false */)
     y = right;
 
     if(needSort)
-    {
         sort();
-    }
 }
 
 Transposition::Transposition(const Transposition& another)
@@ -50,9 +40,7 @@ void Transposition::sort()
     uint yWeight = countNonZeroBits(y);
 
     if(xWeight > yWeight)
-    {
         swap();
-    }
 }
 
 void Transposition::swap()
@@ -103,9 +91,7 @@ bool Transposition::operator ==(const Transposition& another) const
     word z = another.getX();
     word w = another.getY();
 
-    bool isEqual = ( (x == z && y == w)
-            || (x == w && y == z) );
-
+    bool isEqual = ((x == z && y == w) || (x == w && y == z));
     return isEqual;
 }
 
@@ -124,13 +110,9 @@ word Transposition::getOutput(word input) const
 {
     word output = input;
     if(output == x)
-    {
         output = y;
-    }
-    else if(output == y)
-    {
+    else if (output == y)
         output = x;
-    }
 
     return output;
 }

@@ -18,11 +18,6 @@ void Permutation::append(shared_ptr<Cycle> cycle)
     cycles.push_back(cycle);
 }
 
-//void Permutation::remove(shared_ptr<Cycle> cycle)
-//{
-//    cycles.remove(cycle);
-//}
-//
 uint Permutation::length() const
 {
     return cycles.size();
@@ -56,9 +51,6 @@ uint Permutation::getTranspositionsCount() const
 
 bool Permutation::isEmpty() const
 {
-    //uint cycleCount = cycles.size();
-    //return (cycleCount == 0);
-
     bool empty = true;
     for (auto cycle : cycles)
     {
@@ -76,9 +68,7 @@ bool Permutation::isEven() const
 {
     uint length = 0;
     for (auto cycle : cycles)
-    {
         length += cycle->length() - 1;
-    }
 
     return ((length & 1) == 0);
 }
@@ -139,9 +129,7 @@ void Permutation::completeToEven()
         append( shared_ptr<Cycle>(new Cycle(move(cycleElements))) );
     }
     else
-    {
         incompleteCycle->append(first);
-    }
 }
 
 void Permutation::completeToEven(word truthTableSize)
@@ -164,9 +152,7 @@ ostream& operator <<(ostream& out, const Permutation& permutation)
     out << "[ ";
 
     for (auto cycle : permutation)
-    {
         out << *cycle << ", ";
-    }
 
     out << " ]";
     return out;
@@ -269,9 +255,7 @@ ReversibleLogic::Permutation Permutation::multiplyByTranspositions(const list<Tr
             // skip fixed point
             uint cycleLength = nextCycle->length();
             if (cycleLength > 1)
-            {
                 newCycles.push_back(nextCycle);
-            }
 
             nextCycle = shared_ptr<Cycle>(new Cycle());
         }
@@ -288,9 +272,7 @@ uint Permutation::getDistancesSum() const
 {
     uint sum = 0;
     for (auto cycle : *this)
-    {
         sum += cycle->getDistancesSum();
-    }
 
     return sum;
 }

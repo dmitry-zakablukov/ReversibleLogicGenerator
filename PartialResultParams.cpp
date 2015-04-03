@@ -23,13 +23,9 @@ bool PartialResultParams::isBetterThan(const PartialResultParams& another) const
         case tFullEdge:
         case tEdge:
             if(params.edgeCapacity == another.params.edgeCapacity)
-            {
                 isLeftBetter = IS_LEFT_BETTER(distancesSum, another.distancesSum);
-            }
             else
-            {
                 isLeftBetter = (params.edgeCapacity > another.params.edgeCapacity);
-            }
             break;
 
         case tSameDiffPair:
@@ -38,13 +34,9 @@ bool PartialResultParams::isBetterThan(const PartialResultParams& another) const
                 uint rightWeight = countNonZeroBits(another.params.diff);
 
                 if(leftWeight == rightWeight)
-                {
                     isLeftBetter = IS_LEFT_BETTER(distancesSum, another.distancesSum);
-                }
                 else
-                {
                     isLeftBetter = (leftWeight < rightWeight);
-                }
             }
             break;
 
@@ -67,13 +59,9 @@ bool PartialResultParams::isBetterThan(const PartialResultParams& another) const
                 rightSum += countNonZeroBits(another.params.common.distance );
 
                 if(leftSum == rightSum)
-                {
                     isLeftBetter = IS_LEFT_BETTER(distancesSum, another.distancesSum);
-                }
                 else
-                {
                     isLeftBetter = (leftSum < rightSum);
-                }
             }
             break;
 

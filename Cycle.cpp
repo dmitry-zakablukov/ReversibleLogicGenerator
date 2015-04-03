@@ -37,13 +37,9 @@ void Cycle::append(word element)
 
     auto pos = find(elements.cbegin(), elements.cend(), element);
     if(pos == elements.cend())
-    {
         elements.push_back(element);
-    }
-    else if(pos == elements.cbegin())
-    {
+    else if (pos == elements.cbegin())
         finalize();
-    }
     else
     {
         ostringstream stream;
@@ -92,33 +88,25 @@ bool Cycle::has(const Transposition& target) const
         {
             xPos = index;
             if(yPos != uintUndefined)
-            {
                 break;
-            }
         }
 
         if(elements[index] == y)
         {
             yPos = index;
             if(xPos != uintUndefined)
-            {
                 break;
-            }
         }
     }
 
     if(xPos != uintUndefined && yPos != uintUndefined)
     {
         if(yPos < xPos)
-        {
             swap(xPos, yPos);
-        }
 
         uint delta = yPos - xPos;
         if(delta == 1 || delta == elementCount - 1)
-        {
             result = true;
-        }
     }
 
     return result;
@@ -145,9 +133,7 @@ ostream& operator <<(ostream& out, const Cycle& cycle)
 
     uint elementCount = cycle.length();
     for(uint index = 0; index < elementCount; ++index)
-    {
         out << cycle.elements[index] << ", ";
-    }
 
     out << ")";
     return out;
@@ -162,9 +148,7 @@ word Cycle::getOutput(word input) const
     {
         word x = elements[index];
         if(input == x)
-        {
             output = elements[modIndex(index + 1)];
-        }
     }
 
     return output;
@@ -174,9 +158,7 @@ word Cycle::getOutput(word input, shared_ptr<list<Transposition>> transpositions
 {
     word output = input;
     for (auto& transp : *transpositions)
-    {
         output = transp.getOutput(output);
-    }
 
     return output;
 }
@@ -225,9 +207,8 @@ void Cycle::multiplyByTranspositions(shared_ptr<list<Transposition>> transpositi
                 }
 
                 if(nextCycle->isEmpty())
-                {
                     nextCycle->append(x);
-                }
+
                 nextCycle->append(y);
 
                 visitedElements.insert(x);
@@ -237,9 +218,7 @@ void Cycle::multiplyByTranspositions(shared_ptr<list<Transposition>> transpositi
             // skip fixed point
             uint cycleLength = nextCycle->length();
             if(cycleLength > 1)
-            {
                 output->push_back(nextCycle);
-            }
 
             nextCycle = shared_ptr<Cycle>(new Cycle());
         }
@@ -261,10 +240,8 @@ void Cycle::prepareForDisjoint(unordered_map<word, uint>* frequencyMap)
     {
         uint maxIndex = elementCount;
         if(!(elementCount & 1) && step == stepCount)
-        {
             // avoid pair duplicates
             maxIndex /= 2;
-        }
 
         for(uint index = 0; index < maxIndex; ++index)
         {
@@ -326,9 +303,7 @@ void Cycle::getTranspositionsByDiff(const vector<word>& input, word diff,
             }
         }
         else
-        {
             counterArray[index] = counter;
-        }
     }
 
     // find best disjoint indices
@@ -409,10 +384,8 @@ uint Cycle::getDistancesSum() const
     {
         uint maxIndex = elementCount;
         if(!(elementCount & 1) && step == stepCount)
-        {
             // avoid pair duplicates
             maxIndex /= 2;
-        }
 
         for(uint index = 0; index < maxIndex; ++index)
         {

@@ -36,14 +36,10 @@ void IniParser::split(const string& line, Values* values)
     value = removeQuotes(trim(value));
 
     if (key.size() == 0)
-    {
         cerr << "Found empty key in *.ini file" << endl;
-    }
 
     if (value.size() == 0)
-    {
         cerr << "Found empty value in *.ini file" << endl;
-    }
 
     list<string>& keyValues = (*values)[key];
     keyValues.push_back(value);

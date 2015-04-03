@@ -256,25 +256,17 @@ word ReverseElement::getValue(word input) const
     if(needInversion)
     {
         if(isIndependent())
-        {
             output ^= targetMask;
-        }
         else
         {
             word full = (1 << n) - 1;
             word freeMask = full ^ targetMask ^ controlMask;
             if(output == full)                      // 1111 -> 1101
-            {
                 output ^= freeMask;
-            }
-            else if(output == (full ^ freeMask))     // 1101 -> 1110
-            {
+            else if (output == (full ^ freeMask))     // 1101 -> 1110
                 output ^= freeMask ^ targetMask;
-            }
-            else if(output == (full ^ targetMask))   // 1110 -> 1111
-            {
+            else if (output == (full ^ targetMask))   // 1110 -> 1111
                 output = full;
-            }
         }
     }
 
@@ -359,9 +351,7 @@ deque<ReverseElement> ReverseElement::getInversionOptimizedImplementation(bool h
         }
     }
     else
-    {
         optImpl.push_back(*this);
-    }
 
     return optImpl;
 }
@@ -391,10 +381,8 @@ deque<ReverseElement> ReverseElement::getSimpleImplementation() const
     while(mask <= inversionMask)
     {
         if(inversionMask & mask)
-        {
             inversions.push_back(ReverseElement(n, mask));
-        }
-    
+
         mask <<= 1;
     }
     
@@ -426,9 +414,7 @@ deque<ReverseElement> ReverseElement::getRecursiveImplementation() const
         implementation.insert(implementation.end(), elements.cbegin(), elements.cend());
     }
     else
-    {
         implementation.push_back(*this);
-    }
 
     return implementation;
 }
@@ -499,10 +485,8 @@ ReverseElement::getRightmostElement(bool heavyRight /* = true */) const
         // C_{n-1, n-2,..., 3; 1}, 1 - free
         word restControlMask = controlMask ^ firstControlMask;
         if(!isIndependent())
-        {
             // C_{n-1, n-2,..., 3, 0; 1}, 1 - free, 0 - target
             restControlMask ^= targetMask;
-        }
 
         auto element = ReverseElement(n, freeInputMask, restControlMask);
         return element;

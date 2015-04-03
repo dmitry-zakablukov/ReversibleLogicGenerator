@@ -38,9 +38,7 @@ vector<PermutationUtils::Piece> PermutationUtils::findPieces(const TruthTable& i
     {
         word& y = table[x];
         if(y == wordUndefined)
-        {
             continue;
-        }
 
         if(x == y)
         {
@@ -61,13 +59,9 @@ vector<PermutationUtils::Piece> PermutationUtils::findPieces(const TruthTable& i
             assertd(length < transformCount, string("Too big piece"));
 
             if(temp != z && temp != wordUndefined)
-            {
                 z = temp;
-            }
             else
-            {
                 break;
-            }
         }
 
         // fill piece
@@ -176,7 +170,6 @@ vector<PermutationUtils::Piece> PermutationUtils::mergePieces(const vector<Piece
             if(!merged)
             {
                 bufferize(outputCycles);
-
                 outputCycles.push_back(piece);
             }
         }

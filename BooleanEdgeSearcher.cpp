@@ -116,9 +116,7 @@ BooleanEdge BooleanEdgeSearcher::findEdge()
         {
             findEdge(&edge, initialMask, maxEdgeDimension - minEdgeDimension, 0);
             if(edge.isValid())
-            {
                 break;
-            }
 
             --maxEdgeDimension;
         }
@@ -148,9 +146,7 @@ void BooleanEdgeSearcher::findEdge(BooleanEdge* bestEdge, word edgeMask,
         {
             word mask = 1 << startPos;
             if(!(edgeMask & mask))
-            {
                 findEdge(bestEdge, mask ^ edgeMask, restPositionCount - 1, startPos + 1);
-            }
 
             ++startPos;
         }
@@ -162,9 +158,7 @@ void BooleanEdgeSearcher::findEdge(BooleanEdge* bestEdge, word edgeMask,
 
         bool isValid = checkEdge(&edge);
         if(isValid && edge.coveredTranspositionCount > bestEdge->coveredTranspositionCount)
-        {
             *bestEdge = edge;
-        }
     }
 }
 
@@ -210,9 +204,7 @@ bool BooleanEdgeSearcher::checkEdge(BooleanEdge* edge)
 
         uint index = 0;
         if (edge->starsMask == ((1 << n) - 1))
-        {
             index = 1;
-        }
 
         for (; index < maxEntriesCount; ++index)
         {
@@ -251,9 +243,7 @@ shared_ptr<list<ReversibleLogic::Transposition>> BooleanEdgeSearcher::filterTran
 
         word value = x & baseMask;
         if(value == baseValue)
-        {
             filteredResult->push_back(transp);
-        }
     }
 
     return filteredResult;

@@ -22,10 +22,10 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
         AutoTimer timer(&time);
 
         checkPermutationValidity(table);
-
         tie(n, permutation) = getPermutation(table);
     }
 
+    // log permutation creation parameters
     *log << "Permutation creation time: ";
     *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
     *log << " sec" << endl;
@@ -38,37 +38,22 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
     });
 
     Scheme scheme;
-
     time = 0;
+
     {
-        const uint numIterCount = 1;
-        {
-            AutoTimer timer(&time);
+        AutoTimer timer(&time);
 
-            uint count = numIterCount;
-            while (count--)
-            {
-                Scheme localScheme;
-                Scheme::iterator targetIter = localScheme.end();
+        Scheme::iterator targetIter = scheme.end();
 
-                shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
-                partialGenerator->setPermutation(permutation, n);
-                partialGenerator->prepareForGeneration();
+        shared_ptr<PartialGenerator> partialGenerator(new PartialGenerator());
+        partialGenerator->setPermutation(permutation, n);
+        partialGenerator->prepareForGeneration();
 
-                while (partialGenerator)
-                {
-                    partialGenerator = reducePermutation(partialGenerator, n, &localScheme, &targetIter);
-                }
-
-                scheme = localScheme;
-            }
-        }
-
-        time /= numIterCount;
+        while (partialGenerator)
+            partialGenerator = reducePermutation(partialGenerator, n, &scheme, &targetIter);
     }
 
-    //////////////////////////////////////////////////////////////////////////
-
+    // log scheme synthesis parameters
     *log << "Scheme synthesis time: ";
     *log << setiosflags(ios::fixed) << setprecision(5) << time;
     *log << " ms" << endl;
@@ -76,23 +61,16 @@ Scheme Generator::generate(const TruthTable& table, ostream& outputLog)
 
     totalTime += time;
     time = 0;
+
     {
-        const uint numIterCount = 1;
-
-        {
-            AutoTimer timer(&time);
-            uint count = numIterCount;
-
-            while (count--)
-                scheme = PostProcessor().optimize(scheme);
-        }
-
-        bool isValid = checkSchemeAgainstPermutationVector(scheme, table);
-        assert(isValid, string("Generated scheme is not valid"));
-
-        time /= numIterCount;
+        AutoTimer timer(&time);
+        scheme = PostProcessor().optimize(scheme);
     }
 
+    bool isValid = checkSchemeAgainstPermutationVector(scheme, table);
+    assert(isValid, string("Generated scheme is not valid"));
+
+    // log post processing parameters
     *log << "Optimization time: ";
     *log << setiosflags(ios::fixed) << setprecision(5) << time;
     *log << " ms" << endl;
@@ -213,14 +191,10 @@ void Generator::implementPartialResult(PartialGenerator& partialGenerator,
 
     Scheme::iterator localIterator = *targetIter;
     forrcin(element, elements)
-    {
         localIterator = scheme->insert(localIterator, *element);
-    }
 
     if(isLeftMultiplication)
-    {
         advance(localIterator, elements.size());
-    }
 
     *targetIter = localIterator;
 }
@@ -283,9 +257,7 @@ bool Generator::checkSchemeAgainstPermutationVector(const Scheme& scheme, const 
         const word& y = table[x];
 
         for (auto& element : scheme)
-        {
             x = element.getValue(x);
-        }
 
         if(x != y)
         {

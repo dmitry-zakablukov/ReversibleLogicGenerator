@@ -6,7 +6,7 @@ namespace ReversibleLogic
 class Transposition
 {
 public:
-    Transposition();
+    Transposition() = default;
     explicit Transposition(word left, word right, bool needSort = false);
     Transposition(const Transposition& another);
 
@@ -45,10 +45,10 @@ public:
     friend ostream& operator <<(ostream& out, const Transposition& t);
 
 private:
-    word x;
-    word y;
+    word x = 0;
+    word y = 0;
 
-    bool empty;
+    bool empty = true;
 };
 
 }   // namespace ReversibleLogic
