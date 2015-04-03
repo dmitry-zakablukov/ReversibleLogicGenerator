@@ -25,6 +25,13 @@ private:
 
     template<typename Container>
     void writeMainBody(ostream& out, const Container& scheme, const vector<char>& variables) const;
+
+    static const char* strVariablesPrefix;
+    static const char* strInputsPrefix;
+    static const char* strOutputsPrefix;
+    static const char* strConstantsPrefix;
+    static const char* strBeginKeyword;
+    static const char* strEndKeyword;
 };
 
 template<typename Container>
