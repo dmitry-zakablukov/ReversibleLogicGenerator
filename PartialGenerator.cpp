@@ -62,6 +62,7 @@ void PartialGenerator::prepareForGeneration()
     // tuning options
     bool isResultComparisonNeeded = false;
     bool sortByWeightNotFrequency = false;
+    bool searchForBooleanEdges = true;
 
     const ProgramOptions& options = ProgramOptions::get();
     if (options.isTuningEnabled)
@@ -71,6 +72,9 @@ void PartialGenerator::prepareForGeneration()
 
         sortByWeightNotFrequency = options.options.getBool("sort-by-weight-not-frequency",
             sortByWeightNotFrequency);
+
+        searchForBooleanEdges = options.options.getBool("search-for-boolean-edges",
+            searchForBooleanEdges);
     }
 
     // prepare all cycles in permutation for disjoint
@@ -112,29 +116,32 @@ void PartialGenerator::prepareForGeneration()
 
     sort(keys.begin(), keys.end(), sortFunction);
 
-    // now find the best diff for disjoint
     PartialResultParams bestResult;
-    shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
- 
-    uint keyCount = keys.size();
-    for (uint index = 0; index < keyCount; ++index)
+    if (searchForBooleanEdges)
     {
-        word diff = keys[index];
-        uint freq = frequencyMap[diff];
+        // now find the best diff for disjoint
+        shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
 
-        transpositions->resize(0);
-        for (auto cycle : permutation)
-            cycle->disjointByDiff(diff, transpositions);
-
-        if (transpositions->size() == 1)
-            continue;
-
-        PartialResultParams result = getPartialResult(transpositions, diff, bestResult);
-
-        if ((isResultComparisonNeeded && !bestResult.isBetterThan(result)) ||
-            result.edge.coveredTranspositionCount > bestResult.edge.coveredTranspositionCount)
+        uint keyCount = keys.size();
+        for (uint index = 0; index < keyCount; ++index)
         {
-            bestResult = result;
+            word diff = keys[index];
+            uint freq = frequencyMap[diff];
+
+            transpositions->resize(0);
+            for (auto cycle : permutation)
+                cycle->disjointByDiff(diff, transpositions);
+
+            if (transpositions->size() == 1)
+                continue;
+
+            PartialResultParams result = getPartialResult(transpositions, diff, bestResult);
+
+            if ((isResultComparisonNeeded && !bestResult.isBetterThan(result)) ||
+                result.edge.coveredTranspositionCount > bestResult.edge.coveredTranspositionCount)
+            {
+                bestResult = result;
+            }
         }
     }
 
