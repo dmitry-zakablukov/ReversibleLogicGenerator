@@ -11,7 +11,6 @@ public:
     virtual ~Permutation() = default;
 
     void append(shared_ptr<Cycle> cycle);
-    //void remove(shared_ptr<Cycle> cycle);
 
     uint length() const;
     shared_ptr<Cycle> getCycle(uint index) const;
@@ -28,7 +27,7 @@ public:
 
     friend ostream& operator <<(ostream& out, const Permutation& permutation);
 
-    // range-based for loop
+    /// For range-based for loop
     vector<shared_ptr<Cycle>>::const_iterator begin() const;
     vector<shared_ptr<Cycle>>::const_iterator end() const;
 

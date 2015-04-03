@@ -11,13 +11,13 @@ public:
 
     virtual ~Cycle() = default;
 
-    // Finalize cycle: none element could be added to cycle
+    /// Finalize cycle: none element could be added to cycle
     void finalize();
 
-    // Return true if cycle is finalized
+    /// Return true if cycle is finalized
     bool isFinal() const;
 
-    // Add new element to cycle (before finalization)
+    /// Add new element to cycle (before finalization)
     void append(word element);
 
     uint length() const;
@@ -31,8 +31,8 @@ public:
 
     friend ostream& operator <<(ostream& out, const Cycle& cycle);
 
-    // Returns new value for input if it is in cycle
-    // i.e. output = elements[i+1] if input == elements[i]
+    /// Returns new value for input if it is in cycle
+    /// i.e. output = elements[i+1] if input == elements[i]
     word getOutput(word input) const;
 
     /// @frequencyMap - dictionary for calculation diff frequency throw all cycles

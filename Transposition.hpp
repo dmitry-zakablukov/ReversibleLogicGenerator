@@ -14,10 +14,10 @@ public:
 
     bool isEmpty() const;
 
-    // sort x and y by they weights
+    /// Sort x and y by they weights
     void sort();
 
-    // swap x and y
+    /// Swap x and y
     void swap();
 
     void setX(word value);
@@ -26,17 +26,17 @@ public:
     void setY(word value);
     word getY() const;
 
-    // Returns difference between x and y
+    /// Returns difference between x and y
     word getDiff() const;
 
-    // Returns distance between x and y
+    /// Returns distance between x and y
     uint getDist() const;
 
-    // Returns true if transposition has specified value
+    /// Returns true if transposition has specified value
     bool has(word value) const;
 
-    // Returns new value for input if it is in transposition
-    // i.e. input == x, then output = y and vice versa
+    /// Returns new value for input if it is in transposition
+    /// i.e. input == x, then output = y and vice versa
     word getOutput(word input) const;
 
     bool operator ==(const Transposition& another) const;
