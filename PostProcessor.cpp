@@ -314,7 +314,7 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
     OptScheme implementation;
     implementation = optimizedScheme;
 
-    if (ProgramOptions::get().options.getBool("do-last-optimizations-with-full-scheme"))
+    if (ProgramOptions::get().options.getBool("do-last-optimizations-with-full-scheme", true))
     {
         isNegativeControlInputsAllowed = true;
 
