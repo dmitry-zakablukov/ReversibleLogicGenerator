@@ -132,9 +132,19 @@ vector<string> split(const string& value, char symbol)
 
 string getFileName(const string& path)
 {
-    auto pos = path.rfind('\\');
-    if (pos == string::npos)
+    auto windowsDelimiterPos = path.rfind('\\');
+    auto linuxDelimiterPos = path.rfind('/');
+
+    if (windowsDelimiterPos == string::npos && linuxDelimiterPos == string::npos)
         return path;
+
+    string::size_type pos;
+    if (windowsDelimiterPos == string::npos)
+        pos = linuxDelimiterPos;
+    else if (linuxDelimiterPos == string::npos)
+        pos = windowsDelimiterPos;
+    else
+        pos = max(windowsDelimiterPos, linuxDelimiterPos);
 
     string fileName = path.substr(pos + 1);
     return fileName;
@@ -142,16 +152,36 @@ string getFileName(const string& path)
 
 string appendPath(const string& left, const string& right)
 {
-    const char cDelimiter = '\\';
+    const char cWindowsDelimiter = '\\';
+    const char cLinuxDelimiter = '/';
+
+    const char* strWindowsCurrentFolder = ".\\";
+    const char* strLinuxCurrentFolder = "./";
+
+    bool isWindows = (left.find(cWindowsDelimiter) != string::npos ||
+        right.find(cWindowsDelimiter) != string::npos);
 
     string path;
     if (left.size() == 0)
-        path = ".\\";
+    {
+        if (isWindows)
+            path = strWindowsCurrentFolder;
+        else
+            path = strLinuxCurrentFolder;
+    }
     else
         path = left;
 
-    if (path.back() != cDelimiter && (right.size() == 0 || right.front() != cDelimiter))
-        path += cDelimiter;
+    if (isWindows)
+    {
+        if (path.back() != cWindowsDelimiter && (right.size() == 0 || right.front() != cWindowsDelimiter))
+            path += cWindowsDelimiter;
+    }
+    else
+    {
+        if (path.back() != cLinuxDelimiter && (right.size() == 0 || right.front() != cLinuxDelimiter))
+            path += cLinuxDelimiter;
+    }
 
     return path + right;
 }

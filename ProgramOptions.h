@@ -18,9 +18,6 @@ public:
     string schemesFolder = "schemes/";
     string schemeOutputFile = "scheme.txt";
 
-    string tfcInputFile = "";
-    string tfcOutputFile = schemeOutputFile + ".tfc";
-
     int transpositionsPackSize = 2;
 
     bool isDebugBehaviorEnabled = false;

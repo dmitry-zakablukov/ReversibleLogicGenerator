@@ -1,0 +1,26 @@
+.v a,b,c,d,e,f,g
+.i a,b,c,d,e,f,g
+.o a,b,c,d,e,f,g
+BEGIN
+t3 b,c',a
+t4 c,d',e',b
+t4 c,d',e',f
+t4 c,d,e,b
+t4 c,d,e,f
+t4 c,d,e,g
+t5 a,c,d,e',b
+t5 a,c,d,e',f
+t5 a,c,d,e',g
+t5 a,c,d',e,b
+t5 a,c,d',e,f
+t5 a,c,d',e,g
+t5 b,c,d',e',a
+t5 b,c,d,e,a
+t5 a',b,c',e',f
+t6 a',b,c',d',e,f
+t6 a,b,c,d',e',f
+t6 a',b,c',d,e,f
+t6 a',b,c',d,e,g
+t6 a,b,c,d,e,f
+t6 a,b,c,d,e,g
+END

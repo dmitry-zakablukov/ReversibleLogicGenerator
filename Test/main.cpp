@@ -26,36 +26,51 @@ int main(int argc, const char* argv[])
         }
     }
 
-    Values values;
-    if (argc == 2)
+    int returnCode = 0;
+    try
     {
-        ifstream ini(argv[1]);
-        values = IniParser::parse(ini);
-    }
+        Values values;
+        if (argc == 2)
+        {
+            ifstream ini(argv[1]);
+            values = IniParser::parse(ini);
+        }
 
-    ProgramOptions::init(values);
-    const Values& options = ProgramOptions::get().options;
+        ProgramOptions::init(values);
+        const Values& options = ProgramOptions::get().options;
 
-    string workMode = options.getString(strWorkModeKey);
-    if (workMode == strGeneralSynthesisMode)
-        generalSynthesis();
-    else if (workMode == strDiscreteLogSynthesisMode)
-        discreteLogSynthesis(argc, argv);
-    else if (workMode == strPostProcessingMode)
-        testOptimization(argc, argv);
-    else
-    {
-        if (workMode.empty())
-            cerr << "Error: work mode is not specified, valid values are:\n";
+        string workMode = options.getString(strWorkModeKey);
+        if (workMode == strGeneralSynthesisMode)
+            generalSynthesis();
+        else if (workMode == strDiscreteLogSynthesisMode)
+            discreteLogSynthesis(argc, argv);
+        else if (workMode == strPostProcessingMode)
+            testOptimization(argc, argv);
         else
-            cerr << "Error: unknown work mode \"" << workMode << "\", valid values are:\n";
+        {
+            if (workMode.empty())
+                cerr << "Error: work mode is not specified, valid values are:\n";
+            else
+                cerr << "Error: unknown work mode \"" << workMode << "\", valid values are:\n";
 
-        cerr <<
+            cerr <<
                 "    " << strGeneralSynthesisMode << '\n' <<
                 "    " << strDiscreteLogSynthesisMode << '\n' <<
                 "    " << strPostProcessingMode << endl;
+        }
+
+        ProgramOptions::uninit();
+    }
+    catch (exception& ex)
+    {
+        cerr << "Exception: " << ex.what() << endl;
+        returnCode = -1;
+    }
+    catch (...)
+    {
+        cerr << "Unknown exception was caught" << endl;
+        returnCode = -1;
     }
 
-    ProgramOptions::uninit();
-    return 0;
+    return returnCode;
 }

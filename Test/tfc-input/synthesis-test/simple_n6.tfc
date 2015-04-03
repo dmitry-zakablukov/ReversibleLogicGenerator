@@ -1,0 +1,8 @@
+.v a,b,c,d,e,f
+.i a,b,c,d,e,f
+.o a,b,c,d,e,f
+BEGIN
+t2 a,b
+t2 c,d
+t2 e,f
+END

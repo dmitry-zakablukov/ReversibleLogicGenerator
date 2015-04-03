@@ -254,6 +254,11 @@ void TfcFormatter::parseElement(const string& line, Scheme* scheme) const
     scheme->push_back(element);
 }
 
+uint TfcFormatter::getVariablesCount() const
+{
+    return variableToIndexMap.size();
+}
+
 void TfcFormatter::fillIndexToVariableMap(uint n)
 {
     if (variableToIndexMap.size() == 0)

@@ -31,9 +31,6 @@ void ProgramOptions::load(const Values& values)
     const char* strSchemesFolder    = "schemes-folder";
     const char* strSchemeOutputFile = "scheme-output-file";
 
-    const char* strTfcInputFile  = "tfc-input";
-    const char* strTfcOutputFile = "tfc-output";
-
     const char* strTranspositionsPackSize = "transpositions-pack-size";
     const char* strEnableDebugBehavior    = "enable-debug-behavior";
     
@@ -50,9 +47,6 @@ void ProgramOptions::load(const Values& values)
 
     schemesFolder    = values.getString(strSchemesFolder, schemesFolder);
     schemeOutputFile = values.getString(strSchemeOutputFile, schemeOutputFile);
-
-    tfcInputFile  = values.getString(strTfcInputFile, tfcInputFile);
-    tfcOutputFile = values.getString(strTfcOutputFile, tfcOutputFile);
 
     transpositionsPackSize = values.getInt(strTranspositionsPackSize, transpositionsPackSize);
     isDebugBehaviorEnabled = values.getBool(strEnableDebugBehavior, isDebugBehaviorEnabled);

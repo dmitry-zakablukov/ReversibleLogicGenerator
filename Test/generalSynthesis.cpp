@@ -21,178 +21,80 @@ TruthTable getHwb(uint n)
     return table;
 }
 
-TruthTable getLinearWithMemory()
+void synthesizeScheme(const TruthTable& table, ostream& resultsOutput, const string& tfcOutputFileName,
+    ReversibleLogic::TfcFormatter& formatter = ReversibleLogic::TfcFormatter())
 {
     using namespace ReversibleLogic;
 
-    uint n = 10;
-    Scheme scheme;
+    try
+    {
+        Generator generator;
+        auto scheme = generator.generate(table, resultsOutput);
 
-    scheme.push_back( ReverseElement(n, 1 << 9, 1 << 0) );
-    scheme.push_back( ReverseElement(n, 1 << 9, 1 << 4) );
-    scheme.push_back( ReverseElement(n, 1 << 0, 1 << 1) );
-    scheme.push_back( ReverseElement(n, 1 << 1, 1 << 2) );
-    scheme.push_back( ReverseElement(n, 1 << 2, 1 << 3) );
-    scheme.push_back( ReverseElement(n, 1 << 3, 1 << 4) );
-    scheme.push_back( ReverseElement(n, 1 << 4, 1 << 5) );
-    scheme.push_back( ReverseElement(n, 1 << 5, 1 << 6) );
-    scheme.push_back( ReverseElement(n, 1 << 6, 1 << 7) );
-    scheme.push_back( ReverseElement(n, 1 << 7, 1 << 8) );
-    scheme.push_back( ReverseElement(n, 1 << 8, 1 << 9) );
+        ofstream tfcOutput(tfcOutputFileName);
+        resultsOutput << "Scheme file: " << tfcOutputFileName << endl;
 
-    TruthTable table = makePermutationFromScheme(scheme, n);
-    return table;
-}
+        formatter.format(tfcOutput, scheme);
+        tfcOutput.close();
+    }
+    catch (exception& ex)
+    {
+        resultsOutput << ex.what() << endl;
+    }
+    catch (...)
+    {
+        resultsOutput << "Unknown exception" << endl;
+    }
 
-TruthTable getLinearMemoryless()
-{
-    using namespace ReversibleLogic;
-
-    uint n = 9;
-    Scheme scheme;
-
-    scheme.push_back( ReverseElement(n, 1 << 0, 1 << 1) );
-    scheme.push_back( ReverseElement(n, 1 << 1, 1 << 2) );
-    scheme.push_back( ReverseElement(n, 1 << 2, 1 << 3) );
-    scheme.push_back( ReverseElement(n, 1 << 3, 1 << 4) );
-    scheme.push_back( ReverseElement(n, 1 << 4, 1 << 5) );
-    scheme.push_back( ReverseElement(n, 1 << 5, 1 << 6) );
-    scheme.push_back( ReverseElement(n, 1 << 6, 1 << 7) );
-    scheme.push_back( ReverseElement(n, 1 << 7, 1 << 8) );
-    scheme.push_back( ReverseElement(n, 1 << 8, 1 << 0) );
-    scheme.push_back( ReverseElement(n, 1 << 8, 1 << 1) );
-    scheme.push_back( ReverseElement(n, 1 << 8, 1 << 2) );
-    scheme.push_back( ReverseElement(n, 1 << 8, 1 << 3) );
-
-    TruthTable table = makePermutationFromScheme(scheme, n);
-    return table;
-}
-
-TruthTable getRd53()
-{
-    using namespace ReversibleLogic;
-
-    uint n = 7;
-    Scheme scheme;
-
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 3, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(1, 2, 3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(1, 2, END)) );
-    scheme.push_back( ReverseElement(n, mask(1, END), mask(2, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );    
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 3, END)) );    
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(4, END), mask(3, END)) );
-
-    TruthTable table = makePermutationFromScheme(scheme, n);
-    return table;
-}
-
-TruthTable getSimple()
-{
-    using namespace ReversibleLogic;
-
-    uint n = 4;
-    Scheme scheme;
-
-    scheme.push_back( ReverseElement(n, 1, 14, 8) );
-    scheme.push_back( ReverseElement(n, 2, 13, 8) );
-    scheme.push_back( ReverseElement(n, 1, 14, 8) );
-    scheme.push_back( ReverseElement(n, 4, 11) );
-    scheme.push_back( ReverseElement(n, 8, 7) );
-    scheme.push_back( ReverseElement(n, 4, 11) );
-
-    ///scheme.push_back( ReverseElement(n, 1 << 1, 1 << 0) );
-    ///scheme.push_back( ReverseElement(n, 1 << 2, 1 << 1) );
-    ///scheme.push_back( ReverseElement(n, 1 << 3, 1 << 2) );
-
-    //scheme.push_back( ReverseElement(n, 1 << 1, 1 << 0) );
-    //scheme.push_back( ReverseElement(n, 1 << 3, 1 << 2) );
-
-    ////n = 6;
-    ////scheme.push_back( ReverseElement(n, 1 << 1, 1 << 0) );
-    ////scheme.push_back( ReverseElement(n, 1 << 3, 1 << 2) );
-    ////scheme.push_back( ReverseElement(n, 1 << 5, 1 << 4) );
-
-    TruthTable table = makePermutationFromScheme(scheme, n);
-    return table;
-}
-
-TruthTable getBadCase()
-{
-    using namespace ReversibleLogic;
-
-    uint n = 4;
-    Scheme scheme;
-
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(1, 2, END)) );
-    scheme.push_back( ReverseElement(n, mask(1, END), mask(2, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
-
-    TruthTable table = makePermutationFromScheme(scheme, n);
-    return table;
+    resultsOutput << "\n===============================================================" << endl;
 }
 
 void generalSynthesis()
 {
     using namespace ReversibleLogic;
 
+    const char* strTfcInput = "tfc-input";
+    const char* strTruthTableInput = "truth-table-input";
+
     const ProgramOptions& options = ProgramOptions::get();
 
+    // open results output
     string resultsFileName = options.resultsFile;
     assert(!resultsFileName.empty(), string("Results file name is empty"));
 
-    ofstream outputFile(resultsFileName);
-    try
+    ofstream resultsOutput(resultsFileName);
+
+    // check schemes folder existence, create if not exist
+    string schemesFolder = options.schemesFolder;
+    if (_access(schemesFolder.c_str(), 0))
+        _mkdir(schemesFolder.c_str());
+
+    // process all tfc input files
+    if (options.options.has(strTfcInput))
     {
-
-        TruthTable table;
-        table = getHwb(11);
-        //table = getRd53();
-
-        Generator generator;
-        auto scheme = generator.generate(table, outputFile);
-
+        auto tfcInputFiles = options.options[strTfcInput];
+        for (auto& tfcInputFileName : tfcInputFiles)
         {
-            if (_access(options.schemesFolder.c_str(), 0))
+            try
             {
-                _mkdir(options.schemesFolder.c_str());
+                TfcFormatter formatter;
+                ifstream inputFile(tfcInputFileName);
+
+                Scheme scheme = formatter.parse(inputFile);
+                TruthTable table = makePermutationFromScheme(scheme, formatter.getVariablesCount());
+
+                string tfcOutputFileName = appendPath(schemesFolder,
+                    getFileName(tfcInputFileName) + "-out.tfc");
+
+                synthesizeScheme(table, resultsOutput, tfcOutputFileName, formatter);
             }
-
-            ostringstream schemeFileName;
-            schemeFileName << options.schemesFolder << options.schemeOutputFile;
-
-            outputFile << "Scheme file: " << schemeFileName.str() << endl;
-
-            //string schemeString = SchemePrinter::schemeToString(scheme, false); // vertical
-            string schemeString = SchemePrinter::schemeToString(scheme, true); // horizontal
-
-            ofstream schemeFile(schemeFileName.str());
-            if (scheme.size() < 1000)
-                schemeFile << schemeString;
-            else
-                schemeFile << "Scheme too large" << endl;
-            schemeFile.close();
-
-            ofstream tfcFile(options.tfcOutputFile);
-            TfcFormatter().format(tfcFile, scheme);
-            tfcFile.close();
+            catch (exception& ex)
+            {
+                resultsOutput << ex.what() << endl;
+                resultsOutput << "\n===============================================================" << endl;
+            }
         }
     }
-    catch (exception& ex)
-    {
-        outputFile << ex.what() << endl;
-    }
-    catch (...)
-    {
-        outputFile << "Unknown exception" << endl;
-    }
 
-    outputFile << "\n===============================================================" << endl;
-    outputFile.close();
+    resultsOutput.close();
 }

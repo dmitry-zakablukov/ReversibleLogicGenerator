@@ -9,6 +9,7 @@ public:
     TfcFormatter() = default;
 
     Scheme parse(istream& stream);
+    uint getVariablesCount() const;
 
     template<typename Container>
     void format(ostream& out, const Container& scheme);
