@@ -8,6 +8,8 @@ public:
     AssertionError();
     AssertionError(string&& message);
 
+    virtual ~AssertionError() = default;
+
     virtual const char* what() const;
 
 private:

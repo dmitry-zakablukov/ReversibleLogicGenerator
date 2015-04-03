@@ -7,6 +7,7 @@ class PostProcessor
 {
 public:
     PostProcessor() = default;
+    virtual ~PostProcessor() = default;
 
     typedef vector<ReverseElement> OptScheme;
     OptScheme optimize(const OptScheme& scheme);

@@ -3,8 +3,8 @@
 class Timer
 {
 public:
-    Timer();
-    ~Timer();
+    Timer() = default;
+    virtual ~Timer() = default;
 
     void start();
     void stop();
@@ -12,15 +12,15 @@ public:
     float getElapsedMs() const;
 
 private:
-    clock_t startTime;
-    clock_t endTime;
+    clock_t startTime = 0;
+    clock_t endTime = 0;
 };
 
 class AutoTimer
 {
 public:
     explicit AutoTimer( float* elapsedTime );
-    ~AutoTimer();
+    virtual ~AutoTimer();
 
 private:
     Timer  timer;

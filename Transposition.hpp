@@ -10,6 +10,8 @@ public:
     explicit Transposition(word left, word right, bool needSort = false);
     Transposition(const Transposition& another);
 
+    virtual ~Transposition() = default;
+
     bool isEmpty() const;
 
     // sort x and y by they weights

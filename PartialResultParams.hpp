@@ -3,6 +3,7 @@
 struct PartialResultParams
 {
     PartialResultParams();
+    virtual ~PartialResultParams() = default;
 
     bool isBetterThan( const PartialResultParams& another ) const;
     bool operator<( const PartialResultParams& another ) const;

@@ -7,6 +7,7 @@ class Generator
 {
 public:
     Generator();
+    virtual ~Generator() = default;
 
     Scheme generate(const TruthTable& table, ostream& outputLog);
     void checkPermutationValidity(const TruthTable& table);
@@ -20,14 +21,13 @@ private:
     bool checkSchemeAgainstPermutationVector(const Scheme& scheme,
         const TruthTable& table);
 
-    // generator 4.0 optimization
     shared_ptr<PartialGenerator> reducePermutation(shared_ptr<PartialGenerator> partialGenerator,
         uint n, Scheme* scheme, Scheme::iterator* targetIter);
 
     uint n;
     Permutation permutation;
 
-    // log
+    /// Results logging
     ostream* log;
 };
 

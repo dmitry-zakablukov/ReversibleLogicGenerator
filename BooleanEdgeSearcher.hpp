@@ -4,6 +4,7 @@
 struct BooleanEdge
 {
     BooleanEdge(uint n);
+    virtual ~BooleanEdge() = default;
 
     /// Returns true, if edge is like **...*
     bool isFull() const;
@@ -36,7 +37,7 @@ public:
 
     explicit BooleanEdgeSearcher(const unordered_set<word>& inputs, uint n);
 
-    ~BooleanEdgeSearcher() = default;
+    virtual ~BooleanEdgeSearcher() = default;
 
     void setExplicitEdgeFlag(bool value);
 

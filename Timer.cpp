@@ -1,15 +1,5 @@
 #include "std.hpp"
 
-Timer::Timer()
-    : startTime(0)
-    , endTime(0)
-{
-}
-
-Timer::~Timer()
-{
-}
-
 void Timer::start()
 {
     startTime = clock();

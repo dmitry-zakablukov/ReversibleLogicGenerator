@@ -9,7 +9,7 @@ class GeneratorWithMemory
 {
 public:
     GeneratorWithMemory() = default;
-    ~GeneratorWithMemory() = default;
+    virtual ~GeneratorWithMemory() = default;
 
     Scheme generateFast(const TruthTable& table, ostream& outputLog);
 

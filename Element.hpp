@@ -7,8 +7,9 @@ class ReverseElement
 {
 public:
     ReverseElement();
-    explicit ReverseElement( uint n, word targetMask,
-                             word controlMask = 0, word inversionMask = 0);
+    explicit ReverseElement( uint n, word targetMask, word controlMask = 0, word inversionMask = 0);
+
+    virtual ~ReverseElement() = default;
 
     void setInputCount(uint count);
     uint getInputCount() const;

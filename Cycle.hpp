@@ -9,6 +9,8 @@ public:
     Cycle();
     Cycle(vector<word>&& source);
 
+    virtual ~Cycle() = default;
+
     // Finalize cycle: none element could be added to cycle
     void finalize();
 
@@ -51,7 +53,7 @@ private:
     uint modIndex(uint index) const;
     uint modIndex(uint index, uint mod) const;
 
-    // generator 4.0 optimization
+    /// Returns f_n(f_{n-1}(...(f_1(input))...)), where f_i is defined by i-th transposition in @transpositions
     word getOutput(word input, shared_ptr<list<Transposition>> transpositions) const;
 
     /// Gets all possible transpositions with specified Hamming distance @diff

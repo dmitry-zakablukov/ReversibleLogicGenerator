@@ -3,6 +3,8 @@
 class ProgramOptions
 {
 public:
+    virtual ~ProgramOptions() = default;
+
     static const ProgramOptions& get();
 
     static void init(const Values& values);

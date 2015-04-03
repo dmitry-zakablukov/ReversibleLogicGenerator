@@ -8,6 +8,7 @@ class Permutation
 public:
     Permutation();
     explicit Permutation(vector<shared_ptr<Cycle>> theCycles);
+    virtual ~Permutation() = default;
 
     void append(shared_ptr<Cycle> cycle);
     //void remove(shared_ptr<Cycle> cycle);
