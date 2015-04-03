@@ -6,27 +6,29 @@ namespace ReversibleLogic
 class TfcFormatter
 {
 public:
+    TfcFormatter() = default;
+
     template<typename Container>
-    static void format(ostream& out, const Container& scheme);
+    void format(ostream& out, const Container& scheme) const;
 
 private:
-    static char getVariableName(uint value);
+    char getVariableName(uint value) const;
 
-    static void writeVariablesLine(ostream& out, const vector<char>& variables);
-    static void writeInputLine(ostream& out, const vector<char>& variables);
-    static void writeOutputLine(ostream& out, const vector<char>& variables);
+    void writeVariablesLine(ostream& out, const vector<char>& variables) const;
+    void writeInputLine(ostream& out, const vector<char>& variables) const;
+    void writeOutputLine(ostream& out, const vector<char>& variables) const;
 
-    static void writeHeaderLine(ostream& out, const vector<char>& variables, const char* prefix);
+    void writeHeaderLine(ostream& out, const vector<char>& variables, const char* prefix) const;
 
-    static void writeBegin(ostream& out);
-    static void writeEnd(ostream& out);
+    void writeBegin(ostream& out) const;
+    void writeEnd(ostream& out) const;
 
     template<typename Container>
-    static void writeMainBody(ostream& out, const Container& scheme, const vector<char>& variables);
+    void writeMainBody(ostream& out, const Container& scheme, const vector<char>& variables) const;
 };
 
 template<typename Container>
-void ReversibleLogic::TfcFormatter::format(ostream& out, const Container& scheme)
+void ReversibleLogic::TfcFormatter::format(ostream& out, const Container& scheme) const
 {
     uint elementCount = scheme.size();
 
@@ -52,7 +54,8 @@ void ReversibleLogic::TfcFormatter::format(ostream& out, const Container& scheme
 }
 
 template<typename Container>
-void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container& scheme, const vector<char>& variables)
+void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container& scheme,
+    const vector<char>& variables) const
 {
     for (const ReverseElement& element : scheme)
     {

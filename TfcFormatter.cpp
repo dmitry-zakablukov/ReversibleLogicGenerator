@@ -3,7 +3,7 @@
 namespace ReversibleLogic
 {
 
-char TfcFormatter::getVariableName(uint value)
+char TfcFormatter::getVariableName(uint value) const
 {
     const char cBegin = 'a';
     const char cEnd = 'z';
@@ -12,22 +12,22 @@ char TfcFormatter::getVariableName(uint value)
     return cBegin + (char)value;
 }
 
-void TfcFormatter::writeVariablesLine(ostream& out, const vector<char>& variables)
+void TfcFormatter::writeVariablesLine(ostream& out, const vector<char>& variables) const
 {
     writeHeaderLine(out, variables, ".v");
 }
 
-void TfcFormatter::writeInputLine(ostream& out, const vector<char>& variables)
+void TfcFormatter::writeInputLine(ostream& out, const vector<char>& variables) const
 {
     writeHeaderLine(out, variables, ".i");
 }
 
-void TfcFormatter::writeOutputLine(ostream& out, const vector<char>& variables)
+void TfcFormatter::writeOutputLine(ostream& out, const vector<char>& variables) const
 {
     writeHeaderLine(out, variables, ".o");
 }
 
-void TfcFormatter::writeHeaderLine(ostream& out, const vector<char>& variables, const char* prefix)
+void TfcFormatter::writeHeaderLine(ostream& out, const vector<char>& variables, const char* prefix) const
 {
     out << prefix << ' ';
 
@@ -42,12 +42,12 @@ void TfcFormatter::writeHeaderLine(ostream& out, const vector<char>& variables, 
     out << endl;
 }
 
-void TfcFormatter::writeBegin(ostream& out)
+void TfcFormatter::writeBegin(ostream& out) const
 {
     out << "BEGIN" << endl;
 }
 
-void TfcFormatter::writeEnd(ostream& out)
+void TfcFormatter::writeEnd(ostream& out) const
 {
     out << "END" << endl;
 }

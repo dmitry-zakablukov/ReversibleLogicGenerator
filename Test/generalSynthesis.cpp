@@ -180,7 +180,7 @@ void generalSynthesis()
             schemeFile.close();
 
             ofstream tfcFile(options.tfcOutputFile);
-            TfcFormatter::format(tfcFile, scheme);
+            TfcFormatter().format(tfcFile, scheme);
             tfcFile.close();
         }
     }
