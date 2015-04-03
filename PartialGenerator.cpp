@@ -64,16 +64,17 @@ void PartialGenerator::prepareForGeneration()
     bool sortByWeightNotFrequency = false;
     bool searchForBooleanEdges = true;
 
-    const ProgramOptions& options = ProgramOptions::get();
-    if (options.isTuningEnabled)
+    if (ProgramOptions::get().isTuningEnabled)
     {
-        isResultComparisonNeeded = options.options.getBool("compare-results-on-edge-search",
+        const Values& options = ProgramOptions::get().options;
+
+        isResultComparisonNeeded = options.getBool("compare-results-on-edge-search",
             isResultComparisonNeeded);
 
-        sortByWeightNotFrequency = options.options.getBool("sort-by-weight-not-frequency",
+        sortByWeightNotFrequency = options.getBool("sort-by-weight-not-frequency",
             sortByWeightNotFrequency);
 
-        searchForBooleanEdges = options.options.getBool("search-for-boolean-edges",
+        searchForBooleanEdges = options.getBool("search-for-boolean-edges",
             searchForBooleanEdges);
     }
 

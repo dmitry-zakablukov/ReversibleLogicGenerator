@@ -11,6 +11,11 @@ void printUsage(const string& fullProgramPath)
 
 int main(int argc, const char* argv[])
 {
+    const char* strWorkModeKey = "work-mode";
+    const char* strGeneralSynthesisMode = "general-synthesis";
+    const char* strDiscreteLogSynthesisMode = "discrete-log-synthesis";
+    const char* strPostProcessingMode = "post-processing";
+
     if (argc == 2)
     {
         string second = argv[1];
@@ -29,12 +34,27 @@ int main(int argc, const char* argv[])
     }
 
     ProgramOptions::init(values);
+    const Values& options = ProgramOptions::get().options;
 
-    generalSynthesis();
-    //discreteLogSynthesis(argc, argv);
-    //testOptimization(argc, argv);
+    string workMode = options.getString(strWorkModeKey);
+    if (workMode == strGeneralSynthesisMode)
+        generalSynthesis();
+    else if (workMode == strDiscreteLogSynthesisMode)
+        discreteLogSynthesis(argc, argv);
+    else if (workMode == strPostProcessingMode)
+        testOptimization(argc, argv);
+    else
+    {
+        if (workMode.empty())
+            cerr << "Error: work mode is not specified, valid values are:\n";
+        else
+            cerr << "Error: unknown work mode \"" << workMode << "\", valid values are:\n";
 
-    //system("pause");
+        cerr <<
+                "    " << strGeneralSynthesisMode << '\n' <<
+                "    " << strDiscreteLogSynthesisMode << '\n' <<
+                "    " << strPostProcessingMode << endl;
+    }
 
     ProgramOptions::uninit();
     return 0;
