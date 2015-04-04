@@ -103,9 +103,6 @@
     <ClInclude Include="PostProcessor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SchemePrinter.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Timer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -113,9 +110,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PartialGenerator.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SchemePrinterImpl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PartialResultParams.hpp">

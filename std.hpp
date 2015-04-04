@@ -53,8 +53,6 @@ typedef size_t uint;
 #include "Permutation.hpp"
 #include "PermutationUtils.hpp"
 #include "PostProcessor.hpp"
-#include "SchemePrinter.hpp"
-#include "SchemePrinterImpl.hpp"
 #include "TfcFormatter.hpp"
 #include "BooleanEdgeSearcher.hpp"
 #include "PartialResultParams.hpp"

@@ -166,8 +166,6 @@
     <ClInclude Include="PostProcessor.hpp" />
     <ClInclude Include="ProgramOptions.h" />
     <ClInclude Include="Range.hpp" />
-    <ClInclude Include="SchemePrinter.hpp" />
-    <ClInclude Include="SchemePrinterImpl.hpp" />
     <ClInclude Include="std.hpp" />
     <ClInclude Include="TfcFormatter.hpp" />
     <ClInclude Include="Timer.hpp" />
