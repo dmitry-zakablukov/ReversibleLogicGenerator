@@ -149,6 +149,7 @@
     <ClCompile Include="TfcFormatter.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transposition.cpp" />
+    <ClCompile Include="TruthTableUtils.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="Values.cpp" />
   </ItemGroup>
@@ -172,6 +173,7 @@
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transposition.hpp" />
     <ClInclude Include="TruthTableParser.h" />
+    <ClInclude Include="TruthTableUtils.h" />
     <ClInclude Include="utils.hpp" />
     <ClInclude Include="Values.h" />
   </ItemGroup>

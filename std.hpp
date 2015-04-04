@@ -55,6 +55,7 @@ typedef size_t uint;
 #include "PostProcessor.hpp"
 #include "TfcFormatter.hpp"
 #include "TruthTableParser.h"
+#include "TruthTableUtils.h"
 #include "BooleanEdgeSearcher.hpp"
 #include "PartialResultParams.hpp"
 #include "PartialGenerator.hpp"
