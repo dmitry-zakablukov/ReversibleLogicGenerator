@@ -335,20 +335,23 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
             needOptimization = needOptimization || additional;
         }
 
-        isNegativeControlInputsAllowed = false;
-
-        implementation = getFullScheme(implementation, fstSimple);
-        implementation = removeDuplicates(implementation);
-
-        needOptimization = true;
-        while (needOptimization)
+        if (ProgramOptions::get().options.getBool("remove-negative-control-inputs", false))
         {
-            needOptimization = false;
-            implementation = transferOptimization(implementation, &needOptimization);
+            isNegativeControlInputsAllowed = false;
 
-            bool additional = false;
-            implementation = mergeOptimization(implementation, &additional);
-            needOptimization = needOptimization || additional;
+            implementation = getFullScheme(implementation, fstSimple);
+            implementation = removeDuplicates(implementation);
+
+            needOptimization = true;
+            while (needOptimization)
+            {
+                needOptimization = false;
+                implementation = transferOptimization(implementation, &needOptimization);
+
+                bool additional = false;
+                implementation = mergeOptimization(implementation, &additional);
+                needOptimization = needOptimization || additional;
+            }
         }
     }
 
