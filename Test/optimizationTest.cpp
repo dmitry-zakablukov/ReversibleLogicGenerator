@@ -2,7 +2,7 @@
 
 using namespace ReversibleLogic;
 
-bool validateOptimizedScheme(const Scheme& before, const PostProcessor::OptScheme& after)
+bool validateOptimizedScheme(const Scheme& before, const Scheme& after)
 {
     uint n = 0;
     if (before.size())
@@ -28,229 +28,70 @@ bool validateOptimizedScheme(const Scheme& before, const PostProcessor::OptSchem
     return true;
 }
 
-Scheme getRd53_8of12_goodPart()
+void testOptimization()
 {
-    Scheme scheme;
-    uint n = 7;
+    using namespace ReversibleLogic;
 
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, END), mask(2, END)) );
-    scheme.push_back( ReverseElement(n, mask(1, END), mask(2, 3, 4, END), mask(3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(2, 3, 4, END), mask(3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(1, END), mask(2, 3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(2, 3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(2, 3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(1, END), mask(0, 2, 3, 4, END), mask(4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 2, 3, 4, END), mask(4, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 2, 3, 4, END), mask(4, END)) );
-    scheme.push_back( ReverseElement(n, mask(1, END), mask(0, 2, 3, 4, END), mask(3, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 2, 3, 4, END), mask(3, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 2, 3, 4, END), mask(3, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, 3, 4, END), mask(3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, 3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, 2, 4, END), mask(0, 2, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, 2, 3, 4, END), mask(0, 2, 3, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, 2, 3, 4, END), mask(3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, 2, 3, 4, END), mask(0, 2, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 3, 4, END), mask(0, 2, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, 2, 3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 3, 4, END)) );
+    const char* strTfcInput = "tfc-input";
 
-    return scheme;
-}
+    const ProgramOptions& options = ProgramOptions::get();
 
-Scheme getDuplicatesScheme()
-{
-    // ( )   ( )   (+)
-    // ( )( )( )( )   
-    //    (+)   (+)   
-    // (+)   (+)   ( )
+    // open results output
+    ofstream outputFile(options.resultsFile);
+    assert(outputFile.is_open(),
+        string("Failed to open output file \"") + options.resultsFile + "\" for writing");
 
-    Scheme scheme;
-    uint n = 4;
+    // check schemes folder existence, create if not exist
+    string schemesFolder = options.schemesFolder;
+    if (_access(schemesFolder.c_str(), 0))
+        _mkdir(schemesFolder.c_str());
 
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, END)) );
-    scheme.push_back( ReverseElement(n, mask(2, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, END)) );
-    scheme.push_back( ReverseElement(n, mask(2, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(3, END)) );
-
-    return scheme;
-}
-
-Scheme getReduceConnectionsScheme()
-{
-    //    ( )   (0)(+)
-    // ( )(0)( )( )   
-    // (+)(+)   (+)( )
-    //       (+)      
-
-    Scheme scheme;
-    uint n = 4;
-
-    scheme.push_back( ReverseElement(n, mask(2, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(2, END), mask(0, 1, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(2, END), mask(0, 1, END), mask(0, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(2, END)) );
-
-    return scheme;
-}
-
-Scheme getMergeScheme()
-{
-    //    ( )   (0)(+)
-    // ( )(0)( )(0)   
-    // (+)(+)   (+)( )
-    //       (+)      
-
-    Scheme scheme;
-    uint n = 4;
-
-    scheme.push_back( ReverseElement(n, mask(2, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(2, END), mask(0, 1, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(2, END), mask(0, 1, END), mask(0, 1, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(2, END)) );
-
-    return scheme;
-}
-
-Scheme getTransferScheme()
-{
-    // (+)( )(+) ( )(+)( )    (+)( ) ( )(+)(0)
-    // (0)   (0) ( )( )( ) ( )( )( ) ( )( )( )
-    // ( )( )( ) ( )   ( ) ( )   ( ) (0)(0)(0)
-    //    (+)    (+)   (+) (+)   (+) (+)   (+)
-
-    Scheme scheme;
-    uint n = 4;
-
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 2, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, END), mask(1, END)) );
-    
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END)) );
-    
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(1, 2, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END)) );
-    
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END), mask(2, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, 2, END), mask(2, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END), mask(0, 2, END)) );
-
-    return scheme;
-}
-
-Scheme getSecondPassScheme()
-{
-    // (+)( )( )(+)
-    //    ( )( )   
-    // ( )( )   ( )
-    //    (+)(+)   
-
-    Scheme scheme;
-    uint n = 4;
-
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(2, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, 2, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, 1, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(2, END)) );
-
-    return scheme;
-}
-
-Scheme getRd53()
-{
-    Scheme scheme;
-    uint n = 7;
-
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 3, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 2, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(1, 2, 3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(1, 2, END)) );
-    scheme.push_back( ReverseElement(n, mask(1, END), mask(2, END)) );
-    scheme.push_back( ReverseElement(n, mask(6, END), mask(0, 1, 3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 1, END)) );
-    scheme.push_back( ReverseElement(n, mask(0, END), mask(1, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(0, 3, END)) );
-    scheme.push_back( ReverseElement(n, mask(3, END), mask(0, END)) );
-    scheme.push_back( ReverseElement(n, mask(5, END), mask(3, 4, END)) );
-    scheme.push_back( ReverseElement(n, mask(4, END), mask(3, END)) );
-
-    return scheme;
-}
-
-
-void testOptimization( int argc, const char* argv[] )
-{
-    const char strDefaultOutputFileName[] = "results.txt";
-
-    ofstream outputFile;
-    if(argc > 1)
+    // process all tfc input files
+    if (options.options.has(strTfcInput))
     {
-        outputFile.open(argv[1]);
-    }
-    else
-    {
-        outputFile.open(strDefaultOutputFileName);
-    }
-
-    try
-    {
-        Scheme scheme;
-        //scheme = getRd53_8of12_goodPart();
-        //scheme = getDuplicatesScheme();
-        //scheme = getReduceConnectionsScheme();
-        //scheme = getMergeScheme();
-        //scheme = getTransferScheme();
-        //scheme = getSecondPassScheme();
-        scheme = getRd53();
-        
-        PostProcessor optimizer;
-
-        uint elementCount = scheme.size();
-
-        outputFile << "Complexity before optimization: " << scheme.size() << "\n\n";
-
-        string schemeString = SchemePrinter::schemeToString(scheme, true);
-        outputFile << schemeString << '\n';
-
-        PostProcessor::OptScheme optimizedScheme(elementCount);
-        for(uint index = 0; index < elementCount; ++index)
+        auto tfcInputFiles = options.options[strTfcInput];
+        for (auto& tfcInputFileName : tfcInputFiles)
         {
-            optimizedScheme[index] = scheme[index];
+            try
+            {
+                ifstream inputFile(tfcInputFileName);
+                assert(inputFile.is_open(),
+                    string("Failed to open input file \"") + tfcInputFileName + "\" for reading");
+
+                outputFile << "Original scheme file: " << tfcInputFileName << endl;
+
+                TfcFormatter formatter;
+                Scheme scheme = formatter.parse(inputFile);
+
+                uint elementCount = scheme.size();
+                outputFile << "Complexity before optimization: " << scheme.size() << endl;
+
+                PostProcessor optimizer;
+                Scheme optimizedScheme = optimizer.optimize(scheme);
+                assert(validateOptimizedScheme(scheme, optimizedScheme),
+                    string("Optimized scheme is not valid"));
+
+                outputFile << "Complexity after optimization: " << optimizedScheme.size() << endl;
+
+                string tfcOutputFileName = appendPath(schemesFolder,
+                    getFileName(tfcInputFileName) + "-opt.tfc");
+
+                ofstream tfcOutput(tfcOutputFileName);
+                assert(tfcOutput.is_open(),
+                    string("Failed to open tfc file \"") + tfcOutputFileName + "\" for writing");
+
+                formatter.format(tfcOutput, optimizedScheme);
+                outputFile << "Optimized scheme file: " << tfcOutputFileName << endl;
+
+                outputFile << "\n===============================================================\n";
+                outputFile.flush();
+            }
+            catch (exception& ex)
+            {
+                outputFile << ex.what() << endl;
+                outputFile << "\n===============================================================" << endl;
+            }
         }
-
-        optimizedScheme = optimizer.optimize(optimizedScheme);
-        assert(validateOptimizedScheme(scheme, optimizedScheme),
-            string("Optimized scheme is not valid"));
-
-        elementCount = optimizedScheme.size();
-        scheme.resize(elementCount);
-
-        for(uint index = 0; index < elementCount; ++index)
-        {
-            scheme[index] = optimizedScheme[index];
-        }
-
-        outputFile << "Complexity after optimization: " << scheme.size() << "\n\n";
-
-        schemeString = SchemePrinter::schemeToString(scheme, true);
-        outputFile << schemeString;
-
-        outputFile << "\n===============================================================\n";
-        outputFile.flush();
-    }
-    catch(exception& ex)
-    {
-        outputFile << ex.what() << '\n';
-    }
-    catch(...)
-    {
-        outputFile << "Unknown exception\n";
     }
 
     outputFile.close();

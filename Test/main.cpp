@@ -45,7 +45,7 @@ int main(int argc, const char* argv[])
         else if (workMode == strDiscreteLogSynthesisMode)
             discreteLogSynthesis();
         else if (workMode == strPostProcessingMode)
-            testOptimization(argc, argv);
+            testOptimization();
         else
         {
             if (workMode.empty())
