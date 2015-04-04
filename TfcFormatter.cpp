@@ -167,8 +167,7 @@ void TfcFormatter::checkMarker(Markers* markers, MarkerType type) const
         result = false;
     }
 
-    if (!result)
-        throw InvalidFormatException();
+    assertFormat(result);
 }
 
 void TfcFormatter::parseVariables(const string& line)
@@ -177,14 +176,12 @@ void TfcFormatter::parseVariables(const string& line)
     vector<string> parts = split(variables, ',');
 
     uint count = parts.size();
-    if (count == 0)
-        throw InvalidFormatException();
+    assertFormat(count);
 
     for (uint index = 0; index < count; ++index)
     {
         const string& key = parts[index];
-        if (variableToIndexMap.find(key) != variableToIndexMap.cend())
-            throw InvalidFormatException();
+        assertFormat(variableToIndexMap.find(key) == variableToIndexMap.cend());
 
         variableToIndexMap[key] = index;
     }
@@ -207,14 +204,12 @@ void TfcFormatter::parseElement(const string& line, Scheme* scheme) const
     while (spacePos < size && isspace(temp.at(spacePos)))
         ++spacePos;
     
-    if (spacePos == size)
-        throw InvalidFormatException();
+    assertFormat(spacePos != size);
 
     string controls = temp.substr(spacePos);
     vector<string> parts = split(controls, ',');
 
-    if (parts.size() != count)
-        throw InvalidFormatException();
+    assertFormat(parts.size() == count);
 
     // parse control inputs
     word controlMask = 0;
@@ -223,15 +218,13 @@ void TfcFormatter::parseElement(const string& line, Scheme* scheme) const
     for (int index = 0; index < count - 1; ++index)
     {
         string control = parts[index];
-        if (control.size() == 0)
-            throw InvalidFormatException();
+        assertFormat(control.size());
 
         bool withInversion = (control.back() == '\'');
         if (withInversion)
             control.pop_back();
 
-        if (variableToIndexMap.find(control) == variableToIndexMap.cend())
-            throw InvalidFormatException();
+        assertFormat(variableToIndexMap.find(control) != variableToIndexMap.cend());
 
         int controlIndex = variableToIndexMap.at(control);
         word mask = (word)1 << controlIndex;
@@ -243,9 +236,8 @@ void TfcFormatter::parseElement(const string& line, Scheme* scheme) const
 
     // parse target line
     string target = parts.back();
-    if (target.size() == 0 || target.back() == '\'' ||
-        variableToIndexMap.find(target) == variableToIndexMap.cend())
-        throw InvalidFormatException();
+    assertFormat(target.size() && target.back() != '\'' &&
+        variableToIndexMap.find(target) != variableToIndexMap.cend());
 
     int targetIndex = variableToIndexMap.at(target);
     word targetMask = (word)1 << targetIndex;

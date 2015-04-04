@@ -12,6 +12,10 @@ typedef vector<word> TruthTable;
 // assert
 #define assert(condition, message)  if(!(condition)) throw AssertionError( move((message)) );
 
+// format assert
+#define assertFormat(condition) if(!(condition)) throw InvalidFormatException();
+
+
 #define forin(name, collection) for(auto (name) = (collection).begin(); (name) != (collection).end(); ++(name))
 #define forcin(name, collection) for(auto (name) = (collection).cbegin(); (name) != (collection).cend(); ++(name))
 

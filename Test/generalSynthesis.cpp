@@ -71,6 +71,21 @@ void generalSynthesis()
     if (_access(schemesFolder.c_str(), 0))
         _mkdir(schemesFolder.c_str());
 
+    // process all truth table input files
+    if (options.options.has(strTruthTableInput))
+    {
+        auto truthTableInputFiles = options.options[strTruthTableInput];
+        for (auto& truthTableInputFileName : truthTableInputFiles)
+        {
+            ifstream inputFile(truthTableInputFileName);
+            assert(inputFile.is_open(),
+                string("Failed to open input file \"") + truthTableInputFileName + "\" for reading");
+
+            TruthTableParser parser;
+            TruthTable table = parser.parse(inputFile);
+        }
+    }
+
     // process all tfc input files
     if (options.options.has(strTfcInput))
     {
