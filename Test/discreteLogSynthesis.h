@@ -1,3 +1,3 @@
 #pragma once
 
-void discreteLogSynthesis(int argc, const char* argv[]);
+void discreteLogSynthesis();

@@ -182,32 +182,23 @@ TruthTable getDiscreteLogWithPrimitiveElement(Gf2Field& field, DegreeChooseFunc 
     return table;
 }
 
-void discreteLogSynthesis(int argc, const char* argv[])
+void discreteLogSynthesis()
 {
     using namespace ReversibleLogic;
 
-    const char strDefaultInputFileName[] = "irreducible_polynomials.txt";
-    const char strDefaultOutputFileName[] = "results.txt";
+    const ProgramOptions& options = ProgramOptions::get();
 
-    ifstream inputFile;
-    if (argc > 1)
-    {
-        inputFile.open(argv[1]);
-    }
-    else
-    {
-        inputFile.open(strDefaultInputFileName);
-    }
+    ifstream inputFile(options.inputFile);
+    assert(inputFile.is_open(),
+        string("Failed to open input file \"") + options.inputFile + "\" for reading");
 
-    ofstream outputFile;
-    if (argc > 2)
-    {
-        outputFile.open(argv[2]);
-    }
-    else
-    {
-        outputFile.open(strDefaultOutputFileName);
-    }
+    ofstream outputFile(options.resultsFile);
+    assert(inputFile.is_open(),
+        string("Failed to open output file \"") + options.resultsFile + "\" for writing");
+
+    string schemesFolder = options.schemesFolder;
+    if (_access(schemesFolder.c_str(), 0))
+        _mkdir(schemesFolder.c_str());
 
     while (inputFile.good())
     {
@@ -260,33 +251,19 @@ void discreteLogSynthesis(int argc, const char* argv[])
 
                 TruthTable table = getDiscreteLogWithPrimitiveElement(field, task.func);
 
-                //Generator generator;
-                //auto scheme = generator.generate(table, outputFile);
-
                 GeneratorWithMemory generator;
                 auto scheme = generator.generateFast(table, outputFile);
 
-                if (scheme.size() < 1000)
-                {
-                    const char* const strSchemesFolder = "schemes/";
+                string tfcOutputFileName = appendPath(schemesFolder, polynomialString + ".tfc");
 
-                    if (_access(strSchemesFolder, 0))
-                    {
-                        _mkdir(strSchemesFolder);
-                    }
+                ofstream tfcOutput(tfcOutputFileName);
+                assert(tfcOutput.is_open(),
+                    string("Failed to open tfc file \"") + tfcOutputFileName + "\" for writing");
 
-                    ostringstream schemeFileName;
-                    schemeFileName << strSchemesFolder << polynomialString << ".txt";
+                outputFile << "Scheme file: " << tfcOutputFileName << endl;
 
-                    outputFile << "Scheme file: " << schemeFileName.str() << endl;
-
-                    string schemeString = SchemePrinter::schemeToString(scheme, false); // vertical
-                    //string schemeString = SchemePrinter::schemeToString(scheme, true); // horizontal
-
-                    ofstream schemeFile(schemeFileName.str());
-                    schemeFile << schemeString;
-                    schemeFile.close();
-                }
+                TfcFormatter().format(tfcOutput, scheme);
+                tfcOutput.close();
             }
         }
         catch (exception& ex)

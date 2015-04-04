@@ -32,6 +32,9 @@ void synthesizeScheme(const TruthTable& table, ostream& resultsOutput, const str
         auto scheme = generator.generate(table, resultsOutput);
 
         ofstream tfcOutput(tfcOutputFileName);
+        assert(tfcOutput.is_open(),
+            string("Failed to open tfc file \"") + tfcOutputFileName + "\" for writing");
+
         resultsOutput << "Scheme file: " << tfcOutputFileName << endl;
 
         formatter.format(tfcOutput, scheme);
@@ -59,10 +62,9 @@ void generalSynthesis()
     const ProgramOptions& options = ProgramOptions::get();
 
     // open results output
-    string resultsFileName = options.resultsFile;
-    assert(!resultsFileName.empty(), string("Results file name is empty"));
-
-    ofstream resultsOutput(resultsFileName);
+    ofstream resultsOutput(options.resultsFile);
+    assert(resultsOutput.is_open(),
+        string("Failed to open results file \"") + options.resultsFile + "\" for writing");
 
     // check schemes folder existence, create if not exist
     string schemesFolder = options.schemesFolder;
@@ -79,6 +81,8 @@ void generalSynthesis()
             {
                 TfcFormatter formatter;
                 ifstream inputFile(tfcInputFileName);
+                assert(inputFile.is_open(),
+                    string("Failed to open input file \"") + tfcInputFileName + "\" for reading");
 
                 Scheme scheme = formatter.parse(inputFile);
                 TruthTable table = makePermutationFromScheme(scheme, formatter.getVariablesCount());

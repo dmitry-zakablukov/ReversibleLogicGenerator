@@ -43,7 +43,7 @@ int main(int argc, const char* argv[])
         if (workMode == strGeneralSynthesisMode)
             generalSynthesis();
         else if (workMode == strDiscreteLogSynthesisMode)
-            discreteLogSynthesis(argc, argv);
+            discreteLogSynthesis();
         else if (workMode == strPostProcessingMode)
             testOptimization(argc, argv);
         else
@@ -71,6 +71,8 @@ int main(int argc, const char* argv[])
         cerr << "Unknown exception was caught" << endl;
         returnCode = -1;
     }
+
+    system("pause");
 
     return returnCode;
 }
