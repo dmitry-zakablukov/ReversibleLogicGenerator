@@ -204,6 +204,10 @@ void discreteLogSynthesis()
     {
         string polynomialString;
         getline(inputFile, polynomialString);
+
+        if (isWhiteSpacesOnly(polynomialString))
+            continue;
+
         word polynomial = binStringToInt(polynomialString);
 
         try
@@ -254,7 +258,10 @@ void discreteLogSynthesis()
                 GeneratorWithMemory generator;
                 auto scheme = generator.generateFast(table, outputFile);
 
-                string tfcOutputFileName = appendPath(schemesFolder, polynomialString + ".tfc");
+                ostringstream schemeFileNameStream;
+                schemeFileNameStream << polynomialString << '-' << taskIndex << ".tfc";
+
+                string tfcOutputFileName = appendPath(schemesFolder, schemeFileNameStream.str());
 
                 ofstream tfcOutput(tfcOutputFileName);
                 assert(tfcOutput.is_open(),
