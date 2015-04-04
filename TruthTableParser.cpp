@@ -8,41 +8,35 @@ TruthTable TruthTableParser::parse(istream& input)
     string firstLine;
     getline(input, firstLine);
 
-    parseFirstLine(firstLine);
+    int base = parseFirstLine(firstLine);
     assert(inputCount >= outputCount, string("Case N < M is not implemented"));
 
-    return parseMainBody(input);
+    return parseMainBody(input, base);
 }
 
-void TruthTableParser::parseFirstLine(string firstLine)
+int TruthTableParser::parseFirstLine(const string& line)
 {
-    // first line must be NxM, where N is number of inputs and M - number of outputs
-    try
+    inputCount = 0;
+    outputCount = 0;
+    int base = 0;
+
+    int tokenCount = sscanf_s(line.c_str(), "%ux%ux%d", &inputCount, &outputCount, &base);
+    if (tokenCount != 3)
     {
-        assertFormat(!firstLine.empty());
+        // first line must be NxMxB, where N is number of inputs, M - number of outputs
+        // and B - number's base in table
 
-        inputCount = 0;
-        outputCount = 0;
-        size_t pos = 0;
-
-        inputCount = (uint)stoi(firstLine, &pos);
-        assertFormat(pos != 0 && pos != firstLine.size() && firstLine.at(pos) == 'x');
-
-        firstLine = firstLine.substr(pos + 1);
-        outputCount = (uint)stoi(firstLine, &pos);
-
-        assertFormat(pos = firstLine.size() && (int)inputCount > 0 && (int)outputCount > 0);
+        throw InvalidFormatException(
+            string("Invalid first line of truth table: ") + line +
+            "\nValid format is NxMxB, where N - input count, M <= N - output count, B - base");
     }
-    catch (InvalidFormatException& ex)
-    {
-        ex.setMessage(string("Invalid first line of truth table (must be in format NxM): ") + firstLine);
-        throw ex;
-    }
+
+    return base;
 }
 
-TruthTable TruthTableParser::parseMainBody(istream& input)
+TruthTable TruthTableParser::parseMainBody(istream& input, int base /*= 2*/)
 {
-    const char* strDelimiter = "\t==>\t";
+    const char* strDelimiter = "\t=>\t";
     const uint numDelimiterLength = strlen(strDelimiter);
 
     TruthTable table;
@@ -53,6 +47,9 @@ TruthTable TruthTableParser::parseMainBody(istream& input)
 
     uint count = 0;
     string currentLine;
+
+    int maxInputValue = 1 << inputCount;
+    int maxOutputValue = 1 << outputCount;
 
     try
     {
@@ -67,28 +64,30 @@ TruthTable TruthTableParser::parseMainBody(istream& input)
             currentLine = line;
 
             size_t pos = 0;
-            int x = stoi(line, &pos, 2);
+            int x = stoi(line, &pos, base);
 
             assertFormat(pos != 0 && pos != line.size() && x >= 0);
             assertFormat(line.compare(pos, numDelimiterLength, strDelimiter) == 0);
 
             line = line.substr(pos + numDelimiterLength);
-            int y = stoi(line, &pos, 2);
+            int y = stoi(line, &pos, base);
 
             assertFormat(pos == line.size() && y >= 0);
+            assertFormat(x < maxInputValue && y < maxOutputValue);
             assertFormat(table[x] == wordUndefined);
 
             table[x] = (word)y;
             ++count;
         }
-
-        assertFormat(count == (uint)1 << inputCount);
     }
     catch (InvalidFormatException& ex)
     {
         ex.setMessage(string("Invalid truth table line: ") + currentLine);
         throw ex;
     }
+
+    if (count != maxInputValue)
+        throw InvalidFormatException(string("Truth table is incomplete"));
 
     return table;
 }

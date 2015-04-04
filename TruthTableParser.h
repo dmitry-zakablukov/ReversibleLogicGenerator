@@ -12,8 +12,10 @@ public:
     TruthTable parse(istream& input);
 
 private:
-    void parseFirstLine(string firstLine);
-    TruthTable parseMainBody(istream& input);
+    /// Returns number's base in input
+    int parseFirstLine(const string& line);
+
+    TruthTable parseMainBody(istream& input, int base = 2);
 
     uint inputCount = 0;
     uint outputCount = 0;
