@@ -139,6 +139,7 @@
     <ClCompile Include="PostProcessor.cpp" />
     <ClCompile Include="ProgramOptions.cpp" />
     <ClCompile Include="Range.cpp" />
+    <ClCompile Include="TruthTableParser.cpp" />
     <ClCompile Include="std.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -170,6 +171,7 @@
     <ClInclude Include="TfcFormatter.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transposition.hpp" />
+    <ClInclude Include="TruthTableParser.h" />
     <ClInclude Include="utils.hpp" />
     <ClInclude Include="Values.h" />
   </ItemGroup>

@@ -54,6 +54,7 @@ typedef size_t uint;
 #include "PermutationUtils.hpp"
 #include "PostProcessor.hpp"
 #include "TfcFormatter.hpp"
+#include "TruthTableParser.h"
 #include "BooleanEdgeSearcher.hpp"
 #include "PartialResultParams.hpp"
 #include "PartialGenerator.hpp"
