@@ -33,6 +33,12 @@ private:
 
     /// Returns map for new order of output variables
     static unordered_map<uint, uint> calculateNewOrderOfOutputVariables(vector<SumVector>* distances, uint m);
+
+    /// Reorders output variables in @table according to @newOrderMap
+    static void reorderOutputVariables(TruthTable* table, const unordered_map<uint, uint>& newOrderMap,
+        uint n, uint m);
+
+    static word reorderBits(word x, uint bitCount, const unordered_map<uint, uint>& reorderMap);
 };
 
 } //namespace ReversibleLogic

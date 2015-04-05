@@ -16,6 +16,7 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
     sortSumVectorsForOutputVariables(&distances, n);
 
     unordered_map<uint, uint> newOutputVariablesOrder = calculateNewOrderOfOutputVariables(&distances, m);
+    reorderOutputVariables(&table, newOutputVariablesOrder, n, m);
 
     return table;
 }
@@ -207,6 +208,29 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
     }
 
     return newOrderMap;
+}
+
+//static
+void TruthTableUtils::reorderOutputVariables(TruthTable* table,
+    const unordered_map<uint, uint>& newOrderMap, uint n, uint m)
+{
+    TruthTable& tableAlias = *table;
+    uint entryCount = (uint)1 << n;
+
+    for (uint index = 0; index < entryCount; ++index)
+    {
+        word y = tableAlias[index];
+        tableAlias[index] = reorderBits(y, m, newOrderMap);
+    }
+}
+
+word TruthTableUtils::reorderBits(word x, uint bitCount, const unordered_map<uint, uint>& reorderMap)
+{
+    word y = 0;
+    for (uint index = 0; index < bitCount; ++index)
+        y |= ((x >> index) & 1) << reorderMap.at(index);
+
+    return y;
 }
 
 } //namespace ReversibleLogic
