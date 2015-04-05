@@ -92,4 +92,14 @@ TruthTable TruthTableParser::parseMainBody(istream& input, int base /*= 2*/)
     return table;
 }
 
+uint TruthTableParser::getInputCount() const
+{
+    return inputCount;
+}
+
+uint TruthTableParser::getOutputCount() const
+{
+    return outputCount;
+}
+
 } //namespace ReversibleLogic

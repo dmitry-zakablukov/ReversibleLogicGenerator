@@ -10,6 +10,9 @@ public:
     virtual ~TruthTableParser() = default;
 
     TruthTable parse(istream& input);
+    
+    uint getInputCount() const;
+    uint getOutputCount() const;
 
 private:
     /// Returns number's base in input

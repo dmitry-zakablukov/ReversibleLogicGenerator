@@ -9,7 +9,20 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
     assertd(original.size() == (size_t)(1 << n),
         string("TruthTableUtils::optimizeHammingDistance(): invalid table size"));
 
-    // 1) calculate minimal ancillary input count
+    uint k = calculateNewInputVariableCount(original, n, m);
+    TruthTable table = extendTruthTable(original, k, n);
+
+    vector<SumVector> distances = calculateHammingDistances(table, k, n, m);
+    sortSumVectorsForOutputVariables(&distances, n);
+
+    unordered_map<uint, uint> newOutputVariablesOrder = calculateNewOrderOfOutputVariables(&distances, m);
+
+    return table;
+}
+
+//static
+uint TruthTableUtils::calculateNewInputVariableCount(const TruthTable& original, uint n, uint m)
+{
     vector<uint> frequency;
     frequency.resize(1 << m);
     memset(frequency.data(), 0, sizeof(uint) * frequency.size());
@@ -25,9 +38,12 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
     }
 
     uint ancillaryInputCount = (uint)(ceil(log(maxFrequency) / log(2)));
-    uint k = max(n, m + ancillaryInputCount);
+    return max(n, m + ancillaryInputCount);
+}
 
-    // 2) fill new table according to value of k
+//static
+TruthTable TruthTableUtils::extendTruthTable(const TruthTable &original, uint k, uint n)
+{
     TruthTable table;
     if (k == n)
         table = original;
@@ -41,19 +57,13 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
             table[index] = original[index];
     }
 
+    return table;
+}
 
-    // 3) calculate Hamming distance for every output function with every input variable
-    struct DistanceSum
-    {
-        DistanceSum() = default;
-
-        int sum = 0;
-        uint columnIndex = 0;
-    };
-
-    // m x k
-    typedef vector<DistanceSum> SumVector;
-
+//static
+vector<TruthTableUtils::SumVector> TruthTableUtils::calculateHammingDistances(
+    const TruthTable& table, uint k, uint n, uint m)
+{
     vector<SumVector> distances;
     distances.resize(m);
 
@@ -64,31 +74,36 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
             sumVector[index].columnIndex = index;
     }
 
-    word count = original.size();
+    word count = (word)1 << n;
     for (word x = 0; x < count; ++x)
     {
         word y = table[x];
-    
+
         for (uint outIndex = 0; outIndex < m; ++outIndex)
         {
             vector<DistanceSum>& sumVector = distances[outIndex];
-    
+
             word temp = x;
             for (uint inIndex = 0; inIndex < k; ++inIndex)
             {
                 DistanceSum& targetSum = sumVector[inIndex];
                 targetSum.sum += (temp ^ y) & 1;
-    
+
                 temp >>= 1;
             }
-    
+
             y >>= 1;
         }
     }
 
-    // 4) sort distances sum
+    return distances;
+}
+
+//static
+void TruthTableUtils::sortSumVectorsForOutputVariables(vector<SumVector>* distances, uint n)
+{
     int averageSum = 1 << (n - 1);
-    for (auto& sumVector : distances)
+    for (auto& sumVector : *distances)
     {
         for (auto& dist : sumVector)
             dist.sum = abs(dist.sum - averageSum);
@@ -99,11 +114,16 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
         return left.sum > right.sum;
     };
 
-    for (auto& sumVector : distances)
+    for (auto& sumVector : *distances)
         sort(sumVector.begin(), sumVector.end(), sortFunc);
+}
 
-    // 5) find new order of output variables
+//static
+unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
+    vector<SumVector>* distances, uint m)
+{
     unordered_map<uint, uint> newOrderMap;
+    vector<SumVector>& distancesAlias = *distances;
 
     while (newOrderMap.size() != m)
     {
@@ -114,15 +134,15 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
 
         // find conflicted output variables
         unordered_set<uint> samePositionIndices = { targetIndex };
-        uint targetVariableIndex = distances[targetIndex].front().columnIndex;
+        uint targetVariableIndex = distancesAlias[targetIndex].front().columnIndex;
 
         for (uint index = targetIndex + 1; index < m; ++index)
         {
             if (newOrderMap.find(index) != newOrderMap.cend())
                 continue;
 
-            const vector<DistanceSum>& dist = distances[index];
-            
+            const vector<DistanceSum>& dist = distancesAlias[index];
+
             // assuming that n > 1
             if (dist[0].columnIndex == targetVariableIndex)
             {
@@ -131,11 +151,11 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
                 else
                 {
                     // remove this variable index from vector
-                    auto first = distances[index].cbegin() + 1;
-                    auto last = distances[index].cend();
+                    auto first = distancesAlias[index].cbegin() + 1;
+                    auto last = distancesAlias[index].cend();
 
                     vector<DistanceSum> newVector(first, last);
-                    distances[index] = newVector;
+                    distancesAlias[index] = newVector;
                 }
             }
         }
@@ -150,16 +170,16 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
             // calculate total sum
             int totalSum = 0;
             for (uint index : samePositionIndices)
-                totalSum += distances[index][1].sum;
+                totalSum += distancesAlias[index][1].sum;
 
             uint bestIndex = *(samePositionIndices.cbegin());
-            uint maxSum = totalSum - distances[bestIndex][1].sum;
+            uint maxSum = totalSum - distancesAlias[bestIndex][1].sum;
 
             // find best index
             for (auto iter = ++(samePositionIndices.cbegin()); iter != samePositionIndices.cend(); ++iter)
             {
                 uint index = *iter;
-                uint sum = totalSum - distances[index][1].sum;
+                uint sum = totalSum - distancesAlias[index][1].sum;
 
                 if (sum > maxSum)
                 {
@@ -177,16 +197,16 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
                 if (index == bestIndex)
                     continue;
 
-                auto first = distances[index].cbegin() + 1;
-                auto last = distances[index].cend();
+                auto first = distancesAlias[index].cbegin() + 1;
+                auto last = distancesAlias[index].cend();
 
                 vector<DistanceSum> newVector(first, last);
-                distances[index] = newVector;
+                distancesAlias[index] = newVector;
             }
         }
     }
 
-    return table;
+    return newOrderMap;
 }
 
 } //namespace ReversibleLogic
