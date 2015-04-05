@@ -83,6 +83,9 @@ void generalSynthesis()
 
             TruthTableParser parser;
             TruthTable table = parser.parse(inputFile);
+
+            table = TruthTableUtils::optimizeHammingDistance(table,
+                parser.getInputCount(), parser.getOutputCount());
         }
     }
 
