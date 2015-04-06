@@ -20,7 +20,7 @@ private:
         DistanceSum() = default;
 
         int sum = 0;
-        uint columnIndex = 0;
+        word index = 0;
     };
 
     typedef vector<DistanceSum> SumVector;
@@ -39,6 +39,22 @@ private:
         uint n, uint m);
 
     static word reorderBits(word x, uint bitCount, const unordered_map<uint, uint>& reorderMap);
+
+    /// Returns mask where bit 1 is corresponding to one of output variables
+    static word calculateOutputsMask(const unordered_map<uint, uint>& newOutputVariablesOrder);
+
+    /// Picks the best outputs for @table inputs based on minimal Hamming distance
+    static void pickUpBestOutputValues(TruthTable* table,
+        uint n, uint k, word outputsMask);
+
+    static void pickUpBestOutputValues(TruthTable* table, unordered_set<word> inputs,
+        unordered_set<word> outputs);
+
+    typedef unordered_map<word, deque<DistanceSum>> InputToBestIndexMap;
+
+    /// Choose two best outputs for every input based on Hamming distance
+    static void updateBestIndicesForInput(InputToBestIndexMap* map, const unordered_set<word>& inputs,
+        const unordered_set<word>& outputs);
 };
 
 } //namespace ReversibleLogic
