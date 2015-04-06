@@ -77,20 +77,35 @@ void generalSynthesis()
         auto truthTableInputFiles = options.options[strTruthTableInput];
         for (auto& truthTableInputFileName : truthTableInputFiles)
         {
-            ifstream inputFile(truthTableInputFileName);
-            assert(inputFile.is_open(),
-                string("Failed to open input file \"") + truthTableInputFileName + "\" for reading");
+            try
+            {
+                ifstream inputFile(truthTableInputFileName);
+                assert(inputFile.is_open(),
+                    string("Failed to open input file \"") + truthTableInputFileName + "\" for reading");
 
-            TruthTableParser parser;
-            TruthTable table = parser.parse(inputFile);
+                TruthTableParser parser;
+                TruthTable table = parser.parse(inputFile);
 
-            table = TruthTableUtils::optimizeHammingDistance(table,
-                parser.getInputCount(), parser.getOutputCount());
+                table = TruthTableUtils::optimizeHammingDistance(table,
+                    parser.getInputCount(), parser.getOutputCount());
+
+                string tfcOutputFileName = appendPath(schemesFolder,
+                    getFileName(truthTableInputFileName) + "-out.tfc");
+
+                // todo: pass new output variable order
+                TfcFormatter formatter;
+                synthesizeScheme(table, resultsOutput, tfcOutputFileName, formatter);
+            }
+            catch (exception& ex)
+            {
+                resultsOutput << ex.what() << endl;
+                resultsOutput << "\n===============================================================" << endl;
+            }
         }
     }
 
     // process all tfc input files
-    if (options.options.has(strTfcInput))
+    if (false && options.options.has(strTfcInput))
     {
         auto tfcInputFiles = options.options[strTfcInput];
         for (auto& tfcInputFileName : tfcInputFiles)
@@ -102,8 +117,10 @@ void generalSynthesis()
                 assert(inputFile.is_open(),
                     string("Failed to open input file \"") + tfcInputFileName + "\" for reading");
 
-                Scheme scheme = formatter.parse(inputFile);
-                TruthTable table = makePermutationFromScheme(scheme, formatter.getVariablesCount());
+                //Scheme scheme = formatter.parse(inputFile);
+                //TruthTable table = makePermutationFromScheme(scheme, formatter.getVariablesCount());
+                
+                TruthTable table = getHwb(9);
 
                 string tfcOutputFileName = appendPath(schemesFolder,
                     getFileName(tfcInputFileName) + "-out.tfc");

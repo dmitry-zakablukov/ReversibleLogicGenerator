@@ -422,7 +422,7 @@ void TruthTableUtils::updateBestIndicesForInput(InputToBestIndexMap* map,
                 ++iter;
             }
 
-            if (!isInserted && distances.size() < 2)
+            if (!isInserted)
                 distances.insert(iter, sum);
 
             if (distances.size() > 2)
