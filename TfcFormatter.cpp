@@ -51,7 +51,7 @@ Scheme TfcFormatter::parse(istream& stream)
             string line;
             getline(stream, line);
 
-            if (isWhiteSpacesOnly(line))
+            if (isWhiteSpacesOnly(line) || (line.size() > 0 && line.front() == '#'))
                 continue;
 
             currentLine = line;
