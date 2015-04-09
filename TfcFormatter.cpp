@@ -314,10 +314,14 @@ void TfcFormatter::writeOutputLine(ostream& out) const
         assert(outputCount <= indexToVariableMap.size(),
             string("TfcFormatter::writeOutputLine(): wrong number of output variables"));
 
+        unordered_map<uint, uint> orderMap;
+        for (auto iter : outputVariablesOrder)
+            orderMap[iter.second] = iter.first;
+
         out << strOutputsPrefix;
         for (uint index = 0; index < outputCount; ++index)
         {
-            out << indexToVariableMap.at(outputVariablesOrder.at(index));
+            out << indexToVariableMap.at(orderMap.at(index));
             if (index != outputCount - 1)
                 out << ',';
         }
