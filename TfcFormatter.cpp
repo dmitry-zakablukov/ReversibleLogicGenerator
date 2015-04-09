@@ -11,6 +11,17 @@ const char* TfcFormatter::strConstantsPrefix = ".c ";
 const char* TfcFormatter::strBeginKeyword    = "BEGIN";
 const char* TfcFormatter::strEndKeyword      = "END";
 
+
+TfcFormatter::TfcFormatter(uint n, uint m, unordered_map<uint, uint> outputVariablesOrder)
+    : hasSpecificInputOutputs(true)
+    , inputCount(n)
+    , outputCount(m)
+    , outputVariablesOrder(outputVariablesOrder)
+{
+    assert(outputVariablesOrder.size() == m,
+        string("TfcFormatter(): wrong number and/or order of output variables"));
+}
+
 string TfcFormatter::getVariableName(uint value) const
 {
     const char cBegin = 'a';
@@ -273,16 +284,46 @@ void TfcFormatter::writeVariablesLine(ostream& out) const
 
 void TfcFormatter::writeInputLine(ostream& out) const
 {
-    if (inputsLine.empty())
+    if (inputsLine.empty() && !hasSpecificInputOutputs)
         writeHeaderLine(out, strInputsPrefix);
+    else if (hasSpecificInputOutputs)
+    {
+        assert(inputCount <= indexToVariableMap.size(),
+            string("TfcFormatter::writeInputLine(): wrong number of input variables"));
+
+        out << strInputsPrefix;
+        for (uint index = 0; index < inputCount; ++index)
+        {
+            out << indexToVariableMap.at(index);
+            if (index != inputCount - 1)
+                out << ',';
+        }
+
+        out << endl;
+    }
     else
         out << inputsLine << endl;
 }
 
 void TfcFormatter::writeOutputLine(ostream& out) const
 {
-    if (outputsLine.empty())
+    if (outputsLine.empty() && !hasSpecificInputOutputs)
         writeHeaderLine(out, strOutputsPrefix);
+    else if (hasSpecificInputOutputs)
+    {
+        assert(outputCount <= indexToVariableMap.size(),
+            string("TfcFormatter::writeOutputLine(): wrong number of output variables"));
+
+        out << strOutputsPrefix;
+        for (uint index = 0; index < outputCount; ++index)
+        {
+            out << indexToVariableMap.at(outputVariablesOrder.at(index));
+            if (index != outputCount - 1)
+                out << ',';
+        }
+
+        out << endl;
+    }
     else
         out << outputsLine << endl;
 }
@@ -291,6 +332,22 @@ void TfcFormatter::writeConstantsLine(ostream& out) const
 {
     if (!constantsLine.empty())
         out << constantsLine << endl;
+    else if (hasSpecificInputOutputs)
+    {
+        uint count = indexToVariableMap.size() - inputCount;
+        if (count > 0)
+        {
+            out << strConstantsPrefix;
+            for (uint index = 0; index < count; ++index)
+            {
+                out << '0';
+                if (index != count - 1)
+                    out << ',';
+            }
+        }
+
+        out << endl;
+    }
 }
 
 void TfcFormatter::writeHeaderLine(ostream& out, const char* prefix) const

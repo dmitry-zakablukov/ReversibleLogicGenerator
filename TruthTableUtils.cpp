@@ -4,7 +4,8 @@ namespace ReversibleLogic
 {
 
 //static
-TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, uint n, uint m)
+TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, uint n, uint m,
+    unordered_map<uint, uint>* outputVariablesOrder /*= 0*/)
 {
     assertd(original.size() == (size_t)(1 << n),
         string("TruthTableUtils::optimizeHammingDistance(): invalid table size"));
@@ -20,6 +21,9 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
 
     word outputsMask = calculateOutputsMask(newOutputVariablesOrder);
     pickUpBestOutputValues(&table, n, k, outputsMask);
+
+    if (outputVariablesOrder)
+        *outputVariablesOrder = newOutputVariablesOrder;
 
     return table;
 }

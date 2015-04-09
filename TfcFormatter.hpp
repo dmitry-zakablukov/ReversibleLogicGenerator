@@ -7,6 +7,8 @@ class TfcFormatter
 {
 public:
     TfcFormatter() = default;
+    TfcFormatter(uint n, uint m, unordered_map<uint, uint> outputVariablesOrder);
+    virtual ~TfcFormatter() = default;
 
     Scheme parse(istream& stream);
     uint getVariablesCount() const;
@@ -76,6 +78,12 @@ private:
 
     unordered_map<string, int> variableToIndexMap;
     unordered_map<int, string> indexToVariableMap;
+
+    bool hasSpecificInputOutputs = false;
+
+    uint inputCount;
+    uint outputCount;
+    unordered_map<uint, uint> outputVariablesOrder;
 
     string inputsLine;
     string outputsLine;

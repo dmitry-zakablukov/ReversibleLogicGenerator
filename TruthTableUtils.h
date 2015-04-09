@@ -6,7 +6,8 @@ namespace ReversibleLogic
 class TruthTableUtils
 {
 public:
-    static TruthTable optimizeHammingDistance(const TruthTable& original, uint n, uint m);
+    static TruthTable optimizeHammingDistance(const TruthTable& original, uint n, uint m,
+        unordered_map<uint, uint>* outputVariablesOrder = 0);
 
 private:
     /// Returns minimal number of input variables to make permutation from @original truth table
