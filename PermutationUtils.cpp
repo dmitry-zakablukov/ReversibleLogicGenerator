@@ -3,7 +3,8 @@
 namespace ReversibleLogic
 {
 
-Permutation PermutationUtils::createPermutation(const TruthTable& table)
+    Permutation PermutationUtils::createPermutation(const TruthTable& table,
+        bool permutationShouldBeEven /*= true*/)
 {
     vector<Piece> pieces = findPieces(table);
     vector<Piece> cycles = mergePieces(pieces);
@@ -17,13 +18,17 @@ Permutation PermutationUtils::createPermutation(const TruthTable& table)
         permutation.append( shared_ptr<Cycle>(new Cycle(move(piece))) );
     }
 
-    if(!permutation.isEven())
+    if (permutationShouldBeEven && !permutation.isEven())
     {
-        word tableSize = table.size();
-        permutation.completeToEven(tableSize);
-    }
+        const ProgramOptions& options = ProgramOptions::get();
+        if (options.isTuningEnabled && options.options.getBool("complete-permutation-to-even", false))
+        {
+            word tableSize = table.size();
+            permutation.completeToEven(tableSize);
 
-    assert(permutation.isEven(), string("Can't complete permutation to even"));
+            assert(permutation.isEven(), string("Can't complete permutation to even"));
+        }
+    }
 
     return permutation;
 }

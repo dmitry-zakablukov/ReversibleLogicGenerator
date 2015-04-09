@@ -22,6 +22,8 @@ TruthTable TruthTableUtils::optimizeHammingDistance(const TruthTable& original, 
     word outputsMask = calculateOutputsMask(newOutputVariablesOrder);
     pickUpBestOutputValues(&table, n, k, outputsMask);
 
+    makePermutationEvenIfNecessary(&table, k, n);
+
     if (outputVariablesOrder)
         *outputVariablesOrder = newOutputVariablesOrder;
 
@@ -433,6 +435,62 @@ void TruthTableUtils::updateBestIndicesForInput(InputToBestIndexMap* map,
                 distances.pop_back();
         }
     }
+}
+
+//static
+void TruthTableUtils::makePermutationEvenIfNecessary(TruthTable* table, uint k, uint n)
+{
+    const ProgramOptions& options = ProgramOptions::get();
+    if (k > n && options.isTuningEnabled && options.options.getBool("complete-permutation-to-even", false))
+    {
+        TruthTable& tableAlias = *table;
+
+        Permutation permutation = PermutationUtils::createPermutation(tableAlias, false);
+        if (!permutation.isEven())
+        {
+            uint totalInputCount = (uint)1 << k;
+            uint originalInputCount = (uint)1 << n;
+
+            uint firstIndex = originalInputCount;
+            uint lastIndex  = firstIndex + 1;
+
+            int distanceChange = calculateHammingDistanceChangeForTwoEntriesSwap(tableAlias,
+                firstIndex, lastIndex);
+
+            for (uint outerIndex = firstIndex; outerIndex < totalInputCount; ++outerIndex)
+            {
+                for (uint innerIndex = outerIndex + 1; innerIndex < totalInputCount; ++innerIndex)
+                {
+                    int diff = calculateHammingDistanceChangeForTwoEntriesSwap(tableAlias,
+                        outerIndex, innerIndex);
+
+                    if (diff > distanceChange)
+                    {
+                        distanceChange = diff;
+                        firstIndex = outerIndex;
+                        lastIndex = innerIndex;
+                    }
+                }
+            }
+
+            swap(tableAlias[firstIndex], tableAlias[lastIndex]);
+        }
+    }
+}
+
+//static
+int TruthTableUtils::calculateHammingDistanceChangeForTwoEntriesSwap(const TruthTable& table,
+    uint firstIndex, uint lastIndex)
+{
+    int beforeSum =
+        (int)countNonZeroBits(firstIndex ^ table[firstIndex]) +
+        (int)countNonZeroBits(lastIndex ^ table[lastIndex]);
+
+    int afterSum =
+        (int)countNonZeroBits(firstIndex ^ table[lastIndex]) +
+        (int)countNonZeroBits(lastIndex ^ table[firstIndex]);
+
+    return beforeSum - afterSum;
 }
 
 } //namespace ReversibleLogic

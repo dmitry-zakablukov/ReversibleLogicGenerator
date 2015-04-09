@@ -72,7 +72,5 @@ int main(int argc, const char* argv[])
         returnCode = -1;
     }
 
-    system("pause");
-
     return returnCode;
 }

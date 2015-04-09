@@ -56,6 +56,11 @@ private:
     /// Choose two best outputs for every input based on Hamming distance
     static void updateBestIndicesForInput(InputToBestIndexMap* map, const unordered_set<word>& inputs,
         const unordered_set<word>& outputs);
+
+    static void makePermutationEvenIfNecessary(TruthTable* table, uint k, uint n);
+
+    static int calculateHammingDistanceChangeForTwoEntriesSwap(const TruthTable& table,
+        uint firstIndex, uint lastIndex);
 };
 
 } //namespace ReversibleLogic
