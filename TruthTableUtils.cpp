@@ -161,7 +161,6 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
         if (samePositionIndices.size() == 1)
         {
             newOrderMap[targetIndex] = targetVariableIndex;
-            continue;
         }
         else
         {
@@ -188,18 +187,17 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
 
             // add best index to new order
             newOrderMap[bestIndex] = targetVariableIndex;
+        }
 
-            // remove this variable index from other vectors
-            for (auto index : samePositionIndices)
+        // remove this variable index from other vectors
+        for (auto& sumVector : distancesAlias)
+        {
+            for (auto iter = sumVector.begin(); iter != sumVector.end();)
             {
-                if (index == bestIndex)
-                    continue;
-
-                auto first = distancesAlias[index].cbegin() + 1;
-                auto last = distancesAlias[index].cend();
-
-                vector<DistanceSum> newVector(first, last);
-                distancesAlias[index] = newVector;
+                if (iter->index == targetVariableIndex)
+                    iter = sumVector.erase(iter);
+                else
+                    ++iter;
             }
         }
     }
