@@ -102,7 +102,7 @@ void processTfcFiles(ostream& resultsOutput, const string& schemesFolder)
     const char* strTfcInput = "tfc-input";
 
     const ProgramOptions& options = ProgramOptions::get();
-    if (false && options.options.has(strTfcInput))
+    if (options.options.has(strTfcInput))
     {
         auto tfcInputFiles = options.options[strTfcInput];
         for (auto& tfcInputFileName : tfcInputFiles)
