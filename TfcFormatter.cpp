@@ -305,7 +305,7 @@ void TfcFormatter::writeInputLine(ostream& out) const
         out << inputsLine << endl;
 }
 
-void TfcFormatter::writeOutputLine(ostream& out) const
+void TfcFormatter::writeOutputLine(ostream& out)
 {
     if (outputsLine.empty() && !hasSpecificInputOutputs)
         writeHeaderLine(out, strOutputsPrefix);
@@ -314,14 +314,14 @@ void TfcFormatter::writeOutputLine(ostream& out) const
         assert(outputCount <= indexToVariableMap.size(),
             string("TfcFormatter::writeOutputLine(): wrong number of output variables"));
 
-        unordered_map<uint, uint> orderMap;
-        for (auto iter : outputVariablesOrder)
-            orderMap[iter.second] = iter.first;
+        const ProgramOptions& options = ProgramOptions::get();
+        if (options.isTuningEnabled && options.options.getBool("sort-output-variables-order", false))
+            sortOutputVariablesOrder();
 
         out << strOutputsPrefix;
         for (uint index = 0; index < outputCount; ++index)
         {
-            out << indexToVariableMap.at(orderMap.at(index));
+            out << indexToVariableMap.at(outputVariablesOrder.at(index));
             if (index != outputCount - 1)
                 out << ',';
         }
@@ -330,6 +330,58 @@ void TfcFormatter::writeOutputLine(ostream& out) const
     }
     else
         out << outputsLine << endl;
+}
+
+void TfcFormatter::sortOutputVariablesOrder()
+{
+    assertd(hasSpecificInputOutputs,
+        string("TfcFormatter::reorderOutputVariables(): nothing to reorder"));
+
+    uint count = outputVariablesOrder.size();
+
+    unordered_map<uint, uint> orderMap;
+    orderMap.reserve(count);
+
+    for (auto iter : outputVariablesOrder)
+        orderMap[iter.second] = iter.first;
+
+    vector<uint> indices;
+    indices.reserve(count);
+
+    for (uint index = 0; index < count; ++index)
+        indices.push_back(orderMap[index]);
+
+    ostringstream strStream;
+    for (uint i = 0; i + 1 < count; ++i)
+    {
+        uint x = indices[i];
+
+        uint y = x;
+        uint yIndex = i;
+
+        for (uint j = i + 1; j < count; ++j)
+        {
+            if (indices[j] < y)
+            {
+                y = indices[j];
+                yIndex = j;
+            }
+        }
+
+        if (yIndex == i)
+            continue;
+
+        swap(indices[i], indices[yIndex]);
+
+        strStream << "t2 " << indexToVariableMap[i] << ',' << indexToVariableMap[yIndex] << endl;
+        strStream << "t2 " << indexToVariableMap[yIndex] << ',' << indexToVariableMap[i] << endl;
+        strStream << "t2 " << indexToVariableMap[i] << ',' << indexToVariableMap[yIndex] << endl;
+    }
+
+    reorderingSubscheme = strStream.str();
+
+    for (uint index = 0; index < count; ++index)
+        outputVariablesOrder[indices[index]] = index;
 }
 
 void TfcFormatter::writeConstantsLine(ostream& out) const

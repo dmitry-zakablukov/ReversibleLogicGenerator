@@ -29,8 +29,8 @@ void synthesizeScheme(const TruthTable& table, ostream& resultsOutput, const str
     try
     {
         Generator generator;
-        auto scheme = generator.generate(table, resultsOutput);
-
+        Scheme scheme = generator.generate(table, resultsOutput);
+        
         ofstream tfcOutput(tfcOutputFileName);
         assert(tfcOutput.is_open(),
             string("Failed to open tfc file \"") + tfcOutputFileName + "\" for writing");

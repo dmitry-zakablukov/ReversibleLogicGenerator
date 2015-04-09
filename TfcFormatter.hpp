@@ -58,7 +58,10 @@ private:
 
     void writeVariablesLine(ostream& out) const;
     void writeInputLine(ostream& out) const;
-    void writeOutputLine(ostream& out) const;
+
+    void writeOutputLine(ostream& out);
+    void sortOutputVariablesOrder();
+
     void writeConstantsLine(ostream& out) const;
 
     void writeHeaderLine(ostream& out, const char* prefix) const;
@@ -69,13 +72,6 @@ private:
     template<typename Container>
     void writeMainBody(ostream& out, const Container& scheme) const;
 
-    static const char* strVariablesPrefix;
-    static const char* strInputsPrefix;
-    static const char* strOutputsPrefix;
-    static const char* strConstantsPrefix;
-    static const char* strBeginKeyword;
-    static const char* strEndKeyword;
-
     unordered_map<string, int> variableToIndexMap;
     unordered_map<int, string> indexToVariableMap;
 
@@ -83,11 +79,20 @@ private:
 
     uint inputCount;
     uint outputCount;
+
     unordered_map<uint, uint> outputVariablesOrder;
+    string reorderingSubscheme;
 
     string inputsLine;
     string outputsLine;
     string constantsLine;
+
+    static const char* strVariablesPrefix;
+    static const char* strInputsPrefix;
+    static const char* strOutputsPrefix;
+    static const char* strConstantsPrefix;
+    static const char* strBeginKeyword;
+    static const char* strEndKeyword;
 };
 
 template<typename Container>
@@ -147,6 +152,8 @@ void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container&
 
         out << indexToVariableMap.at(targetIndex) << endl;
     }
+
+    out << reorderingSubscheme;
 }
 
 } //namespace ReversibleLogic
