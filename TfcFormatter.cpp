@@ -344,9 +344,9 @@ void TfcFormatter::writeConstantsLine(ostream& out) const
                 if (index != count - 1)
                     out << ',';
             }
-        }
 
-        out << endl;
+            out << endl;
+        }
     }
 }
 
