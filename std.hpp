@@ -64,3 +64,5 @@ typedef size_t uint;
 #include "Values.h"
 #include "IniParser.h"
 #include "ProgramOptions.h"
+#include "RmSpectraUtils.h"
+#include "RmGenerator.h"
