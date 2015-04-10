@@ -135,6 +135,11 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
     unordered_map<uint, uint> newOrderMap;
     vector<SumVector>& distancesAlias = *distances;
 
+    // tuning option
+    const ProgramOptions& options = ProgramOptions::get();
+    bool chooseOutputOnlyByHammingDistance =
+        options.options.getBool("choose-output-order-only-by-hamming-distance", false);
+
     while (newOrderMap.size() != m)
     {
         // find first not processed index
@@ -164,27 +169,47 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
         }
         else
         {
-            // calculate total sum
-            int totalSum = 0;
-            for (uint index : samePositionIndices)
-                totalSum += distancesAlias[index][1].sum;
-
             uint bestIndex = *(samePositionIndices.cbegin());
-            uint maxSum = totalSum - distancesAlias[bestIndex][1].sum;
 
-            // find best index
-            for (auto iter = ++(samePositionIndices.cbegin()); iter != samePositionIndices.cend(); ++iter)
+            if (chooseOutputOnlyByHammingDistance)
             {
-                uint index = *iter;
-                uint sum = totalSum - distancesAlias[index][1].sum;
+                int maxSum = distancesAlias[bestIndex][0].sum;
 
-                if (sum > maxSum)
+                // find best index
+                for (auto iter = ++(samePositionIndices.cbegin()); iter != samePositionIndices.cend(); ++iter)
                 {
-                    bestIndex = index;
-                    maxSum = sum;
+                    uint index = *iter;
+                    int sum = distancesAlias[index][0].sum;
+
+                    if (sum > maxSum) //greater is better
+                    {
+                        bestIndex = index;
+                        maxSum = sum;
+                    }
                 }
             }
+            else // !chooseOutputOnlyByHammingDistance
+            {
+                // calculate total sum
+                int totalSum = 0;
+                for (uint index : samePositionIndices)
+                    totalSum += distancesAlias[index][1].sum;
 
+                uint maxSum = totalSum - distancesAlias[bestIndex][1].sum;
+
+                // find best index
+                for (auto iter = ++(samePositionIndices.cbegin()); iter != samePositionIndices.cend(); ++iter)
+                {
+                    uint index = *iter;
+                    uint sum = totalSum - distancesAlias[index][1].sum;
+
+                    if (sum > maxSum) //greater is better
+                    {
+                        bestIndex = index;
+                        maxSum = sum;
+                    }
+                }
+            }
             // add best index to new order
             newOrderMap[bestIndex] = targetVariableIndex;
         }
@@ -311,6 +336,11 @@ void TruthTableUtils::pickUpBestOutputValues(TruthTable* table, unordered_set<wo
 {
     TruthTable& tableAlias = *table;
 
+    // tuning option
+    const ProgramOptions& options = ProgramOptions::get();
+    bool pickUpBestOutputOnlyByHammingDistance =
+        options.options.getBool("pick-up-best-output-only-by-hamming-distance", false);
+
     InputToBestIndexMap inputToBestIndexMap;
     deque<DistanceSum> emptyDeque;
 
@@ -336,31 +366,52 @@ void TruthTableUtils::pickUpBestOutputValues(TruthTable* table, unordered_set<wo
         word first = *(inputs.cbegin());
         word bestOutput = inputToBestIndexMap[first].front().index;
 
-        // find other inputs with the same best pair index
-        int totalSum = 0;
-        for (auto input : inputs)
-        {
-            deque<DistanceSum>& sum = inputToBestIndexMap[input];
-
-            if (sum.front().index == bestOutput)
-                totalSum += sum.back().sum;
-        }
-
-        // choose best index
         word bestInput = first;
-        int minSum = totalSum - inputToBestIndexMap[first].back().sum;
-
-        for (auto input : inputs)
+        if (pickUpBestOutputOnlyByHammingDistance)
         {
-            deque<DistanceSum>& sum = inputToBestIndexMap[input];
-
-            if (sum.front().index == bestOutput)
+            // choose best index
+            int minSum = inputToBestIndexMap[first].front().sum;
+            for (auto input : inputs)
             {
-                int currentSum = totalSum - sum.back().sum;
-                if (currentSum < minSum)
+                deque<DistanceSum>& sum = inputToBestIndexMap[input];
+                if (sum.front().index == bestOutput)
                 {
-                    minSum = currentSum;
-                    bestInput = input;
+                    int currentSum = sum.front().sum;
+                    if (currentSum < minSum)
+                    {
+                        minSum = currentSum;
+                        bestInput = input;
+                    }
+                }
+            }
+        }
+        else // !pickUpBestOutputOnlyByHammingDistance
+        {
+            // find other inputs with the same best pair index
+            int totalSum = 0;
+            for (auto input : inputs)
+            {
+                deque<DistanceSum>& sum = inputToBestIndexMap[input];
+
+                if (sum.front().index == bestOutput)
+                    totalSum += sum.back().sum;
+            }
+
+            // choose best index
+            int minSum = totalSum - inputToBestIndexMap[first].back().sum;
+
+            for (auto input : inputs)
+            {
+                deque<DistanceSum>& sum = inputToBestIndexMap[input];
+
+                if (sum.front().index == bestOutput)
+                {
+                    int currentSum = totalSum - sum.back().sum;
+                    if (currentSum < minSum)
+                    {
+                        minSum = currentSum;
+                        bestInput = input;
+                    }
                 }
             }
         }
