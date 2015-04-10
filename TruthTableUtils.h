@@ -33,10 +33,11 @@ private:
     static void sortSumVectorsForOutputVariables(vector<SumVector>* distances, uint n);
 
     /// Returns map for new order of output variables
-    static unordered_map<uint, uint> calculateNewOrderOfOutputVariables(vector<SumVector>* distances, uint m);
+    static unordered_map<uint, uint> calculateNewOrderOfOutputVariables(
+        vector<SumVector>* distancesPtr, uint m);
 
     /// Reorders output variables in @table according to @newOrderMap
-    static void reorderOutputVariables(TruthTable* table, const unordered_map<uint, uint>& newOrderMap,
+    static void reorderOutputVariables(TruthTable* tablePtr, const unordered_map<uint, uint>& newOrderMap,
         uint n, uint m);
 
     static word reorderBits(word x, uint bitCount, const unordered_map<uint, uint>& reorderMap);
@@ -45,16 +46,16 @@ private:
     static word calculateOutputsMask(const unordered_map<uint, uint>& newOutputVariablesOrder);
 
     /// Picks the best outputs for @table inputs based on minimal Hamming distance
-    static void pickUpBestOutputValues(TruthTable* table,
+    static void pickUpBestOutputValues(TruthTable* tablePtr,
         uint n, uint k, word outputsMask);
 
-    static void pickUpBestOutputValues(TruthTable* table, unordered_set<word> inputs,
+    static void pickUpBestOutputValues(TruthTable* tablePtr, unordered_set<word> inputs,
         unordered_set<word> outputs);
 
     typedef unordered_map<word, deque<DistanceSum>> InputToBestIndexMap;
 
     /// Choose two best outputs for every input based on Hamming distance
-    static void updateBestIndicesForInput(InputToBestIndexMap* map, const unordered_set<word>& inputs,
+    static void updateBestIndicesForInput(InputToBestIndexMap* mapPtr, const unordered_set<word>& inputs,
         const unordered_set<word>& outputs);
 
     static void makePermutationEvenIfNecessary(TruthTable* table, uint k, uint n);

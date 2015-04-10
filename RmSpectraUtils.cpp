@@ -3,6 +3,7 @@
 namespace ReversibleLogic
 {
 
+//static
 RmSpectra RmSpectraUtils::calculateRmSpectra(const TruthTable& table)
 {
     uint size = table.size();
@@ -31,6 +32,34 @@ RmSpectra RmSpectraUtils::calculateRmSpectra(const TruthTable& table)
     }
 
     return spectra;
+}
+
+//static
+bool RmSpectraUtils::isVariableRow(uint index)
+{
+    return countNonZeroBits(index) == 1;
+}
+
+//static
+word RmSpectraUtils::getRowOfIdentSpectra(uint index)
+{
+    word row = 0;
+    if (isVariableRow(index))
+        row = (word)index;
+
+    return row;
+}
+
+//static
+bool RmSpectraUtils::isSpectraRowIdent(const RmSpectra& spectra, uint index)
+{
+    return isSpectraRowIdent(spectra[index], index);
+}
+
+//static
+bool RmSpectraUtils::isSpectraRowIdent(word row, uint index)
+{
+    return row == getRowOfIdentSpectra(index);
 }
 
 } //namespace ReversibleLogic

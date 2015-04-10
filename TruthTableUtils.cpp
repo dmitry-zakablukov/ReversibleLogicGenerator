@@ -130,10 +130,10 @@ void TruthTableUtils::sortSumVectorsForOutputVariables(vector<SumVector>* distan
 
 //static
 unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
-    vector<SumVector>* distances, uint m)
+    vector<SumVector>* distancesPtr, uint m)
 {
     unordered_map<uint, uint> newOrderMap;
-    vector<SumVector>& distancesAlias = *distances;
+    vector<SumVector>& distances = *distancesPtr;
 
     // tuning option
     const ProgramOptions& options = ProgramOptions::get();
@@ -149,14 +149,14 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
 
         // find conflicted output variables
         unordered_set<uint> samePositionIndices = { targetIndex };
-        word targetVariableIndex = distancesAlias[targetIndex].front().index;
+        word targetVariableIndex = distances[targetIndex].front().index;
 
         for (uint index = targetIndex + 1; index < m; ++index)
         {
             if (newOrderMap.find(index) != newOrderMap.cend())
                 continue;
 
-            const vector<DistanceSum>& dist = distancesAlias[index];
+            const vector<DistanceSum>& dist = distances[index];
 
             // assuming that n > 1
             if (dist[0].index == targetVariableIndex)
@@ -173,13 +173,13 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
 
             if (chooseOutputOnlyByHammingDistance)
             {
-                int maxSum = distancesAlias[bestIndex][0].sum;
+                int maxSum = distances[bestIndex][0].sum;
 
                 // find best index
                 for (auto iter = ++(samePositionIndices.cbegin()); iter != samePositionIndices.cend(); ++iter)
                 {
                     uint index = *iter;
-                    int sum = distancesAlias[index][0].sum;
+                    int sum = distances[index][0].sum;
 
                     if (sum > maxSum) //greater is better
                     {
@@ -193,15 +193,15 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
                 // calculate total sum
                 int totalSum = 0;
                 for (uint index : samePositionIndices)
-                    totalSum += distancesAlias[index][1].sum;
+                    totalSum += distances[index][1].sum;
 
-                uint maxSum = totalSum - distancesAlias[bestIndex][1].sum;
+                uint maxSum = totalSum - distances[bestIndex][1].sum;
 
                 // find best index
                 for (auto iter = ++(samePositionIndices.cbegin()); iter != samePositionIndices.cend(); ++iter)
                 {
                     uint index = *iter;
-                    uint sum = totalSum - distancesAlias[index][1].sum;
+                    uint sum = totalSum - distances[index][1].sum;
 
                     if (sum > maxSum) //greater is better
                     {
@@ -215,7 +215,7 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
         }
 
         // remove this variable index from other vectors
-        for (auto& sumVector : distancesAlias)
+        for (auto& sumVector : distances)
         {
             for (auto iter = sumVector.begin(); iter != sumVector.end();)
             {
@@ -231,16 +231,16 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
 }
 
 //static
-void TruthTableUtils::reorderOutputVariables(TruthTable* table,
+void TruthTableUtils::reorderOutputVariables(TruthTable* tablePtr,
     const unordered_map<uint, uint>& newOrderMap, uint n, uint m)
 {
-    TruthTable& tableAlias = *table;
+    TruthTable& table = *tablePtr;
     uint entryCount = (uint)1 << n;
 
     for (uint index = 0; index < entryCount; ++index)
     {
-        word y = tableAlias[index];
-        tableAlias[index] = reorderBits(y, m, newOrderMap);
+        word y = table[index];
+        table[index] = reorderBits(y, m, newOrderMap);
     }
 }
 
@@ -265,10 +265,10 @@ word TruthTableUtils::calculateOutputsMask(const unordered_map<uint, uint>& newO
 }
 
 //static
-void TruthTableUtils::pickUpBestOutputValues(TruthTable* table,
+void TruthTableUtils::pickUpBestOutputValues(TruthTable* tablePtr,
     uint n, uint k, word outputsMask)
 {
-    TruthTable& tableAlias = *table;
+    TruthTable& table = *tablePtr;
 
     word totalInputCount  = (word)1 << n;
     word totalOutputCount = (word)1 << k;
@@ -291,14 +291,14 @@ void TruthTableUtils::pickUpBestOutputValues(TruthTable* table,
     while (unvisitedInputs.size())
     {
         word x = *(unvisitedInputs.cbegin());
-        word y = tableAlias[x];
+        word y = table[x];
 
         unordered_set<word> matchedInputs;
         matchedInputs.reserve(unvisitedInputs.size());
 
         for (auto input : unvisitedInputs)
         {
-            if (tableAlias[input] == y)
+            if (table[input] == y)
                 matchedInputs.insert(input);
         }
 
@@ -312,12 +312,12 @@ void TruthTableUtils::pickUpBestOutputValues(TruthTable* table,
                 matchedOutputs.insert(output);
         }
 
-        pickUpBestOutputValues(table, matchedInputs, matchedOutputs);
+        pickUpBestOutputValues(tablePtr, matchedInputs, matchedOutputs);
 
         for (auto input : matchedInputs)
         {
             unvisitedInputs.erase(input);
-            unvisitedOutputs.erase(tableAlias[input]);
+            unvisitedOutputs.erase(table[input]);
         }
     }
 
@@ -327,14 +327,14 @@ void TruthTableUtils::pickUpBestOutputValues(TruthTable* table,
     for (word value = totalInputCount; value < totalOutputCount; ++value)
         unvisitedInputs.insert(value);
 
-    pickUpBestOutputValues(table, unvisitedInputs, unvisitedOutputs);
+    pickUpBestOutputValues(tablePtr, unvisitedInputs, unvisitedOutputs);
 }
 
 //static
-void TruthTableUtils::pickUpBestOutputValues(TruthTable* table, unordered_set<word> inputs,
+void TruthTableUtils::pickUpBestOutputValues(TruthTable* tablePtr, unordered_set<word> inputs,
     unordered_set<word> outputs)
 {
-    TruthTable& tableAlias = *table;
+    TruthTable& table = *tablePtr;
 
     // tuning option
     const ProgramOptions& options = ProgramOptions::get();
@@ -357,7 +357,7 @@ void TruthTableUtils::pickUpBestOutputValues(TruthTable* table, unordered_set<wo
             word input  = *inputs.cbegin();
             word output = *outputs.cbegin();
 
-            tableAlias[input] = output;
+            table[input] = output;
             break;
         }
 
@@ -417,7 +417,7 @@ void TruthTableUtils::pickUpBestOutputValues(TruthTable* table, unordered_set<wo
         }
 
         // assign output for best input
-        tableAlias[bestInput] = bestOutput;
+        table[bestInput] = bestOutput;
 
         // clear map
         for (auto iter : inputToBestIndexMap)
@@ -440,15 +440,15 @@ void TruthTableUtils::pickUpBestOutputValues(TruthTable* table, unordered_set<wo
 }
 
 //static
-void TruthTableUtils::updateBestIndicesForInput(InputToBestIndexMap* map,
+void TruthTableUtils::updateBestIndicesForInput(InputToBestIndexMap* mapPtr,
     const unordered_set<word>& inputs, const unordered_set<word>& outputs)
 {
-    InputToBestIndexMap& mapAlias = *map;
+    InputToBestIndexMap& map = *mapPtr;
 
-    for (auto iter : mapAlias)
+    for (auto iter : map)
     {
         word input = iter.first;
-        deque<DistanceSum>& distances = mapAlias[input];
+        deque<DistanceSum>& distances = map[input];
 
         if (distances.size() > 1)
             continue;
@@ -487,14 +487,14 @@ void TruthTableUtils::updateBestIndicesForInput(InputToBestIndexMap* map,
 }
 
 //static
-void TruthTableUtils::makePermutationEvenIfNecessary(TruthTable* table, uint k, uint n)
+void TruthTableUtils::makePermutationEvenIfNecessary(TruthTable* tablePtr, uint k, uint n)
 {
     const ProgramOptions& options = ProgramOptions::get();
     if (k > n && options.isTuningEnabled && options.options.getBool("complete-permutation-to-even", false))
     {
-        TruthTable& tableAlias = *table;
+        TruthTable& table = *tablePtr;
 
-        Permutation permutation = PermutationUtils::createPermutation(tableAlias, false);
+        Permutation permutation = PermutationUtils::createPermutation(table, false);
         if (!permutation.isEven())
         {
             uint totalInputCount = (uint)1 << k;
@@ -503,14 +503,14 @@ void TruthTableUtils::makePermutationEvenIfNecessary(TruthTable* table, uint k, 
             uint firstIndex = originalInputCount;
             uint lastIndex  = firstIndex + 1;
 
-            int distanceChange = calculateHammingDistanceChangeForTwoEntriesSwap(tableAlias,
+            int distanceChange = calculateHammingDistanceChangeForTwoEntriesSwap(table,
                 firstIndex, lastIndex);
 
             for (uint outerIndex = firstIndex; outerIndex < totalInputCount; ++outerIndex)
             {
                 for (uint innerIndex = outerIndex + 1; innerIndex < totalInputCount; ++innerIndex)
                 {
-                    int diff = calculateHammingDistanceChangeForTwoEntriesSwap(tableAlias,
+                    int diff = calculateHammingDistanceChangeForTwoEntriesSwap(table,
                         outerIndex, innerIndex);
 
                     if (diff > distanceChange)
@@ -522,7 +522,7 @@ void TruthTableUtils::makePermutationEvenIfNecessary(TruthTable* table, uint k, 
                 }
             }
 
-            swap(tableAlias[firstIndex], tableAlias[lastIndex]);
+            swap(table[firstIndex], table[lastIndex]);
         }
     }
 }
