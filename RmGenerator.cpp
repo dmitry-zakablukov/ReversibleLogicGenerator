@@ -5,8 +5,14 @@ namespace ReversibleLogic
 
 Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
 {
+    directParams.table = inputTable;
+    directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
+
+    inverseParams.table = invertTable(directParams.table);
+    inverseParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
+
     TruthTable table = inputTable;
-    RmSpectra spectra = RmSpectraUtils::calculateRmSpectra(table);
+    RmSpectra spectra = RmSpectraUtils::calculateSpectra(table);
 
     uint size = table.size();
     uint n = (uint)(log(size) / log(2));
@@ -29,6 +35,19 @@ Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
     }
 
     return scheme;
+}
+
+TruthTable RmGenerator::invertTable(const TruthTable& directTable) const
+{
+    uint size = directTable.size();
+
+    TruthTable inverseTable;
+    inverseTable.resize(size);
+
+    for (uint index = 0; index < size; ++index)
+        inverseTable[directTable[index]] = index;
+
+    return inverseTable;
 }
 
 void RmGenerator::processFirstSpectraRow(Scheme* scheme, TruthTable* table,
@@ -157,7 +176,26 @@ void RmGenerator::processNonVariableSpectraRow(Scheme* scheme, TruthTable* table
     }
 
     // because of core element, it's easier to calculate RM spectra again rather than modify existing one
-    spectra = RmSpectraUtils::calculateRmSpectra(table);
+    spectra = RmSpectraUtils::calculateSpectra(table);
+}
+
+template<typename TableType>
+void RmGenerator::applyTransformation(TableType* tablePtr, word targetMask, word controlMask /*= 0*/)
+{
+    assertd(tablePtr, string("RmGenerator::applyTransformation(): null ptr"));
+
+    assertd(countNonZeroBits(targetMask) == 1 && (controlMask & targetMask) == 0,
+        string("RmGenerator::applyTransformation(): invalid arguments"));
+
+    TruthTable& table = *tablePtr;
+    uint size = table.size();
+
+    for (uint index = 0; index < size; ++index)
+    {
+        word value = table[index];
+        if ((value & controlMask) == controlMask)
+            table[index] = value ^ targetMask;
+    }
 }
 
 } //namespace ReversibleLogic

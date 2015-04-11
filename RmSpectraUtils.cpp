@@ -4,7 +4,7 @@ namespace ReversibleLogic
 {
 
 //static
-RmSpectra RmSpectraUtils::calculateRmSpectra(const TruthTable& table)
+RmSpectra RmSpectraUtils::calculateSpectra(const TruthTable& table)
 {
     uint size = table.size();
     assertd(countNonZeroBits(size) == 1,
@@ -60,6 +60,22 @@ bool RmSpectraUtils::isSpectraRowIdent(const RmSpectra& spectra, uint index)
 bool RmSpectraUtils::isSpectraRowIdent(word row, uint index)
 {
     return row == getRowOfIdentSpectra(index);
+}
+
+uint RmSpectraUtils::calculateCost(const RmSpectra& spectra)
+{
+    uint cost = 0;
+    uint size = spectra.size();
+
+    for (uint index = 0; index < size; ++index)
+    {
+        word indentRow = getRowOfIdentSpectra(index);
+        word row = spectra[index];
+
+        cost += countNonZeroBits(row ^ indentRow);
+    }
+
+    return cost;
 }
 
 } //namespace ReversibleLogic

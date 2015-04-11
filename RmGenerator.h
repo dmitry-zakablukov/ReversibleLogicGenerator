@@ -9,6 +9,8 @@ public:
     Scheme generate(const TruthTable& inputTable, ostream& outputLog);
 
 private:
+    TruthTable invertTable(const TruthTable& directTable) const;
+
     void processFirstSpectraRow(Scheme* scheme, TruthTable* table, RmSpectra* spectra, uint n);
 
     void processVariableSpectraRow(Scheme* scheme, TruthTable* table, RmSpectra* spectra,
@@ -19,25 +21,19 @@ private:
 
     template<typename TableType>
     void applyTransformation(TableType* tablePtr, word targetMask, word controlMask = 0);
-};
 
-template<typename TableType>
-void RmGenerator::applyTransformation(TableType* tablePtr, word targetMask, word controlMask /*= 0*/)
-{
-    assertd(tablePtr, string("RmGenerator::applyTransformation(): null ptr"));
-
-    assertd(countNonZeroBits(targetMask) == 1 && (controlMask & targetMask) == 0,
-        string("RmGenerator::applyTransformation(): invalid arguments"));
-
-    TruthTable& table = *tablePtr;
-    uint size = table.size();
-
-    for (uint index = 0; index < size; ++index)
+    struct SynthesisParams
     {
-        word value = table[index];
-        if ((value & controlMask) == controlMask)
-            table[index] = value ^ targetMask;
-    }
-}
+        TruthTable table;
+
+        RmSpectra spectra;        
+        uint spectraCost;
+
+        deque<ReverseElement> elements;
+    };
+
+    SynthesisParams directParams;
+    SynthesisParams inverseParams;
+};
 
 } //namespace ReversibleLogic

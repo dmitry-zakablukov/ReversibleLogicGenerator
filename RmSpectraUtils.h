@@ -9,7 +9,7 @@ class RmSpectraUtils
 {
 public:
     /// Returns Reed-Muller spectra for input truth @table
-    static RmSpectra calculateRmSpectra(const TruthTable& table);
+    static RmSpectra calculateSpectra(const TruthTable& table);
 
     static bool isVariableRow(uint index);
 
@@ -19,6 +19,9 @@ public:
     /// Returns true if @row in spectra equals to row with the same index in RM-spectra of identity function
     static bool isSpectraRowIdent(const RmSpectra& spectra, uint index);
     static bool isSpectraRowIdent(word row, uint index);
+
+    /// Returns cost of Reed-Muller spectra
+    static uint calculateCost(const RmSpectra& spectra);
 };
 
 } //namespace ReversibleLogic
