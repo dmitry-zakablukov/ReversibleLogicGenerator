@@ -5,33 +5,45 @@ namespace ReversibleLogic
 
 Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
 {
+    uint size = inputTable.size();
+    uint n = (uint)(log(size) / log(2));
+
     directParams.table = inputTable;
     directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
 
     inverseParams.table = invertTable(directParams.table);
-    inverseParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
-
-    TruthTable table = inputTable;
-    RmSpectra spectra = RmSpectraUtils::calculateSpectra(table);
-
-    uint size = table.size();
-    uint n = (uint)(log(size) / log(2));
+    inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
 
     Scheme scheme;
-    processFirstSpectraRow(&scheme, &table, &spectra, n);
+    auto iter = scheme.end();
 
-    // process rest rows
-    for (uint index = 1; index < size; ++index)
+    for (uint index = 0; index < size; ++index)
     {
-        word row = spectra[index];
+        word row = directParams.spectra[index];
         if (RmSpectraUtils::isSpectraRowIdent(row, index))
             continue;
 
-        bool isVariableRow = RmSpectraUtils::isVariableRow(index);
-        if (isVariableRow)
-            processVariableSpectraRow(&scheme, &table, &spectra, n, index);
+        calculatePartialResult(&directParams, n, index);
+        calculatePartialResult(&inverseParams, n, index);
+
+        if (isInverseParamsBetter())
+        {
+            iter = updateScheme(&scheme, iter,
+                inverseParams.elements.crbegin(), inverseParams.elements.crend());
+
+            advance(iter, inverseParams.elements.size());
+
+            directParams.table = invertTable(inverseParams.table);
+            directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
+        }
         else
-            processNonVariableSpectraRow(&scheme, &table, &spectra, n, index);
+        {
+            iter = updateScheme(&scheme, iter,
+                directParams.elements.cbegin(), directParams.elements.cend());
+
+            inverseParams.table = invertTable(directParams.table);
+            inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
+        }
     }
 
     return scheme;
@@ -50,10 +62,27 @@ TruthTable RmGenerator::invertTable(const TruthTable& directTable) const
     return inverseTable;
 }
 
-void RmGenerator::processFirstSpectraRow(Scheme* scheme, TruthTable* table,
-    RmSpectra* spectra, uint n)
+void RmGenerator::calculatePartialResult(SynthesisParams* params, uint n, uint index)
 {
-    word row = spectra->front();
+    assertd(params, string("RmGenerator::calculatePartialResult(): null ptr"));
+
+    if (!index) //first row
+        processFirstSpectraRow(params, n);
+    else
+    {
+        bool isVariableRow = RmSpectraUtils::isVariableRow(index);
+        if (isVariableRow)
+            processVariableSpectraRow(params, n, index);
+        else
+            processNonVariableSpectraRow(params, n, index);
+    }
+
+    params->spectraCost = RmSpectraUtils::calculateCost(params->spectra);
+}
+
+void RmGenerator::processFirstSpectraRow(SynthesisParams* params, uint n)
+{
+    word row = params->spectra.front();
     if (!row)
         return;
 
@@ -64,20 +93,19 @@ void RmGenerator::processFirstSpectraRow(Scheme* scheme, TruthTable* table,
         {
             word targetMask = mask;
 
-            scheme->push_front(ReverseElement(n, targetMask));
+            params->elements.push_front(ReverseElement(n, targetMask));
 
-            applyTransformation(table, targetMask);
-            applyTransformation(spectra, targetMask);
+            applyTransformation(&(params->table), targetMask);
+            applyTransformation(&(params->spectra), targetMask);
         }
 
         mask <<= 1;
     }
 }
 
-void RmGenerator::processVariableSpectraRow(Scheme* scheme, TruthTable* table, RmSpectra* spectra,
-    uint n, uint index)
+void RmGenerator::processVariableSpectraRow(SynthesisParams* params, uint n, uint index)
 {
-    word row = (*spectra)[index];
+    word row = params->spectra[index];
     if ((row & index) == 0)
     {
         word mask = (word)1 << (n - 1);
@@ -87,10 +115,10 @@ void RmGenerator::processVariableSpectraRow(Scheme* scheme, TruthTable* table, R
         assertd(mask && mask != index,
             string("RmGenerator::processVariableSpectraRow(): failed to process variable row"));
 
-        scheme->push_front(ReverseElement(n, index, mask));
+        params->elements.push_front(ReverseElement(n, index, mask));
 
-        applyTransformation(table, index, mask);
-        applyTransformation(spectra, index, mask);
+        applyTransformation(&(params->table), index, mask);
+        applyTransformation(&(params->spectra), index, mask);
     }
 
     word mask = 1;
@@ -98,23 +126,19 @@ void RmGenerator::processVariableSpectraRow(Scheme* scheme, TruthTable* table, R
     {
         if (mask != index && (row & mask))
         {
-            scheme->push_front(ReverseElement(n, mask, index));
+            params->elements.push_front(ReverseElement(n, mask, index));
 
-            applyTransformation(table, mask, index);
-            applyTransformation(spectra, mask, index);
+            applyTransformation(&(params->table), mask, index);
+            applyTransformation(&(params->spectra), mask, index);
         }
 
         mask <<= 1;
     }
 }
 
-void RmGenerator::processNonVariableSpectraRow(Scheme* scheme, TruthTable* tablePtr,
-    RmSpectra* spectraPtr, uint n, uint index)
+void RmGenerator::processNonVariableSpectraRow(SynthesisParams* params, uint n, uint index)
 {
-    TruthTable& table   = *tablePtr;
-    RmSpectra&  spectra = *spectraPtr;
-
-    word row = spectra[index];
+    word row = params->spectra[index];
 
     word controlMask = (word)1 << (n - 1);
     while (controlMask)
@@ -143,8 +167,8 @@ void RmGenerator::processNonVariableSpectraRow(Scheme* scheme, TruthTable* table
                 ReverseElement element(n, mask, controlMask);
                 elements.push_front(element);
 
-                scheme->push_front(element);
-                applyTransformation(tablePtr, mask, controlMask);
+                params->elements.push_front(element);
+                applyTransformation(&(params->table), mask, controlMask);
             }
 
             mask <<= 1;
@@ -152,8 +176,8 @@ void RmGenerator::processNonVariableSpectraRow(Scheme* scheme, TruthTable* table
     }
 
     // core element
-    scheme->push_front(ReverseElement(n, controlMask, index));
-    applyTransformation(tablePtr, controlMask, index);
+    params->elements.push_front(ReverseElement(n, controlMask, index));
+    applyTransformation(&(params->table), controlMask, index);
 
     if (hasNonZeroBitsExceptControlOne)
     {
@@ -161,7 +185,7 @@ void RmGenerator::processNonVariableSpectraRow(Scheme* scheme, TruthTable* table
         bool isEarlierRowsHasBeenChanged = false;
         for (uint i = 0; i < index && !isEarlierRowsHasBeenChanged; ++i)
         {
-            if (spectra[i] & controlMask)
+            if (params->spectra[i] & controlMask)
                 isEarlierRowsHasBeenChanged = true;
         }
 
@@ -169,14 +193,14 @@ void RmGenerator::processNonVariableSpectraRow(Scheme* scheme, TruthTable* table
         {
             for (auto& element : elements)
             {
-                scheme->push_front(element);
-                applyTransformation(tablePtr, element.getTargetMask(), element.getControlMask());
+                params->elements.push_front(element);
+                applyTransformation(&(params->table), element.getTargetMask(), element.getControlMask());
             }
         }
     }
 
     // because of core element, it's easier to calculate RM spectra again rather than modify existing one
-    spectra = RmSpectraUtils::calculateSpectra(table);
+    params->spectra = RmSpectraUtils::calculateSpectra(params->table);
 }
 
 template<typename TableType>
@@ -196,6 +220,44 @@ void RmGenerator::applyTransformation(TableType* tablePtr, word targetMask, word
         if ((value & controlMask) == controlMask)
             table[index] = value ^ targetMask;
     }
+}
+
+bool RmGenerator::isInverseParamsBetter() const
+{
+    bool isBetter = false;
+
+    if (inverseParams.spectraCost < directParams.spectraCost)
+        isBetter = true;
+    else if (inverseParams.spectraCost == directParams.spectraCost)
+    {
+        // compare number of control inputs
+        uint inverseControlCount = calculateTotalControlInputCount(inverseParams.elements);
+        uint directControlCount = calculateTotalControlInputCount(directParams.elements);
+
+        isBetter = (inverseControlCount < directControlCount);
+    }
+
+    return isBetter;
+}
+
+uint RmGenerator::calculateTotalControlInputCount(const deque<ReverseElement>& elements) const
+{
+    uint totalCount = 0;
+    for (auto& element : elements)
+        totalCount += countNonZeroBits(element.getControlMask());
+
+    return totalCount;
+}
+
+template<typename IteratorType>
+Scheme::iterator ReversibleLogic::RmGenerator::updateScheme(Scheme* scheme,
+    Scheme::iterator iter, IteratorType from, IteratorType to)
+{
+    Scheme::iterator localIter = iter;
+    while (from != to)
+        localIter = scheme->insert(localIter, *from++);
+
+    return localIter;
 }
 
 } //namespace ReversibleLogic

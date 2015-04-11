@@ -11,17 +11,6 @@ public:
 private:
     TruthTable invertTable(const TruthTable& directTable) const;
 
-    void processFirstSpectraRow(Scheme* scheme, TruthTable* table, RmSpectra* spectra, uint n);
-
-    void processVariableSpectraRow(Scheme* scheme, TruthTable* table, RmSpectra* spectra,
-        uint n, uint index);
-
-    void processNonVariableSpectraRow(Scheme* scheme, TruthTable* tablePtr, RmSpectra* spectraPtr,
-        uint n, uint index);
-
-    template<typename TableType>
-    void applyTransformation(TableType* tablePtr, word targetMask, word controlMask = 0);
-
     struct SynthesisParams
     {
         TruthTable table;
@@ -31,6 +20,22 @@ private:
 
         deque<ReverseElement> elements;
     };
+
+    void calculatePartialResult(SynthesisParams* params, uint n, uint index);
+
+    void processFirstSpectraRow(SynthesisParams* params, uint n);
+    void processVariableSpectraRow(SynthesisParams* params, uint n, uint index);
+    void processNonVariableSpectraRow(SynthesisParams* params, uint n, uint index);
+
+    template<typename TableType>
+    void applyTransformation(TableType* tablePtr, word targetMask, word controlMask = 0);
+
+    bool isInverseParamsBetter() const;
+    uint calculateTotalControlInputCount(const deque<ReverseElement>& elements) const;
+
+    template<typename IteratorType>
+    Scheme::iterator updateScheme(Scheme* scheme, Scheme::iterator iter,
+        IteratorType from, IteratorType to);
 
     SynthesisParams directParams;
     SynthesisParams inverseParams;
