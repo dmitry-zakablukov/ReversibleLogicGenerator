@@ -74,7 +74,59 @@ Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
         }
         else
         {
-            // todo: implement this case
+            word controlMask = mostSignificantBit;
+            while (controlMask)
+            {
+                if ((row & controlMask) != 0 &&
+                    (index & controlMask) == 0)
+                    break;
+
+                controlMask >>= 1;
+            }
+
+            assertd(controlMask,
+                string("RmGenerator::generate(): failed to process variable row"));
+
+            deque<ReverseElement> elements;
+
+            word mask = 1;
+            while (mask <= row)
+            {
+                if (mask != controlMask && (row & mask))
+                {
+                    ReverseElement element(n, mask, controlMask);
+                    elements.push_front(element);
+
+                    scheme.push_front(element);
+                    applyTransformation(&table, mask, controlMask);
+                }
+
+                mask <<= 1;
+            }
+
+            scheme.push_front(ReverseElement(n, controlMask, index));
+            applyTransformation(&table, controlMask, index);
+
+            // check if we need to apply elements to make previous rows canonical
+            bool needApply = false;
+            for (uint i = 0; i < size && !needApply; ++i)
+            {
+                if (i == index)
+                    continue;
+
+                if (spectra[i] & controlMask)
+                    needApply = true;
+            }
+
+            if (needApply)
+            {
+                for (auto& element : elements)
+                {
+                    scheme.push_front(element);
+                    applyTransformation(&table, element.getTargetMask(), element.getControlMask());
+                }
+            }
+            
         }
 
         spectra = RmSpectraUtils::calculateRmSpectra(table);
