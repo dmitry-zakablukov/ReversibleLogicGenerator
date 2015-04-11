@@ -3,17 +3,8 @@
 namespace ReversibleLogic
 {
 
-GtGenerator::GtGenerator()
-    : n(0)
-    , permutation()
-    , log(0)
-{
-}
-
 Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
 {
-    log = &outputLog;
-
     float totalTime = 0;
     float time = 0;
 
@@ -26,9 +17,9 @@ Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
     }
 
     // log permutation creation parameters
-    *log << "Permutation creation time: ";
-    *log << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    *log << " sec" << endl;
+    outputLog << "Permutation creation time: ";
+    outputLog << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
+    outputLog << " sec" << endl;
 
     totalTime += time;
 
@@ -54,10 +45,10 @@ Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
     }
 
     // log scheme synthesis parameters
-    *log << "Scheme synthesis time: ";
-    *log << setiosflags(ios::fixed) << setprecision(5) << time;
-    *log << " ms" << endl;
-    *log << "Complexity before optimization: " << scheme.size() << endl;
+    outputLog << "Scheme synthesis time: ";
+    outputLog << setiosflags(ios::fixed) << setprecision(5) << time;
+    outputLog << " ms" << endl;
+    outputLog << "Complexity before optimization: " << scheme.size() << endl;
 
     totalTime += time;
     time = 0;
@@ -71,16 +62,16 @@ Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
     assert(isValid, string("Generated scheme is not valid"));
 
     // log post processing parameters
-    *log << "Optimization time: ";
-    *log << setiosflags(ios::fixed) << setprecision(5) << time;
-    *log << " ms" << endl;
-    *log << "Complexity after optimization: " << scheme.size() << endl;
+    outputLog << "Optimization time: ";
+    outputLog << setiosflags(ios::fixed) << setprecision(5) << time;
+    outputLog << " ms" << endl;
+    outputLog << "Complexity after optimization: " << scheme.size() << endl;
 
     totalTime += time;
 
-    *log << "Total time: ";
-    *log << setiosflags(ios::fixed) << setprecision(5) << totalTime;
-    *log << " ms" << endl;
+    outputLog << "Total time: ";
+    outputLog << setiosflags(ios::fixed) << setprecision(5) << totalTime;
+    outputLog << " ms" << endl;
 
     return scheme;
 }
