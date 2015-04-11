@@ -18,9 +18,6 @@ private:
     void implementPartialResult(PartialGtGenerator& partialGenerator,
         bool isLeftMultiplication, Scheme* scheme, Scheme::iterator* targetIter);
 
-    bool checkSchemeAgainstPermutationVector(const Scheme& scheme,
-        const TruthTable& table);
-
     shared_ptr<PartialGtGenerator> reducePermutation(shared_ptr<PartialGtGenerator> partialGenerator,
         uint n, Scheme* scheme, Scheme::iterator* targetIter);
 

@@ -67,7 +67,7 @@ Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
         scheme = PostProcessor().optimize(scheme);
     }
 
-    bool isValid = checkSchemeAgainstPermutationVector(scheme, table);
+    bool isValid = TruthTableUtils::checkSchemeAgainstPermutationVector(scheme, table);
     assert(isValid, string("Generated scheme is not valid"));
 
     // log post processing parameters
@@ -246,27 +246,6 @@ tuple<uint, Permutation> GtGenerator::getPermutation(const TruthTable& table)
     }
 
     return tie(n, permutation);
-}
-
-bool GtGenerator::checkSchemeAgainstPermutationVector(const Scheme& scheme, const TruthTable& table)
-{
-    bool result = true;
-    uint transformCount = table.size();
-    for(word x = 0; x < transformCount; ++x)
-    {
-        const word& y = table[x];
-
-        for (auto& element : scheme)
-            x = element.getValue(x);
-
-        if(x != y)
-        {
-            result = false;
-            break;
-        }
-    }
-
-    return result;
 }
 
 }   // namespace ReversibleLogic

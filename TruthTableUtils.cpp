@@ -542,4 +542,26 @@ int TruthTableUtils::calculateHammingDistanceChangeForTwoEntriesSwap(const Truth
     return beforeSum - afterSum;
 }
 
+//static
+bool TruthTableUtils::checkSchemeAgainstPermutationVector(const Scheme& scheme, const TruthTable& table)
+{
+    bool result = true;
+    uint size = table.size();
+
+    for (word x = 0; x < size; ++x)
+    {
+        word y = x;
+        for (auto& element : scheme)
+            y = element.getValue(y);
+
+        if (y != table[x])
+        {
+            result = false;
+            break;
+        }
+    }
+
+    return result;
+}
+
 } //namespace ReversibleLogic

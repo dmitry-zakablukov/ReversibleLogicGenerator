@@ -9,6 +9,9 @@ public:
     static TruthTable optimizeHammingDistance(const TruthTable& original, uint n, uint m,
         unordered_map<uint, uint>* outputVariablesOrder = 0);
 
+    static bool checkSchemeAgainstPermutationVector(const Scheme& scheme,
+        const TruthTable& table);
+
 private:
     /// Returns minimal number of input variables to make permutation from @original truth table
     static uint calculateNewInputVariableCount(const TruthTable& original, uint n, uint m);
