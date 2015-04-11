@@ -126,6 +126,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BooleanEdgeSearcher.cpp" />
+    <ClCompile Include="CompositeGenerator.cpp" />
     <ClCompile Include="Cycle.cpp" />
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="Exceptions.cpp" />
@@ -157,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BooleanEdgeSearcher.hpp" />
+    <ClInclude Include="CompositeGenerator.h" />
     <ClInclude Include="Cycle.hpp" />
     <ClInclude Include="Element.hpp" />
     <ClInclude Include="Exceptions.h" />
