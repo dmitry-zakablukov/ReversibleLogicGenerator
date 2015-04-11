@@ -23,9 +23,6 @@
     <ClCompile Include="Element.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Generator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Permutation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -47,16 +44,10 @@
     <ClCompile Include="BooleanEdgeSearcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PartialGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PartialResultParams.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Range.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratorWithMemory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TfcFormatter.cpp">
@@ -86,6 +77,15 @@
     <ClCompile Include="RmGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GtGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GtGeneratorWithMemory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PartialGtGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="std.hpp">
@@ -95,9 +95,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Element.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Generator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Permutation.hpp">
@@ -121,16 +118,10 @@
     <ClInclude Include="BooleanEdgeSearcher.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PartialGenerator.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PartialResultParams.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Range.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GeneratorWithMemory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TfcFormatter.hpp">
@@ -158,6 +149,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RmGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GtGenerator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GtGeneratorWithMemory.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PartialGtGenerator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

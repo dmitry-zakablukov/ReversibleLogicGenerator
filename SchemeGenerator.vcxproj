@@ -129,10 +129,10 @@
     <ClCompile Include="Cycle.cpp" />
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="Exceptions.cpp" />
-    <ClCompile Include="Generator.cpp" />
-    <ClCompile Include="GeneratorWithMemory.cpp" />
+    <ClCompile Include="GtGenerator.cpp" />
+    <ClCompile Include="GtGeneratorWithMemory.cpp" />
     <ClCompile Include="IniParser.cpp" />
-    <ClCompile Include="PartialGenerator.cpp" />
+    <ClCompile Include="PartialGtGenerator.cpp" />
     <ClCompile Include="PartialResultParams.cpp" />
     <ClCompile Include="Permutation.cpp" />
     <ClCompile Include="PermutationUtils.cpp" />
@@ -160,10 +160,10 @@
     <ClInclude Include="Cycle.hpp" />
     <ClInclude Include="Element.hpp" />
     <ClInclude Include="Exceptions.h" />
-    <ClInclude Include="Generator.hpp" />
-    <ClInclude Include="GeneratorWithMemory.hpp" />
+    <ClInclude Include="GtGenerator.hpp" />
+    <ClInclude Include="GtGeneratorWithMemory.hpp" />
     <ClInclude Include="IniParser.h" />
-    <ClInclude Include="PartialGenerator.hpp" />
+    <ClInclude Include="PartialGtGenerator.hpp" />
     <ClInclude Include="PartialResultParams.hpp" />
     <ClInclude Include="Permutation.hpp" />
     <ClInclude Include="PermutationUtils.hpp" />
