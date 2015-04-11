@@ -29,7 +29,7 @@ Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
         if (isInverseParamsBetter())
         {
             iter = updateScheme(&scheme, iter,
-                inverseParams.elements.crbegin(), inverseParams.elements.crend());
+                inverseParams.elements.cbegin(), inverseParams.elements.cend());
 
             advance(iter, inverseParams.elements.size());
 
@@ -39,7 +39,7 @@ Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
         else
         {
             iter = updateScheme(&scheme, iter,
-                directParams.elements.cbegin(), directParams.elements.cend());
+                directParams.elements.crbegin(), directParams.elements.crend());
 
             inverseParams.table = invertTable(directParams.table);
             inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
@@ -84,8 +84,6 @@ void RmGenerator::calculatePartialResult(SynthesisParams* params, uint n, uint i
 void RmGenerator::processFirstSpectraRow(SynthesisParams* params, uint n)
 {
     word row = params->spectra.front();
-    if (!row)
-        return;
 
     word mask = 1;
     while (mask <= row)
