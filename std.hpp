@@ -66,3 +66,4 @@ typedef size_t uint;
 #include "ProgramOptions.h"
 #include "RmSpectraUtils.h"
 #include "RmGenerator.h"
+#include "CompositeGenerator.h"
