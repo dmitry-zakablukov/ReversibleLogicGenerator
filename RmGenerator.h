@@ -31,7 +31,6 @@ private:
     void applyTransformation(TableType* tablePtr, word targetMask, word controlMask = 0);
 
     bool isInverseParamsBetter() const;
-    uint calculateTotalControlInputCount(const deque<ReverseElement>& elements) const;
 
     template<typename IteratorType>
     Scheme::iterator updateScheme(Scheme* scheme, Scheme::iterator iter,

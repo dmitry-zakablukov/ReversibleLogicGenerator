@@ -29,7 +29,7 @@ Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
         if (isInverseParamsBetter())
         {
             iter = updateScheme(&scheme, iter,
-                inverseParams.elements.cbegin(), inverseParams.elements.cend());
+                inverseParams.elements.crbegin(), inverseParams.elements.crend());
 
             advance(iter, inverseParams.elements.size());
 
@@ -39,7 +39,7 @@ Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
         else
         {
             iter = updateScheme(&scheme, iter,
-                directParams.elements.crbegin(), directParams.elements.crend());
+                directParams.elements.cbegin(), directParams.elements.cend());
 
             inverseParams.table = invertTable(directParams.table);
             inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
@@ -92,7 +92,7 @@ void RmGenerator::processFirstSpectraRow(SynthesisParams* params, uint n)
         {
             word targetMask = mask;
 
-            params->elements.push_front(ReverseElement(n, targetMask));
+            params->elements.push_back(ReverseElement(n, targetMask));
 
             applyTransformation(&(params->table), targetMask);
             applyTransformation(&(params->spectra), targetMask);
@@ -114,7 +114,7 @@ void RmGenerator::processVariableSpectraRow(SynthesisParams* params, uint n, uin
         assertd(mask && mask != index,
             string("RmGenerator::processVariableSpectraRow(): failed to process variable row"));
 
-        params->elements.push_front(ReverseElement(n, index, mask));
+        params->elements.push_back(ReverseElement(n, index, mask));
 
         applyTransformation(&(params->table), index, mask);
         applyTransformation(&(params->spectra), index, mask);
@@ -125,7 +125,7 @@ void RmGenerator::processVariableSpectraRow(SynthesisParams* params, uint n, uin
     {
         if (mask != index && (row & mask))
         {
-            params->elements.push_front(ReverseElement(n, mask, index));
+            params->elements.push_back(ReverseElement(n, mask, index));
 
             applyTransformation(&(params->table), mask, index);
             applyTransformation(&(params->spectra), mask, index);
@@ -164,9 +164,9 @@ void RmGenerator::processNonVariableSpectraRow(SynthesisParams* params, uint n, 
             if (mask != controlMask && (row & mask))
             {
                 ReverseElement element(n, mask, controlMask);
-                elements.push_front(element);
+                elements.push_back(element);
 
-                params->elements.push_front(element);
+                params->elements.push_back(element);
                 applyTransformation(&(params->table), mask, controlMask);
             }
 
@@ -175,7 +175,7 @@ void RmGenerator::processNonVariableSpectraRow(SynthesisParams* params, uint n, 
     }
 
     // core element
-    params->elements.push_front(ReverseElement(n, controlMask, index));
+    params->elements.push_back(ReverseElement(n, controlMask, index));
     applyTransformation(&(params->table), controlMask, index);
 
     if (hasNonZeroBitsExceptControlOne)
@@ -192,7 +192,7 @@ void RmGenerator::processNonVariableSpectraRow(SynthesisParams* params, uint n, 
         {
             for (auto& element : elements)
             {
-                params->elements.push_front(element);
+                params->elements.push_back(element);
                 applyTransformation(&(params->table), element.getTargetMask(), element.getControlMask());
             }
         }
@@ -229,23 +229,15 @@ bool RmGenerator::isInverseParamsBetter() const
         isBetter = true;
     else if (inverseParams.spectraCost == directParams.spectraCost)
     {
-        // compare number of control inputs
-        uint inverseControlCount = calculateTotalControlInputCount(inverseParams.elements);
-        uint directControlCount = calculateTotalControlInputCount(directParams.elements);
+        // compare number of elements
+        // we have no need to compare number of control inputs, because we are working at this moment
+        // with the same row of direct and inverse spectra => core element is equal for them
+        // and only thing that can be differ - number of CNOT gates
 
-        isBetter = (inverseControlCount < directControlCount);
+        isBetter = (inverseParams.elements.size() < directParams.elements.size());
     }
 
     return isBetter;
-}
-
-uint RmGenerator::calculateTotalControlInputCount(const deque<ReverseElement>& elements) const
-{
-    uint totalCount = 0;
-    for (auto& element : elements)
-        totalCount += countNonZeroBits(element.getControlMask());
-
-    return totalCount;
 }
 
 template<typename IteratorType>
