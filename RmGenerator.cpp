@@ -65,6 +65,7 @@ TruthTable RmGenerator::invertTable(const TruthTable& directTable) const
 void RmGenerator::calculatePartialResult(SynthesisParams* params, uint n, uint index)
 {
     assertd(params, string("RmGenerator::calculatePartialResult(): null ptr"));
+    params->elements.resize(0);
 
     if (!index) //first row
         processFirstSpectraRow(params, n);
