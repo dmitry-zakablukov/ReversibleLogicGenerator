@@ -28,8 +28,8 @@ void synthesizeScheme(const TruthTable& table, ostream& resultsOutput, const str
 
     try
     {
-        // todo: make composite generator from Generator and RmGenerator
-        //Generator generator;
+        // todo: make composite generator from GtGenerator and RmGenerator
+        //GtGenerator generator;
 
         RmGenerator generator;
         Scheme scheme = generator.generate(table, resultsOutput);

@@ -1,15 +1,15 @@
-// Generator class for reversible logic synthesis with additional input lines
+// Group theory based generator class for reversible logic synthesis with additional input lines
 
 #pragma once
 
 namespace ReversibleLogic
 {
 
-class GeneratorWithMemory
+class GtGeneratorWithMemory
 {
 public:
-    GeneratorWithMemory() = default;
-    virtual ~GeneratorWithMemory() = default;
+    GtGeneratorWithMemory() = default;
+    virtual ~GtGeneratorWithMemory() = default;
 
     Scheme generateFast(const TruthTable& table, ostream& outputLog);
 

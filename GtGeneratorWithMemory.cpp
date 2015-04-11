@@ -1,11 +1,11 @@
-// Generator class for reversible logic synthesis with additional input lines
+// Group theory based generator class for reversible logic synthesis with additional input lines
 
 #include "std.hpp"
 
 namespace ReversibleLogic
 {
 
-Scheme GeneratorWithMemory::generateFast(const TruthTable& table, ostream& outputLog)
+Scheme GtGeneratorWithMemory::generateFast(const TruthTable& table, ostream& outputLog)
 {
     Scheme scheme;
     uint tableSize = table.size();
@@ -35,9 +35,9 @@ Scheme GeneratorWithMemory::generateFast(const TruthTable& table, ostream& outpu
     return scheme;
 }
 
-void GeneratorWithMemory::detectBitCount(const TruthTable& table, uint* n, uint* m)
+void GtGeneratorWithMemory::detectBitCount(const TruthTable& table, uint* n, uint* m)
 {
-    assertd(n && m, string("Null pointer (GeneratorWithMemory::detectBitCount)"));
+    assertd(n && m, string("Null pointer (GtGeneratorWithMemory::detectBitCount)"));
 
     uint size = table.size();
     if (size)
@@ -52,10 +52,10 @@ void GeneratorWithMemory::detectBitCount(const TruthTable& table, uint* n, uint*
     *m = getSignificantBitCount(last);
 }
 
-void GeneratorWithMemory::generateCoordinateFunction(Scheme* scheme,
+void GtGeneratorWithMemory::generateCoordinateFunction(Scheme* scheme,
     uint n, uint m, uint coord, unordered_set<word>& inputs)
 {
-    assertd(scheme, string("Null pointer (GeneratorWithMemory::generateCoordinateFunction)"));
+    assertd(scheme, string("Null pointer (GtGeneratorWithMemory::generateCoordinateFunction)"));
 
     Scheme subScheme;
     while (inputs.size())
@@ -104,7 +104,7 @@ void GeneratorWithMemory::generateCoordinateFunction(Scheme* scheme,
     scheme->insert(scheme->end(), subScheme.cbegin(), subScheme.cend());
 }
 
-bool GeneratorWithMemory::checkSchemeValidity(const Scheme& scheme,
+bool GtGeneratorWithMemory::checkSchemeValidity(const Scheme& scheme,
     uint n, uint m, const TruthTable& table)
 {
     auto extractFunc = [=](word x)

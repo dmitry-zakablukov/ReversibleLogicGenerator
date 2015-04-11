@@ -4,12 +4,12 @@ namespace ReversibleLogic
 {
 
 /// Class for generating only part of resulting scheme
-/// Used by Generator
-class PartialGenerator
+/// Used by GtGenerator
+class PartialGtGenerator
 {
 public:
-    PartialGenerator(uint packSize = uintUndefined);
-    ~PartialGenerator();
+    PartialGtGenerator(uint packSize = uintUndefined);
+    virtual ~PartialGtGenerator() = default;
 
     void setPermutation(const Permutation& thePermutation, uint inputCount);
     const Permutation& getPermutation() const;

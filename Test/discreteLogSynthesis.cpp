@@ -255,7 +255,7 @@ void discreteLogSynthesis()
 
                 TruthTable table = getDiscreteLogWithPrimitiveElement(field, task.func);
 
-                GeneratorWithMemory generator;
+                GtGeneratorWithMemory generator;
                 auto scheme = generator.generateFast(table, outputFile);
 
                 ostringstream schemeFileNameStream;

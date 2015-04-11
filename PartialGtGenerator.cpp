@@ -3,7 +3,7 @@
 namespace ReversibleLogic
 {
 
-PartialGenerator::PartialGenerator(uint packSize /*= uintUndefined*/)
+PartialGtGenerator::PartialGtGenerator(uint packSize /*= uintUndefined*/)
     : permutation()
     , n(uintUndefined)
     , maxPackSize(packSize)
@@ -15,25 +15,21 @@ PartialGenerator::PartialGenerator(uint packSize /*= uintUndefined*/)
         string("Transpositions pack size should be power of 2"));
 }
 
-PartialGenerator::~PartialGenerator()
-{
-}
-
-void PartialGenerator::setPermutation(const Permutation& thePermutation, uint inputCount)
+void PartialGtGenerator::setPermutation(const Permutation& thePermutation, uint inputCount)
 {
     permutation = thePermutation;
     n = inputCount;
 
-    assertd(n != uintUndefined, string("PartialGenerator: input count not defined"));
+    assertd(n != uintUndefined, string("PartialGtGenerator: input count not defined"));
     partialResultParams.edge.n = n;
 }
 
-const Permutation& PartialGenerator::getPermutation() const
+const Permutation& PartialGtGenerator::getPermutation() const
 {
     return permutation;
 }
 
-bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
+bool PartialGtGenerator::isLeftAndRightMultiplicationDiffers() const
 {
     bool isDiffer = false;
     for (auto cycle : permutation)
@@ -57,7 +53,7 @@ bool PartialGenerator::isLeftAndRightMultiplicationDiffers() const
     return isDiffer;
 }
 
-void PartialGenerator::prepareForGeneration()
+void PartialGtGenerator::prepareForGeneration()
 {
     // tuning options
     bool isResultComparisonNeeded = false;
@@ -165,7 +161,7 @@ void PartialGenerator::prepareForGeneration()
         shared_ptr<list<Transposition>> transpositions = getCommonPair();
 
         assertd(transpositions->size() > 1,
-            string("PartialGenerator::prepareForGeneration() failed to find common pair"));
+            string("PartialGtGenerator::prepareForGeneration() failed to find common pair"));
 
         bestResult.type = PartialResultParams::tCommonPair;
         bestResult.transpositions = transpositions;
@@ -189,7 +185,7 @@ void PartialGenerator::prepareForGeneration()
     partialResultParams.distancesSum = permutation.getDistancesSum();
 }
 
-shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const unordered_map<word, uint>& frequencyMap)
+shared_ptr<list<Transposition>> PartialGtGenerator::getTranspositionsPack(const unordered_map<word, uint>& frequencyMap)
 {
     // we should obtain no more than @maxPackSize transpositions
     // if there are not enough transpositions, result list size should be power of two
@@ -267,7 +263,7 @@ shared_ptr<list<Transposition>> PartialGenerator::getTranspositionsPack(const un
     return result;
 }
 
-void PartialGenerator::getTranspositionsPack(shared_ptr<list<Transposition>> result,
+void PartialGtGenerator::getTranspositionsPack(shared_ptr<list<Transposition>> result,
     Permutation* permCopy, unordered_set<word>* visited, bool reverseOrder)
 {
     uint maxSize = maxPackSize - result->size();
@@ -318,7 +314,7 @@ void PartialGenerator::getTranspositionsPack(shared_ptr<list<Transposition>> res
     }
 }
 
-shared_ptr<list<Transposition>> PartialGenerator::getCommonPair()
+shared_ptr<list<Transposition>> PartialGtGenerator::getCommonPair()
 {
     shared_ptr<list<Transposition>> transpositions(new list<Transposition>);
     if (permutation.length() > 1)
@@ -368,7 +364,7 @@ shared_ptr<list<Transposition>> PartialGenerator::getCommonPair()
     return transpositions;
 }
 
-PartialResultParams PartialGenerator::getPartialResult(
+PartialResultParams PartialGtGenerator::getPartialResult(
     shared_ptr<list<Transposition>> transpositions, word diff,
     const PartialResultParams& bestParams)
 {
@@ -403,17 +399,17 @@ PartialResultParams PartialGenerator::getPartialResult(
 }
 
 
-PartialResultParams PartialGenerator::getPartialResultParams() const
+PartialResultParams PartialGtGenerator::getPartialResultParams() const
 {
     return partialResultParams;
 }
 
-shared_ptr<list<Transposition>> PartialGenerator::findBestCandidates(shared_ptr<list<Transposition>> candidates)
+shared_ptr<list<Transposition>> PartialGtGenerator::findBestCandidates(shared_ptr<list<Transposition>> candidates)
 {
     sortCandidates(candidates);
 
     uint candidateCount = candidates->size();
-    assertd(candidateCount > 1, string("PartialGenerator: too few candidates for findBestCandidates()"));
+    assertd(candidateCount > 1, string("PartialGtGenerator: too few candidates for findBestCandidates()"));
 
     auto iter = candidates->begin();
 
@@ -454,7 +450,7 @@ shared_ptr<list<Transposition>> PartialGenerator::findBestCandidates(shared_ptr<
     return result;
 }
 
-void PartialGenerator::sortCandidates( shared_ptr<list<Transposition>> candidates )
+void PartialGtGenerator::sortCandidates( shared_ptr<list<Transposition>> candidates )
 {
     struct CandSortKey
     {
@@ -489,7 +485,7 @@ void PartialGenerator::sortCandidates( shared_ptr<list<Transposition>> candidate
 }
 
 tuple<Transposition, uint>
-PartialGenerator::findBestCandidatePartner(
+PartialGtGenerator::findBestCandidatePartner(
     const shared_ptr<list<Transposition>> candidates, const Transposition& target)
 {
     Transposition second;
@@ -527,14 +523,14 @@ PartialGenerator::findBestCandidatePartner(
 }
 
 
-ReversibleLogic::Permutation PartialGenerator::getResidualPermutation(bool isLeftMultiplication) const
+ReversibleLogic::Permutation PartialGtGenerator::getResidualPermutation(bool isLeftMultiplication) const
 {
     return permutation.multiplyByTranspositions(partialResultParams.transpositions, isLeftMultiplication);
 }
 
-deque<ReverseElement> PartialGenerator::implementPartialResult()
+deque<ReverseElement> PartialGtGenerator::implementPartialResult()
 {
-    assertd(partialResultParams.transpositions->size(), string("PartialGenerator: no transpositions to synthesize"));
+    assertd(partialResultParams.transpositions->size(), string("PartialGtGenerator: no transpositions to synthesize"));
 
     deque<ReverseElement> synthesisResult;
     switch(partialResultParams.type)
@@ -557,7 +553,7 @@ deque<ReverseElement> PartialGenerator::implementPartialResult()
     return synthesisResult;
 }
 
-deque<ReverseElement> PartialGenerator::implementEdge()
+deque<ReverseElement> PartialGtGenerator::implementEdge()
 {
     const Transposition& transp = partialResultParams.transpositions->front();
     word diff = transp.getDiff();
@@ -584,10 +580,10 @@ deque<ReverseElement> PartialGenerator::implementEdge()
     return elements;
 }
 
-deque<ReverseElement> PartialGenerator::implementPairOfTranspositions()
+deque<ReverseElement> PartialGtGenerator::implementPairOfTranspositions()
 {
     assertd(partialResultParams.transpositions->size() == 2,
-        string("PartialGenerator: can't implement pair of transpositions"));
+        string("PartialGtGenerator: can't implement pair of transpositions"));
 
     Transposition firstTransp  = partialResultParams.transpositions->front();
     Transposition secondTransp = partialResultParams.transpositions->back();
@@ -603,7 +599,7 @@ deque<ReverseElement> PartialGenerator::implementPairOfTranspositions()
     return elements;
 }
 
-deque<ReverseElement> PartialGenerator::implementSingleTransposition(const Transposition& transp)
+deque<ReverseElement> PartialGtGenerator::implementSingleTransposition(const Transposition& transp)
 {
     // new method: use maximum control inputs as possible with inversion
     deque<ReverseElement> conjugationElements;
@@ -650,7 +646,7 @@ deque<ReverseElement> PartialGenerator::implementSingleTransposition(const Trans
     return elements;
 }
 
-deque<ReverseElement> PartialGenerator::implementIndependentTranspositions(shared_ptr<list<Transposition>> transp)
+deque<ReverseElement> PartialGtGenerator::implementIndependentTranspositions(shared_ptr<list<Transposition>> transp)
 {
     deque<ReverseElement> elements;
 
@@ -705,7 +701,7 @@ deque<ReverseElement> PartialGenerator::implementIndependentTranspositions(share
         elements = conjugate(deque<ReverseElement>{ element }, elements);
     }
 
-    debugBehavior("PartialGenerator::implementIndependentTranspositions()-check-validity", [&]()->void
+    debugBehavior("PartialGtGenerator::implementIndependentTranspositions()-check-validity", [&]()->void
     {
         unordered_map<word, word> table;
         for (uint index = 0; index < ((uint)1 << n); ++index)
@@ -739,7 +735,7 @@ deque<ReverseElement> PartialGenerator::implementIndependentTranspositions(share
     return elements;
 }
 
-vector<word> PartialGenerator::transposeMatrix(const vector<word>& matrix, uint m) const
+vector<word> PartialGtGenerator::transposeMatrix(const vector<word>& matrix, uint m) const
 {
     vector<word> transposed;
     transposed.reserve(m);
@@ -767,7 +763,7 @@ vector<word> PartialGenerator::transposeMatrix(const vector<word>& matrix, uint 
     return transposed;
 }
 
-deque<ReverseElement> PartialGenerator::removeColumnsCopies(const vector<word>& transposedMatrix, uint k,
+deque<ReverseElement> PartialGtGenerator::removeColumnsCopies(const vector<word>& transposedMatrix, uint k,
     MatrixMix* output, word* inversionMask) const
 {
     assertd(output && inversionMask, string("removeColumnsCopies(): null ptr"));
@@ -846,7 +842,7 @@ deque<ReverseElement> PartialGenerator::removeColumnsCopies(const vector<word>& 
     return elements;
 }
 
-PartialGenerator::MatrixMix PartialGenerator::reorderMatrixColumns(const MatrixMix& mix, uint k) const
+PartialGtGenerator::MatrixMix PartialGtGenerator::reorderMatrixColumns(const MatrixMix& mix, uint k) const
 {
     uint m = mix.columns.size();
 
@@ -894,7 +890,7 @@ PartialGenerator::MatrixMix PartialGenerator::reorderMatrixColumns(const MatrixM
     return outputMix;
 }
 
-deque<ReverseElement> PartialGenerator::transformMatrixToCanonicalForm(MatrixMix* mix, uint matrixWidth,
+deque<ReverseElement> PartialGtGenerator::transformMatrixToCanonicalForm(MatrixMix* mix, uint matrixWidth,
     word* inversionMask) const
 {
     assertd(mix && inversionMask, string("transformMatrixToCanonicalForm(): null ptr"));
@@ -978,7 +974,7 @@ deque<ReverseElement> PartialGenerator::transformMatrixToCanonicalForm(MatrixMix
     return elements;
 }
 
-void PartialGenerator::findBestRowInMatrix(const vector<word>& matrix, word pattern, word mask,
+void PartialGtGenerator::findBestRowInMatrix(const vector<word>& matrix, word pattern, word mask,
     uint* xIndex, uint* yIndex) const
 {
     assertd(xIndex && yIndex, string("findBestRowInMatrix(): null ptr"));
@@ -1038,7 +1034,7 @@ void PartialGenerator::findBestRowInMatrix(const vector<word>& matrix, word patt
     *yIndex = yBestIndex;
 }
 
-deque<ReverseElement> PartialGenerator::transformRowToCanonicalForm(MatrixMix* mix, uint rowIndex,
+deque<ReverseElement> PartialGtGenerator::transformRowToCanonicalForm(MatrixMix* mix, uint rowIndex,
     uint matrixWidth, uint baseVectorCount, word canonicalForm) const
 {
     assertd(mix, string("transformRowToCanonicalForm(): null ptr"));
@@ -1113,7 +1109,7 @@ deque<ReverseElement> PartialGenerator::transformRowToCanonicalForm(MatrixMix* m
     return elements;
 }
 
-void PartialGenerator::applyModificationToMatrix(MatrixMix* mix, word controlMask, word targetMask) const
+void PartialGtGenerator::applyModificationToMatrix(MatrixMix* mix, word controlMask, word targetMask) const
 {
     assertd(mix, string("applyModificationToMatrix(): null ptr"));
     assertd(countNonZeroBits(targetMask) == 1,
@@ -1126,7 +1122,7 @@ void PartialGenerator::applyModificationToMatrix(MatrixMix* mix, word controlMas
     }
 }
 
-word PartialGenerator::getRealMask(MatrixMix* mix, word inputMask) const
+word PartialGtGenerator::getRealMask(MatrixMix* mix, word inputMask) const
 {
     word realMask = 0;
 
