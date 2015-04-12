@@ -161,9 +161,23 @@ void RmGenerator::processNonVariableSpectraRow(SynthesisParams* params, uint n, 
         controlMask >>= 1;
     }
 
-    // todo: make better decision this
     if (!controlMask && weightThreshold < n)
-        return;
+    {
+        word mask = (word)1 << (n - 1);
+        while (mask && ((index & mask) != 0))
+            mask >>= 1;
+
+        assert(mask,
+            string("RmGenerator::processNonVariableSpectraRow(): can't find position of zero element"));
+
+        controlMask = mask;
+        row |= controlMask;
+
+        ReverseElement element(n, controlMask, index);
+        params->elements.push_back(element);
+
+        applyTransformation(&(params->table), controlMask, index);
+    }
 
     assert(controlMask,
         string("RmGenerator::processNonVariableSpectraRow(): failed to process non-variable row"));
