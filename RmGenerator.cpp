@@ -3,8 +3,15 @@
 namespace ReversibleLogic
 {
 
-Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
+RmGenerator::RmGenerator(uint threshold /*= uintUndefined*/)
+    : weightThreshold(threshold)
 {
+}
+
+void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result)
+{
+    assertd(result, string("RmGenerator::generate(): null ptr"));
+
     uint size = inputTable.size();
     uint n = (uint)(log(size) / log(2));
 
@@ -14,13 +21,17 @@ Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
     inverseParams.table = invertTable(directParams.table);
     inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
 
-    Scheme scheme;
+    Scheme& scheme = result->scheme;
     auto iter = scheme.end();
 
     for (uint index = 0; index < size; ++index)
     {
         word row = directParams.spectra[index];
         if (RmSpectraUtils::isSpectraRowIdent(row, index))
+            continue;
+
+        // skip indices, which weight is more than threshold
+        if (countNonZeroBits(index) > weightThreshold)
             continue;
 
         calculatePartialResult(&directParams, n, index);
@@ -46,7 +57,8 @@ Scheme RmGenerator::generate(const TruthTable& inputTable, ostream& outputLog)
         }
     }
 
-    return scheme;
+    result->iter = iter;
+    result->residualTable = directParams.table;
 }
 
 TruthTable RmGenerator::invertTable(const TruthTable& directTable) const
@@ -181,13 +193,7 @@ void RmGenerator::processNonVariableSpectraRow(SynthesisParams* params, uint n, 
     if (hasNonZeroBitsExceptControlOne)
     {
         // check if we need to apply elements to make previous rows canonical
-        bool isEarlierRowsHasBeenChanged = false;
-        for (uint i = 0; i < index && !isEarlierRowsHasBeenChanged; ++i)
-        {
-            if (params->spectra[i] & controlMask)
-                isEarlierRowsHasBeenChanged = true;
-        }
-
+        bool isEarlierRowsHasBeenChanged = controlMask < index;
         if (isEarlierRowsHasBeenChanged)
         {
             for (auto& element : elements)

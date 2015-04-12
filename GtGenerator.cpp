@@ -31,6 +31,7 @@ Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
     Scheme scheme;
     time = 0;
 
+    if (permutation.length())
     {
         AutoTimer timer(&time);
 
