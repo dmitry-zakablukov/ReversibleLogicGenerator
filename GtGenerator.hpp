@@ -9,7 +9,7 @@ public:
     GtGenerator() = default;
     virtual ~GtGenerator() = default;
 
-    Scheme generate(const TruthTable& table, ostream& outputLog);
+    Scheme generate(const TruthTable& table);
 
 private:
     tuple<uint, Permutation> getPermutation(const TruthTable& table);

@@ -24,12 +24,13 @@ AutoTimer::AutoTimer( float* elapsedTime )
     , elapsedTime( elapsedTime )
 {
     assertd( elapsedTime != 0, string("Elapsed time pointer is null") );
+    *elapsedTime = 0;
+
     timer.start();
 }
 
 AutoTimer::~AutoTimer()
 {
     timer.stop();
-    if( elapsedTime )
-        *elapsedTime = timer.getElapsedMs();
+    *elapsedTime = timer.getElapsedMs();
 }

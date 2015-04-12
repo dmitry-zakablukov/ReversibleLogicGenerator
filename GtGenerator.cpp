@@ -3,12 +3,11 @@
 namespace ReversibleLogic
 {
 
-Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
+Scheme GtGenerator::generate(const TruthTable& table)
 {
-    float totalTime = 0;
-    float time = 0;
-
     n = 0;
+
+    float time = 0;
     {
         AutoTimer timer(&time);
 
@@ -16,12 +15,12 @@ Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
         tie(n, permutation) = getPermutation(table);
     }
 
-    // log permutation creation parameters
-    outputLog << "Permutation creation time: ";
-    outputLog << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
-    outputLog << " sec" << endl;
-
-    totalTime += time;
+    debugLog("GtGenerator::generate()-dump-permutation-creation-time", [=](ostream& out)->void
+    {
+        out << "Permutation creation time: ";
+        out << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
+        out << " sec" << endl;
+    });
 
     debugLog("GtGenerator::generate()-dump-permutation", [&](ostream& out)->void
     {
@@ -29,12 +28,8 @@ Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
     });
 
     Scheme scheme;
-    time = 0;
-
     if (permutation.length())
     {
-        AutoTimer timer(&time);
-
         Scheme::iterator targetIter = scheme.end();
 
         shared_ptr<PartialGtGenerator> partialGenerator(new PartialGtGenerator());
@@ -44,35 +39,6 @@ Scheme GtGenerator::generate(const TruthTable& table, ostream& outputLog)
         while (partialGenerator)
             partialGenerator = reducePermutation(partialGenerator, n, &scheme, &targetIter);
     }
-
-    // log scheme synthesis parameters
-    outputLog << "Scheme synthesis time: ";
-    outputLog << setiosflags(ios::fixed) << setprecision(5) << time;
-    outputLog << " ms" << endl;
-    outputLog << "Complexity before optimization: " << scheme.size() << endl;
-
-    totalTime += time;
-    time = 0;
-
-    {
-        AutoTimer timer(&time);
-        scheme = PostProcessor().optimize(scheme);
-    }
-
-    bool isValid = TruthTableUtils::checkSchemeAgainstPermutationVector(scheme, table);
-    assert(isValid, string("Generated scheme is not valid"));
-
-    // log post processing parameters
-    outputLog << "Optimization time: ";
-    outputLog << setiosflags(ios::fixed) << setprecision(5) << time;
-    outputLog << " ms" << endl;
-    outputLog << "Complexity after optimization: " << scheme.size() << endl;
-
-    totalTime += time;
-
-    outputLog << "Total time: ";
-    outputLog << setiosflags(ios::fixed) << setprecision(5) << totalTime;
-    outputLog << " ms" << endl;
 
     return scheme;
 }
