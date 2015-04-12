@@ -161,7 +161,11 @@ void RmGenerator::processNonVariableSpectraRow(SynthesisParams* params, uint n, 
         controlMask >>= 1;
     }
 
-    assertd(controlMask,
+    // todo: make better decision this
+    if (!controlMask && weightThreshold < n)
+        return;
+
+    assert(controlMask,
         string("RmGenerator::processNonVariableSpectraRow(): failed to process non-variable row"));
 
     deque<ReverseElement> elements;
