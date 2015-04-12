@@ -18,6 +18,7 @@ public:
     string schemesFolder = "schemes/";
     string schemeOutputFile = "scheme.txt";
 
+    int rmGeneratorWeightThreshold = -1;
     int transpositionsPackSize = 2;
 
     bool isDebugBehaviorEnabled = false;

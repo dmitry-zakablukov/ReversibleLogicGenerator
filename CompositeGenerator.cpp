@@ -5,16 +5,16 @@ namespace ReversibleLogic
 
 Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
 {
-    uint size = table.size();
-    uint n = (uint)(log(size) / log(2));
-
-    // todo: rewrite this part to get proper threshold
-    uint threshold = n / 2;
-
     float totalTime = 0;
     float time = 0;
 
     // process truth table with Reed-Muller generator
+    uint size = table.size();
+    uint n = (uint)(log(size) / log(2));
+
+    uint threshold = getRmGeneratorWeightThreshold(n);
+    outputLog << "RM generator index weight threshold: " << threshold << endl;
+
     RmGenerator rmGenerator(threshold);
     RmGenerator::SynthesisResult rmResult;
 
@@ -75,6 +75,18 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
 void CompositeGenerator::logTime(ostream& out, float time)
 {
     out << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
+}
+
+uint CompositeGenerator::getRmGeneratorWeightThreshold(uint n)
+{
+    uint threshold = (uint)ProgramOptions::get().rmGeneratorWeightThreshold;
+    if (threshold == uintUndefined)
+    {
+        // todo: choose auto value
+        threshold = n;
+    }
+
+    return threshold;
 }
 
 } //namespace ReversibleLogic
