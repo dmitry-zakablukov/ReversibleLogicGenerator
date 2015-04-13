@@ -24,6 +24,9 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
     Scheme& scheme = result->scheme;
     auto iter = scheme.end();
 
+    //vector<uint> indices = getIndicesOrder(size);
+    //for (uint index : indices)
+
     for (uint index = 0; index < size; ++index)
     {
         word row = directParams.spectra[index];
@@ -72,6 +75,51 @@ TruthTable RmGenerator::invertTable(const TruthTable& directTable) const
         inverseTable[directTable[index]] = index;
 
     return inverseTable;
+}
+
+vector<uint> RmGenerator::getIndicesOrder(uint tableSize) const
+{
+    struct SortKey
+    {
+        uint index;
+        uint weight;
+    };
+
+    vector<SortKey> keys;
+    keys.reserve(tableSize);
+
+    for (uint index = 0; index < tableSize; ++index)
+    {
+        uint weight = countNonZeroBits(index);
+        if (weight > weightThreshold)
+            continue;
+
+        SortKey key = { index, weight };
+        keys.push_back(key);
+    }
+
+    auto sortFunc = [](const SortKey& left, const SortKey& right)
+    {
+        bool result = false;
+        if (left.weight < right.weight)
+            result = true;
+        else if (left.weight == right.weight)
+            result = (left.index < right.index);
+
+        return result;
+    };
+
+    sort(keys.begin(), keys.end(), sortFunc);
+
+    uint size = keys.size();
+
+    vector<uint> indices;
+    indices.resize(size);
+
+    for (uint index = 0; index < size; ++index)
+        indices[index] = keys[index].index;
+
+    return indices;
 }
 
 void RmGenerator::calculatePartialResult(SynthesisParams* params, uint n, uint index)
@@ -154,8 +202,7 @@ void RmGenerator::processNonVariableSpectraRow(SynthesisParams* params, uint n, 
     word controlMask = (word)1 << (n - 1);
     while (controlMask)
     {
-        if ((row & controlMask) != 0 &&
-            (index & controlMask) == 0)
+        if ((row & controlMask) != 0 && (index & controlMask) == 0)
             break;
 
         controlMask >>= 1;

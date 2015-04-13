@@ -24,6 +24,8 @@ public:
 private:
     TruthTable invertTable(const TruthTable& directTable) const;
 
+    vector<uint> getIndicesOrder(uint tableSize) const;
+
     struct SynthesisParams
     {
         TruthTable table;

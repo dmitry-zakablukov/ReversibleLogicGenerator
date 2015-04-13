@@ -24,6 +24,7 @@ Scheme GtGenerator::generate(const TruthTable& table)
 
     debugLog("GtGenerator::generate()-dump-permutation", [&](ostream& out)->void
     {
+        out << "Permutation (non-fixed points number is " << permutation.getElementCount() << ")\n";
         out << permutation << endl;
     });
 
