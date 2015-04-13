@@ -21,6 +21,8 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
     inverseParams.table = invertTable(directParams.table);
     inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
 
+    PushedTranspositions transpositions;
+
     Scheme& scheme = result->scheme;
     auto iter = scheme.end();
 
@@ -30,9 +32,11 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
         if (RmSpectraUtils::isSpectraRowIdent(row, index))
             continue;
 
-        // skip indices, which weight is more than threshold
         if (countNonZeroBits(index) > weightThreshold)
+        {
+            processAlienSpectraRow(n, index, scheme, iter, &transpositions);
             continue;
+        }
 
         calculatePartialResult(&directParams, n, index);
         calculatePartialResult(&inverseParams, n, index);
@@ -57,8 +61,7 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
         }
     }
 
-    result->iter = iter;
-    result->residualTable = directParams.table;
+    result->residualTable = getResidualTruthTable(transpositions, size);
 }
 
 TruthTable RmGenerator::invertTable(const TruthTable& directTable) const
@@ -72,6 +75,74 @@ TruthTable RmGenerator::invertTable(const TruthTable& directTable) const
         inverseTable[directTable[index]] = index;
 
     return inverseTable;
+}
+
+void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& scheme,
+    Scheme::const_iterator iter, PushedTranspositions* transpositions)
+{
+    assertd(transpositions,
+        string("RmGenerator::processAlienSpectraRow(): null ptr"));
+
+    word x = index;
+    word y = directParams.table[index];
+    word z = wordUndefined;
+
+    // find z, for which table[z] == x
+    uint size = directParams.table.size();
+    for (uint i = index + 1; i < size; ++i)
+    {
+        word temp = directParams.table[i];
+        if (temp == x)
+        {
+            z = i;
+            break;
+        }
+    }
+
+    assertd(z != wordUndefined,
+        string("RmGenerator::processAlienSpectraRow(): direct table is not bijective"));
+
+    // for pushing to left, we conjugate transposition (x, z)
+    {
+        std::reverse_iterator<Scheme::const_iterator> from(iter);
+        std::reverse_iterator<Scheme::const_iterator> to(scheme.cbegin());
+
+        word xLeft = conjugateValue(x, from, to);
+        word zLeft = conjugateValue(z, from, to);
+
+        transpositions->left.push_back(Transposition(xLeft, zLeft));
+    }
+
+    // for pushing to right, we conjugate transposition (x, y)
+    {
+        word xRight = conjugateValue(x, iter, scheme.cend());
+        word yRight = conjugateValue(y, iter, scheme.cend());
+
+        transpositions->right.push_front(Transposition(xRight, yRight));
+    }
+
+    // modify tables
+    directParams.table[index] = index;
+    directParams.table[z] = y;
+    directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
+
+    inverseParams.table[index] = index;
+    inverseParams.table[y] = z;
+    inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
+}
+
+
+template<typename Iterator>
+word ReversibleLogic::RmGenerator::conjugateValue(word x, Iterator from, Iterator to) const
+{
+    word y = x;
+    while (from != to)
+    {
+        const ReverseElement& element = *from++;
+        y = element.getValue(y);
+    }
+
+    return y;
 }
 
 void RmGenerator::calculatePartialResult(SynthesisParams* params, uint n, uint index)
@@ -160,24 +231,6 @@ void RmGenerator::processNonVariableSpectraRow(SynthesisParams* params, uint n, 
         controlMask >>= 1;
     }
 
-    if (!controlMask && weightThreshold < n)
-    {
-        word mask = (word)1 << (n - 1);
-        while (mask && ((index & mask) != 0))
-            mask >>= 1;
-
-        assert(mask,
-            string("RmGenerator::processNonVariableSpectraRow(): can't find position of zero element"));
-
-        controlMask = mask;
-        row |= controlMask;
-
-        ReverseElement element(n, controlMask, index);
-        params->elements.push_back(element);
-
-        applyTransformation(&(params->table), controlMask, index);
-    }
-
     assert(controlMask,
         string("RmGenerator::processNonVariableSpectraRow(): failed to process non-variable row"));
 
@@ -263,15 +316,32 @@ bool RmGenerator::isInverseParamsBetter() const
     return isBetter;
 }
 
-template<typename IteratorType>
+template<typename Iterator>
 Scheme::iterator ReversibleLogic::RmGenerator::updateScheme(Scheme* scheme,
-    Scheme::iterator iter, IteratorType from, IteratorType to)
+    Scheme::iterator iter, Iterator from, Iterator to)
 {
     Scheme::iterator localIter = iter;
     while (from != to)
         localIter = scheme->insert(localIter, *from++);
 
     return localIter;
+}
+
+TruthTable RmGenerator::getResidualTruthTable(const PushedTranspositions& transpositions, uint size) const
+{
+    TruthTable table;
+    table.resize(size);
+
+    for (word x = 0; x < size; ++x)
+    {
+        word y = x;
+        for (auto& transp : transpositions.right)
+            y = transp.getOutput(y);
+
+        table[x] = y;
+    }
+
+    return table;
 }
 
 } //namespace ReversibleLogic

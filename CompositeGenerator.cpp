@@ -42,9 +42,9 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
     logTime(outputLog, time);
     outputLog << " ms\nGT scheme complexity: " << gtScheme.size() << endl;
 
-    // insert GT scheme into RM scheme
+    // combine GT and RM schemes
     Scheme& scheme = rmResult.scheme;
-    scheme.insert(rmResult.iter, gtScheme.cbegin(), gtScheme.cend());
+    scheme.insert(scheme.end(), gtScheme.cbegin(), gtScheme.cend());
 
     outputLog << "Complexity before optimization: " << scheme.size() << endl;
 

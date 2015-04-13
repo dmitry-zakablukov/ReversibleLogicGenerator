@@ -14,8 +14,6 @@ public:
     struct SynthesisResult
     {
         Scheme scheme; //synthesized scheme
-        Scheme::iterator iter; //position in scheme, where residual sub-scheme should be inserted
-
         TruthTable residualTable;
     };
 
@@ -36,6 +34,19 @@ private:
 
     void calculatePartialResult(SynthesisParams* params, uint n, uint index);
 
+    struct PushedTranspositions
+    {
+        deque<Transposition> left;
+        deque<Transposition> right;
+    };
+
+    /// Processes spectra row with index which weight is more than threshold
+    void processAlienSpectraRow(uint n, uint index, const Scheme& scheme,
+        Scheme::const_iterator iter, PushedTranspositions* transpositions);
+
+    template<typename Iterator>
+    word conjugateValue(word x, Iterator from, Iterator end) const ;
+
     void processFirstSpectraRow(SynthesisParams* params, uint n);
     void processVariableSpectraRow(SynthesisParams* params, uint n, uint index);
     void processNonVariableSpectraRow(SynthesisParams* params, uint n, uint index);
@@ -45,9 +56,11 @@ private:
 
     bool isInverseParamsBetter() const;
 
-    template<typename IteratorType>
+    template<typename Iterator>
     Scheme::iterator updateScheme(Scheme* scheme, Scheme::iterator iter,
-        IteratorType from, IteratorType to);
+        Iterator from, Iterator to);
+
+    TruthTable getResidualTruthTable(const PushedTranspositions& transpositions, uint size) const;
 
     SynthesisParams directParams;
     SynthesisParams inverseParams;
