@@ -21,7 +21,7 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
     inverseParams.table = invertTable(directParams.table);
     inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
 
-    PushedTranspositions transpositions;
+    initResult(result, size);
 
     Scheme& scheme = result->scheme;
     auto iter = scheme.end();
@@ -34,7 +34,7 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
 
         if (countNonZeroBits(index) > weightThreshold)
         {
-            processAlienSpectraRow(n, index, scheme, iter, &transpositions);
+            processAlienSpectraRow(n, index, scheme, iter, result);
             continue;
         }
 
@@ -60,8 +60,6 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
             inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
         }
     }
-
-    result->residualTable = getResidualTruthTable(transpositions, size);
 }
 
 TruthTable RmGenerator::invertTable(const TruthTable& directTable) const
@@ -77,10 +75,21 @@ TruthTable RmGenerator::invertTable(const TruthTable& directTable) const
     return inverseTable;
 }
 
-void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& scheme,
-    Scheme::const_iterator iter, PushedTranspositions* transpositions)
+void RmGenerator::initResult(SynthesisResult* result, uint size)
 {
-    assertd(transpositions,
+    assertd(result, string("RmGenerator::initResult(): null ptr"));
+
+    result->leftMultTable.resize(size);
+    result->rightMultTable.resize(size);
+
+    for (uint index = 0; index < size; ++index)
+        result->leftMultTable[index] = result->rightMultTable[index] = index;
+}
+
+void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& scheme,
+    Scheme::const_iterator iter, SynthesisResult* result)
+{
+    assertd(result,
         string("RmGenerator::processAlienSpectraRow(): null ptr"));
 
     word x = index;
@@ -110,7 +119,7 @@ void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& schem
         word xLeft = conjugateValue(x, from, to);
         word zLeft = conjugateValue(z, from, to);
 
-        transpositions->left.push_back(Transposition(xLeft, zLeft));
+        pushTranpsositionToLeft(Transposition(xLeft, zLeft), result);
     }
 
     // for pushing to right, we conjugate transposition (x, y)
@@ -118,7 +127,7 @@ void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& schem
         word xRight = conjugateValue(x, iter, scheme.cend());
         word yRight = conjugateValue(y, iter, scheme.cend());
 
-        transpositions->right.push_front(Transposition(xRight, yRight));
+        pushTranpsositionToRight(Transposition(xRight, yRight), result);
     }
 
     // modify tables
@@ -131,7 +140,6 @@ void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& schem
     inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
 }
 
-
 template<typename Iterator>
 word ReversibleLogic::RmGenerator::conjugateValue(word x, Iterator from, Iterator to) const
 {
@@ -143,6 +151,44 @@ word ReversibleLogic::RmGenerator::conjugateValue(word x, Iterator from, Iterato
     }
 
     return y;
+}
+
+void RmGenerator::pushTranpsositionToLeft(const Transposition& transp, SynthesisResult* result)
+{
+    assertd(result, string("RmGenerator::pushTranpsositionToRight(): null ptr"));
+
+    TruthTable& table = result->leftMultTable;
+
+    word x = transp.getX();
+    word y = transp.getY();
+
+    uint xIndex = uintUndefined;
+    uint yIndex = uintUndefined;
+
+    uint size = table.size();
+    for (uint index = 0; index < size && (xIndex == uintUndefined || yIndex == uintUndefined); ++index)
+    {
+        word value = table[index];
+
+        if (value == x)
+            xIndex = index;
+        else if (value == y)
+            yIndex = index;
+    }
+
+    swap(table[xIndex], table[yIndex]);
+}
+
+void RmGenerator::pushTranpsositionToRight(const Transposition& transp, SynthesisResult* result)
+{
+    assertd(result, string("RmGenerator::pushTranpsositionToRight(): null ptr"));
+
+    TruthTable& table = result->rightMultTable;
+
+    word x = transp.getX();
+    word y = transp.getY();
+
+    swap(table[x], table[y]);
 }
 
 void RmGenerator::calculatePartialResult(SynthesisParams* params, uint n, uint index)
@@ -325,23 +371,6 @@ Scheme::iterator ReversibleLogic::RmGenerator::updateScheme(Scheme* scheme,
         localIter = scheme->insert(localIter, *from++);
 
     return localIter;
-}
-
-TruthTable RmGenerator::getResidualTruthTable(const PushedTranspositions& transpositions, uint size) const
-{
-    TruthTable table;
-    table.resize(size);
-
-    for (word x = 0; x < size; ++x)
-    {
-        word y = x;
-        for (auto& transp : transpositions.right)
-            y = transp.getOutput(y);
-
-        table[x] = y;
-    }
-
-    return table;
 }
 
 } //namespace ReversibleLogic

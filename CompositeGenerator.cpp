@@ -32,9 +32,19 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
     GtGenerator gtGenerator;
     Scheme gtScheme;
 
+    bool useLeftMultiplication = true;
+    TruthTable* tablePtr = 0;
+
+    if (useLeftMultiplication)
+        tablePtr = &rmResult.leftMultTable;
+    else
+        tablePtr = &rmResult.rightMultTable;
+
+    TruthTable& residualTable = *tablePtr;
+
     {
         AutoTimer timer(&time);
-        gtScheme = gtGenerator.generate(rmResult.residualTable);
+        gtScheme = gtGenerator.generate(residualTable);
     }
     totalTime += time;
 
@@ -44,7 +54,11 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
 
     // combine GT and RM schemes
     Scheme& scheme = rmResult.scheme;
-    scheme.insert(scheme.end(), gtScheme.cbegin(), gtScheme.cend());
+
+    if (useLeftMultiplication)
+        scheme.insert(scheme.begin(), gtScheme.cbegin(), gtScheme.cend());
+    else
+        scheme.insert(scheme.end(), gtScheme.cbegin(), gtScheme.cend());
 
     outputLog << "Complexity before optimization: " << scheme.size() << endl;
 

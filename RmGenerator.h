@@ -14,13 +14,16 @@ public:
     struct SynthesisResult
     {
         Scheme scheme; //synthesized scheme
-        TruthTable residualTable;
+        TruthTable leftMultTable;
+        TruthTable rightMultTable;
     };
 
     void generate(const TruthTable& inputTable, SynthesisResult* result);
 
 private:
     TruthTable invertTable(const TruthTable& directTable) const;
+
+    void initResult(SynthesisResult* result, uint size);
 
     struct SynthesisParams
     {
@@ -34,18 +37,15 @@ private:
 
     void calculatePartialResult(SynthesisParams* params, uint n, uint index);
 
-    struct PushedTranspositions
-    {
-        deque<Transposition> left;
-        deque<Transposition> right;
-    };
-
     /// Processes spectra row with index which weight is more than threshold
     void processAlienSpectraRow(uint n, uint index, const Scheme& scheme,
-        Scheme::const_iterator iter, PushedTranspositions* transpositions);
+        Scheme::const_iterator iter, SynthesisResult* result);
 
     template<typename Iterator>
-    word conjugateValue(word x, Iterator from, Iterator end) const ;
+    word conjugateValue(word x, Iterator from, Iterator end) const;
+
+    void pushTranpsositionToLeft(const Transposition& transp, SynthesisResult* result);
+    void pushTranpsositionToRight(const Transposition& transp, SynthesisResult* result);
 
     void processFirstSpectraRow(SynthesisParams* params, uint n);
     void processVariableSpectraRow(SynthesisParams* params, uint n, uint index);
@@ -59,8 +59,6 @@ private:
     template<typename Iterator>
     Scheme::iterator updateScheme(Scheme* scheme, Scheme::iterator iter,
         Iterator from, Iterator to);
-
-    TruthTable getResidualTruthTable(const PushedTranspositions& transpositions, uint size) const;
 
     SynthesisParams directParams;
     SynthesisParams inverseParams;
