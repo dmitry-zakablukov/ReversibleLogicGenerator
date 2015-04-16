@@ -84,6 +84,12 @@ void RmGenerator::initPushPolicy()
 
         pushPolicy.defaultPolicy = !(pushPolicy.forceLeft || pushPolicy.forceRight ||
             pushPolicy.autoHammingDistance || pushPolicy.autoRmCostReduction);
+
+        uint count = pushPolicy.defaultPolicy + pushPolicy.forceLeft + pushPolicy.forceRight +
+            pushPolicy.autoHammingDistance + pushPolicy.autoRmCostReduction;
+
+        assert(count == 1,
+            string("RmGenerator::initPushPolicy(): mutual exclusive push policies are enabled"));
     }
 }
 
@@ -143,22 +149,47 @@ void RmGenerator::applyPushPolicy(word x, word y, word z, const Scheme& scheme,
     assertd(result, string("RmGenerator::applyPushPolicy(): null ptr"));
 
     // for pushing to left, we conjugate transposition (x, z)
-    {
-        std::reverse_iterator<Scheme::const_iterator> from(iter);
-        std::reverse_iterator<Scheme::const_iterator> to(scheme.cbegin());
+    std::reverse_iterator<Scheme::const_iterator> from(iter);
+    std::reverse_iterator<Scheme::const_iterator> to(scheme.cbegin());
 
-        word xLeft = conjugateValue(x, from, to);
-        word zLeft = conjugateValue(z, from, to);
+    word xLeft = conjugateValue(x, from, to);
+    word zLeft = conjugateValue(z, from, to);
 
-        pushTranpsositionToLeft(Transposition(xLeft, zLeft), result);
-    }
+    Transposition leftTransp(xLeft, zLeft);
 
     // for pushing to right, we conjugate transposition (x, y)
-    {
-        word xRight = conjugateValue(x, iter, scheme.cend());
-        word yRight = conjugateValue(y, iter, scheme.cend());
+    word xRight = conjugateValue(x, iter, scheme.cend());
+    word yRight = conjugateValue(y, iter, scheme.cend());
 
-        pushTranpsositionToRight(Transposition(xRight, yRight), result);
+    Transposition rigtTransp(xRight, yRight);
+
+    // apply policy
+    if (pushPolicy.forceLeft)
+        pushTranpsositionToLeft(leftTransp, result);
+    else if (pushPolicy.forceRight)
+        pushTranpsositionToRight(rigtTransp, result);
+    else if (pushPolicy.autoHammingDistance)
+    {
+        uint leftDist = leftTransp.getDist();
+        uint rightDist = rigtTransp.getDist();
+
+        if (leftDist < rightDist)
+            pushTranpsositionToLeft(leftTransp, result);
+        else
+            pushTranpsositionToRight(rigtTransp, result);
+    }
+    else if (pushPolicy.autoRmCostReduction)
+    {
+        ;
+    }
+    else
+    {
+        // default policy
+        assertd(pushPolicy.defaultPolicy,
+            string("RmGenerator::applyPushPolicy(): default policy is not enabled but should be"));
+
+        pushTranpsositionToLeft(leftTransp, result);
+        pushTranpsositionToRight(rigtTransp, result);
     }
 }
 
