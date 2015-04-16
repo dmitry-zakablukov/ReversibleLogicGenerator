@@ -81,6 +81,9 @@ void RmGenerator::initPushPolicy()
 
         pushPolicy.autoRmCostReduction =
             options.options.getBool("push-policy-auto-mode-max-rm-cost-reduction");
+
+        pushPolicy.defaultPolicy = !(pushPolicy.forceLeft || pushPolicy.forceRight ||
+            pushPolicy.autoHammingDistance || pushPolicy.autoRmCostReduction);
     }
 }
 
