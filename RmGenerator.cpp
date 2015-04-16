@@ -104,8 +104,7 @@ void RmGenerator::initSynthesisParams(const TruthTable& inputTable)
 void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& scheme,
     Scheme::const_iterator iter, SynthesisResult* result)
 {
-    assertd(result,
-        string("RmGenerator::processAlienSpectraRow(): null ptr"));
+    assertd(result, string("RmGenerator::processAlienSpectraRow(): null ptr"));
 
     word x = index;
     word y = directParams.table[index];
@@ -126,6 +125,23 @@ void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& schem
     assertd(z != wordUndefined,
         string("RmGenerator::processAlienSpectraRow(): direct table is not bijective"));
 
+    applyPushPolicy(x, y, z, scheme, iter, result);
+
+    // modify tables
+    directParams.table[index] = index;
+    directParams.table[z] = y;
+    directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
+
+    inverseParams.table[index] = index;
+    inverseParams.table[y] = z;
+    inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
+}
+
+void RmGenerator::applyPushPolicy(word x, word y, word z, const Scheme& scheme,
+    Scheme::const_iterator iter, SynthesisResult* result)
+{
+    assertd(result, string("RmGenerator::applyPushPolicy(): null ptr"));
+
     // for pushing to left, we conjugate transposition (x, z)
     {
         std::reverse_iterator<Scheme::const_iterator> from(iter);
@@ -144,15 +160,6 @@ void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& schem
 
         pushTranpsositionToRight(Transposition(xRight, yRight), result);
     }
-
-    // modify tables
-    directParams.table[index] = index;
-    directParams.table[z] = y;
-    directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
-
-    inverseParams.table[index] = index;
-    inverseParams.table[y] = z;
-    inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
 }
 
 template<typename Iterator>

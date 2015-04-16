@@ -57,6 +57,9 @@ private:
     void processAlienSpectraRow(uint n, uint index, const Scheme& scheme,
         Scheme::const_iterator iter, SynthesisResult* result);
 
+    void applyPushPolicy(word x, word y, word z, const Scheme& scheme,
+        Scheme::const_iterator iter, SynthesisResult* result);
+
     template<typename Iterator>
     word conjugateValue(word x, Iterator from, Iterator end) const;
 
