@@ -75,10 +75,20 @@ void processTruthTables(ostream& resultsOutput, const string& schemesFolder)
 
                 uint inputCount  = parser.getInputCount();
                 uint outputCount = parser.getOutputCount();
-                unordered_map<uint, uint> outputVariablesOrder;
 
-                table = TruthTableUtils::optimizeHammingDistance(table,
-                    inputCount, outputCount, &outputVariablesOrder);
+                unordered_map<uint, uint> outputVariablesOrder;
+                if (inputCount == outputCount)
+                {
+                    for (uint index = 0; index < inputCount; ++index)
+                        outputVariablesOrder[index] = index;
+                }
+
+                if (inputCount != outputCount || !options.isTuningEnabled ||
+                    !options.options.getBool("do-not-alter-output-variables-order", false))
+                {
+                    table = TruthTableUtils::optimizeHammingDistance(table,
+                        inputCount, outputCount, &outputVariablesOrder);
+                }
 
                 string tfcOutputFileName = appendPath(schemesFolder,
                     getFileName(truthTableInputFileName) + "-out.tfc");
