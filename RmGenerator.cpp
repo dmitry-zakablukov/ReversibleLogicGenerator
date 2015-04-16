@@ -5,6 +5,9 @@ namespace ReversibleLogic
 
 RmGenerator::RmGenerator(uint threshold /*= uintUndefined*/)
     : weightThreshold(threshold)
+    , pushPolicy()
+    , directParams()
+    , inverseParams()
 {
 }
 
@@ -15,13 +18,9 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
     uint size = inputTable.size();
     uint n = (uint)(log(size) / log(2));
 
-    directParams.table = inputTable;
-    directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
-
-    inverseParams.table = invertTable(directParams.table);
-    inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
-
     initResult(result, size);
+    initPushPolicy();
+    initSynthesisParams(inputTable);
 
     Scheme& scheme = result->scheme;
     auto iter = scheme.end();
@@ -41,24 +40,7 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
         calculatePartialResult(&directParams, n, index);
         calculatePartialResult(&inverseParams, n, index);
 
-        if (isInverseParamsBetter())
-        {
-            iter = updateScheme(&scheme, iter,
-                inverseParams.elements.crbegin(), inverseParams.elements.crend());
-
-            advance(iter, inverseParams.elements.size());
-
-            directParams.table = invertTable(inverseParams.table);
-            directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
-        }
-        else
-        {
-            iter = updateScheme(&scheme, iter,
-                directParams.elements.cbegin(), directParams.elements.cend());
-
-            inverseParams.table = invertTable(directParams.table);
-            inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
-        }
+        iter = implementPartialResult(&scheme, iter);
     }
 }
 
@@ -84,6 +66,36 @@ void RmGenerator::initResult(SynthesisResult* result, uint size)
 
     for (uint index = 0; index < size; ++index)
         result->leftMultTable[index] = result->rightMultTable[index] = index;
+}
+
+void RmGenerator::initPushPolicy()
+{
+    const ProgramOptions& options = ProgramOptions::get();
+    if (options.isTuningEnabled)
+    {
+        pushPolicy.forceLeft  = options.options.getBool("push-policy-force-left");
+        pushPolicy.forceRight = options.options.getBool("push-policy-force-right");
+
+        pushPolicy.autoHammingDistance =
+            options.options.getBool("push-policy-auto-mode-min-hamming-distance");
+
+        pushPolicy.autoRmCostReduction =
+            options.options.getBool("push-policy-auto-mode-max-rm-cost-reduction");
+    }
+}
+
+const RmGenerator::PushPolicy& RmGenerator::getPushPolicy() const
+{
+    return pushPolicy;
+}
+
+void RmGenerator::initSynthesisParams(const TruthTable& inputTable)
+{
+    directParams.table = inputTable;
+    directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
+
+    inverseParams.table = invertTable(directParams.table);
+    inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
 }
 
 void RmGenerator::processAlienSpectraRow(uint n, uint index, const Scheme& scheme,
@@ -360,6 +372,30 @@ bool RmGenerator::isInverseParamsBetter() const
     }
 
     return isBetter;
+}
+
+deque<ReversibleLogic::ReverseElement>::iterator RmGenerator::implementPartialResult(Scheme* scheme,
+    deque<ReversibleLogic::ReverseElement>::iterator iter)
+{
+    assertd(scheme, string("RmGenerator::implementPartialResult(): null ptr"));
+
+    if (isInverseParamsBetter())
+    {
+        iter = updateScheme(scheme, iter, inverseParams.elements.crbegin(), inverseParams.elements.crend());
+        advance(iter, inverseParams.elements.size());
+
+        directParams.table = invertTable(inverseParams.table);
+        directParams.spectra = RmSpectraUtils::calculateSpectra(directParams.table);
+    }
+    else
+    {
+        iter = updateScheme(scheme, iter, directParams.elements.cbegin(), directParams.elements.cend());
+
+        inverseParams.table = invertTable(directParams.table);
+        inverseParams.spectra = RmSpectraUtils::calculateSpectra(inverseParams.table);
+    }
+
+    return iter;
 }
 
 template<typename Iterator>

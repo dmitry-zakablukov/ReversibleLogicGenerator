@@ -20,10 +20,26 @@ public:
 
     void generate(const TruthTable& inputTable, SynthesisResult* result);
 
+    deque<ReversibleLogic::ReverseElement>::iterator implementPartialResult(Scheme* scheme,
+        deque<ReversibleLogic::ReverseElement>::iterator iter);
+
+    struct PushPolicy
+    {
+        bool defaultPolicy = true;
+        bool forceLeft = false;
+        bool forceRight = false;
+        bool autoHammingDistance = false;
+        bool autoRmCostReduction = false;
+    };
+
+    const PushPolicy& getPushPolicy() const;
+
 private:
     TruthTable invertTable(const TruthTable& directTable) const;
 
     void initResult(SynthesisResult* result, uint size);
+    void initPushPolicy();
+    void initSynthesisParams(const TruthTable& inputTable);
 
     struct SynthesisParams
     {
@@ -62,6 +78,8 @@ private:
 
     SynthesisParams directParams;
     SynthesisParams inverseParams;
+
+    PushPolicy pushPolicy;
 
     uint weightThreshold;
 };
