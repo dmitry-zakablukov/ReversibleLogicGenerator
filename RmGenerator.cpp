@@ -31,7 +31,7 @@ void RmGenerator::generate(const TruthTable& inputTable, SynthesisResult* result
         if (RmSpectraUtils::isSpectraRowIdent(row, index))
             continue;
 
-        if (countNonZeroBits(index) > weightThreshold)
+        if (countNonZeroBits(index) >= weightThreshold)
         {
             processAlienSpectraRow(n, index, scheme, iter, result);
             continue;

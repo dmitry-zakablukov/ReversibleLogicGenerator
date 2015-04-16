@@ -96,11 +96,16 @@ void CompositeGenerator::logTime(ostream& out, float time)
 
 uint CompositeGenerator::getRmGeneratorWeightThreshold(uint n)
 {
-    uint threshold = (uint)ProgramOptions::get().rmGeneratorWeightThreshold;
+    const ProgramOptions& options = ProgramOptions::get();
+
+    uint threshold = (uint)options.rmGeneratorWeightThreshold;
     if (threshold == uintUndefined)
     {
-        // todo: choose auto value
-        threshold = n;
+        uint vectorCount = 2 * options.transpositionsPackSize;
+        threshold = (uint)(log(vectorCount) / log(2));
+
+        if (threshold > n)
+            threshold = n;
     }
 
     return threshold;
