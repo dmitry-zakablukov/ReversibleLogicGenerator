@@ -161,26 +161,46 @@ void RmGenerator::applyPushPolicy(word x, word y, word z, const Scheme& scheme,
     word xRight = conjugateValue(x, iter, scheme.cend());
     word yRight = conjugateValue(y, iter, scheme.cend());
 
-    Transposition rigtTransp(xRight, yRight);
+    Transposition rightTransp(xRight, yRight);
 
     // apply policy
     if (pushPolicy.forceLeft)
         pushTranpsositionToLeft(leftTransp, result);
     else if (pushPolicy.forceRight)
-        pushTranpsositionToRight(rigtTransp, result);
+        pushTranpsositionToRight(rightTransp, result);
     else if (pushPolicy.autoHammingDistance)
     {
         uint leftDist = leftTransp.getDist();
-        uint rightDist = rigtTransp.getDist();
+        uint rightDist = rightTransp.getDist();
 
         if (leftDist < rightDist)
             pushTranpsositionToLeft(leftTransp, result);
         else
-            pushTranpsositionToRight(rigtTransp, result);
+            pushTranpsositionToRight(rightTransp, result);
     }
     else if (pushPolicy.autoRmCostReduction)
     {
-        ;
+        uint leftCostBefore = RmSpectraUtils::calculateCost(
+            RmSpectraUtils::calculateSpectra(result->leftMultTable));
+
+        uint rightCostBefore = RmSpectraUtils::calculateCost(
+            RmSpectraUtils::calculateSpectra(result->rightMultTable));
+
+        pushTranpsositionToLeft(leftTransp, result);
+        pushTranpsositionToRight(rightTransp, result);
+
+        uint leftCostAfter = RmSpectraUtils::calculateCost(
+            RmSpectraUtils::calculateSpectra(result->leftMultTable));
+
+        uint rightCostAfter = RmSpectraUtils::calculateCost(
+            RmSpectraUtils::calculateSpectra(result->rightMultTable));
+
+        if ((int)(leftCostAfter - leftCostBefore) < (int)(rightCostAfter - rightCostBefore))
+            // push left, restore right mul table
+            pushTranpsositionToRight(rightTransp, result);
+        else
+            // push right, restore left mul table
+            pushTranpsositionToLeft(leftTransp, result);
     }
     else
     {
@@ -189,7 +209,7 @@ void RmGenerator::applyPushPolicy(word x, word y, word z, const Scheme& scheme,
             string("RmGenerator::applyPushPolicy(): default policy is not enabled but should be"));
 
         pushTranpsositionToLeft(leftTransp, result);
-        pushTranpsositionToRight(rigtTransp, result);
+        pushTranpsositionToRight(rightTransp, result);
     }
 }
 

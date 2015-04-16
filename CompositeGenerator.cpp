@@ -30,35 +30,38 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
 
     // process residual truth table with Group Theory based generator
     GtGenerator gtGenerator;
-    Scheme gtScheme;
 
-    bool useLeftMultiplication = true;
-    TruthTable* tablePtr = 0;
-
-    if (useLeftMultiplication)
-        tablePtr = &rmResult.leftMultTable;
-    else
-        tablePtr = &rmResult.rightMultTable;
-
-    TruthTable& residualTable = *tablePtr;
+    Scheme gtLeftScheme;
+    Scheme gtRightScheme;
 
     {
         AutoTimer timer(&time);
-        gtScheme = gtGenerator.generate(residualTable);
+        gtLeftScheme = gtGenerator.generate(rmResult.leftMultTable);
+        gtRightScheme = gtGenerator.generate(rmResult.rightMultTable);
     }
     totalTime += time;
 
     outputLog << "GT generator time: ";
     logTime(outputLog, time);
-    outputLog << " ms\nGT scheme complexity: " << gtScheme.size() << endl;
+    outputLog << " ms\nGT left scheme complexity: " << gtLeftScheme.size() << endl;
+    outputLog << "GT right scheme complexity: " << gtRightScheme.size() << endl;
 
     // combine GT and RM schemes
     Scheme& scheme = rmResult.scheme;
 
-    if (useLeftMultiplication)
-        scheme.insert(scheme.begin(), gtScheme.cbegin(), gtScheme.cend());
+    RmGenerator::PushPolicy pushPolicy = rmGenerator.getPushPolicy();
+    if (pushPolicy.defaultPolicy)
+    {
+        if (gtLeftScheme.size() < gtRightScheme.size())
+            scheme.insert(scheme.begin(), gtLeftScheme.cbegin(), gtLeftScheme.cend());
+        else
+            scheme.insert(scheme.end(), gtRightScheme.cbegin(), gtRightScheme.cend());
+    }
     else
-        scheme.insert(scheme.end(), gtScheme.cbegin(), gtScheme.cend());
+    {
+        scheme.insert(scheme.begin(), gtLeftScheme.cbegin(), gtLeftScheme.cend());
+        scheme.insert(scheme.end(), gtRightScheme.cbegin(), gtRightScheme.cend());
+    }
 
     outputLog << "Complexity before optimization: " << scheme.size() << endl;
 
