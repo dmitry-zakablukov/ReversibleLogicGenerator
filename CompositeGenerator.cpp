@@ -64,6 +64,8 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
     }
 
     outputLog << "Complexity before optimization: " << scheme.size() << endl;
+    outputLog << "Quantum cost before optimization: ";
+    outputLog << SchemeUtils::calculateQuantumCost(scheme) << endl;
 
     // optimize scheme complexity
     PostProcessor postProcessor;
@@ -81,6 +83,8 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
     outputLog << "Optimization time: ";
     logTime(outputLog, time);
     outputLog << " ms\nComplexity after optimization: " << scheme.size() << endl;
+    outputLog << "Quantum cost after optimization: ";
+    outputLog << SchemeUtils::calculateQuantumCost(scheme) << endl;
 
     outputLog << "Total time: ";
     logTime(outputLog, totalTime);
