@@ -142,6 +142,7 @@
     <ClCompile Include="Range.cpp" />
     <ClCompile Include="RmGenerator.cpp" />
     <ClCompile Include="RmSpectraUtils.cpp" />
+    <ClCompile Include="SchemeUtils.cpp" />
     <ClCompile Include="TruthTableParser.cpp" />
     <ClCompile Include="std.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -174,6 +175,7 @@
     <ClInclude Include="Range.hpp" />
     <ClInclude Include="RmGenerator.h" />
     <ClInclude Include="RmSpectraUtils.h" />
+    <ClInclude Include="SchemeUtils.h" />
     <ClInclude Include="std.hpp" />
     <ClInclude Include="TfcFormatter.hpp" />
     <ClInclude Include="Timer.hpp" />

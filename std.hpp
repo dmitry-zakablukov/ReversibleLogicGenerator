@@ -48,6 +48,7 @@ typedef size_t uint;
 #include "Exceptions.h"
 #include "utils.hpp"
 #include "Element.hpp"
+#include "SchemeUtils.h"
 #include "Transposition.hpp"
 #include "Cycle.hpp"
 #include "Permutation.hpp"

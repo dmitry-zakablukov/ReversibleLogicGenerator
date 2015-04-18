@@ -137,7 +137,7 @@ unordered_map<uint, uint> TruthTableUtils::calculateNewOrderOfOutputVariables(
 
     // tuning option
     const ProgramOptions& options = ProgramOptions::get();
-    bool chooseOutputOnlyByHammingDistance =
+    bool chooseOutputOnlyByHammingDistance = options.isTuningEnabled &&
         options.options.getBool("choose-output-order-only-by-hamming-distance", false);
 
     while (newOrderMap.size() != m)
@@ -338,7 +338,7 @@ void TruthTableUtils::pickUpBestOutputValues(TruthTable* tablePtr, unordered_set
 
     // tuning option
     const ProgramOptions& options = ProgramOptions::get();
-    bool pickUpBestOutputOnlyByHammingDistance =
+    bool pickUpBestOutputOnlyByHammingDistance = options.isTuningEnabled &&
         options.options.getBool("pick-up-best-output-only-by-hamming-distance", false);
 
     InputToBestIndexMap inputToBestIndexMap;
