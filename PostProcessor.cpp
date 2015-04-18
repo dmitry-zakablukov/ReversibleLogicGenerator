@@ -673,6 +673,16 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
         if (startIndex)
             *startIndex = leftIndex;
 
+        if (!useNeighborElements)
+        {
+            const ReverseElement& element = scheme[leftIndex];
+            if (leftIndex > 0 && selectionFunc(element, scheme[leftIndex - 1]))
+                continue;
+
+            if (selectionFunc(element, scheme[leftIndex + 1]))
+                continue;
+        }
+
         uint leftElementMaxTransferIndex = uintUndefined;
 
         // find right element index
