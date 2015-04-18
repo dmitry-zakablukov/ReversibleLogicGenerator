@@ -295,13 +295,13 @@ void RmGenerator::processFirstSpectraRow(SynthesisParams* params, uint n)
             word targetMask = mask;
 
             params->elements.push_back(ReverseElement(n, targetMask));
-
             applyTransformation(&(params->table), targetMask);
-            applyTransformation(&(params->spectra), targetMask);
         }
 
         mask <<= 1;
     }
+
+    params->spectra[0] = 0;
 }
 
 void RmGenerator::processVariableSpectraRow(SynthesisParams* params, uint n, uint index)
