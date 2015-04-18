@@ -52,10 +52,13 @@ private:
     /// Transfer optimization: two elements are swapped with producing new element
     OptScheme transferOptimization(OptScheme& scheme, bool* optimized);
 
+    /// Peres gates optimization: make Peres gates instead of 2-CNOT and CNOT
+    OptScheme peresGateOptimization(OptScheme& scheme);
+
     /// General optimization function for merge, reduce and transfer optimization
     OptScheme generalOptimization(OptScheme& scheme, bool* optimized,
         SelectionFunc selectFunc, SwapFunc swapFunc,
-        bool searchPairFromEnd, bool lessComplexityRequired);
+        bool searchPairFromEnd, bool lessComplexityRequired, bool useNeighborElements = true);
 
     enum FullSchemeType
     {
@@ -71,7 +74,7 @@ private:
     /// succeeded and result scheme has less gate complexity
     OptScheme tryOptimizationTactics(const OptScheme& scheme, SelectionFunc selectionFunc, SwapFunc swapFunc,
         bool* optimizationSucceeded, bool searchPairFromEnd,
-        bool lessComplexityRequired, int* startIndex = 0);
+        bool lessComplexityRequired, int* startIndex = 0, bool useNeighborElements = true);
 
     /// First element - new reverse element obtained as a result of swapping
     /// Second element - range of indices, on which this element is freely swappable

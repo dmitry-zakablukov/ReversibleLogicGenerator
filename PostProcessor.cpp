@@ -11,8 +11,7 @@ bool selectEqual(const ReverseElement& left, const ReverseElement& right)
     return left == right;
 }
 
-bool selectForReduceConnectionsOptimization(const ReverseElement& left,
-    const ReverseElement& right)
+bool selectForReduceConnectionsOptimization(const ReverseElement& left, const ReverseElement& right)
 {
     // (01)(10) -> (*1)(1*)
 
@@ -33,8 +32,7 @@ bool selectForReduceConnectionsOptimization(const ReverseElement& left,
     return result;
 }
 
-bool selectForMergeOptimization(const ReverseElement& left,
-    const ReverseElement& right)
+bool selectForMergeOptimization(const ReverseElement& left, const ReverseElement& right)
 {
     // (01)(11) -> (*1)
     // (0*)(01) -> (00)
@@ -67,8 +65,7 @@ bool selectForMergeOptimization(const ReverseElement& left,
     return false;
 }
 
-bool selectForMergeOptimizationWithoutInversions(const ReverseElement& left,
-    const ReverseElement& right)
+bool selectForMergeOptimizationWithoutInversions(const ReverseElement& left, const ReverseElement& right)
 {
     // (01)(11) -> (*1)
     // (1*)(10) -> (11)
@@ -96,8 +93,7 @@ bool selectForMergeOptimizationWithoutInversions(const ReverseElement& left,
     return false;
 }
 
-bool selectForTransferOptimization(const ReverseElement& left,
-    const ReverseElement& right)
+bool selectForTransferOptimization(const ReverseElement& left, const ReverseElement& right)
 {
     word leftTargetMask   =  left.getTargetMask();
     word leftControlMask  =  left.getControlMask();
@@ -115,6 +111,22 @@ bool selectForTransferOptimization(const ReverseElement& left,
     }
 
     return result;
+}
+
+bool selectForPeresGateOptimization(const ReverseElement& left, const ReverseElement& right)
+{
+    word leftTargetMask = left.getTargetMask();
+    word leftControlMask = left.getControlMask();
+
+    word rightTargetMask = right.getTargetMask();
+    word rightControlMask = right.getControlMask();
+
+    uint leftCount = countNonZeroBits(leftControlMask);
+    uint rightCount = countNonZeroBits(rightControlMask);
+
+    return (
+        (leftCount == 2 && rightCount == 1 && leftControlMask == (rightTargetMask | rightControlMask)) ||
+        (rightCount == 2 && leftCount == 1 && rightControlMask == (leftTargetMask | leftControlMask)));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -258,6 +270,17 @@ void swapElementsWithTransferOptimization(const ReverseElement& leftElement, con
     rightReplacement->push_back(*left);
 }
 
+void swapPeresElements(const ReverseElement& left, const ReverseElement& right,
+    list<ReverseElement>* leftReplacement, list<ReverseElement>* rightReplacement)
+{
+    assertd(selectForPeresGateOptimization(left, right), string("swapPeresElements(): wrong input elements"));
+
+    // leave elements as is
+    leftReplacement->push_back(left);
+    rightReplacement->push_back(right);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 ReversibleLogic::Scheme PostProcessor::optimize(const Scheme& scheme)
 {
@@ -354,6 +377,8 @@ PostProcessor::OptScheme PostProcessor::optimize(const OptScheme& scheme)
             }
         }
     }
+
+    implementation = peresGateOptimization(implementation);
 
     return implementation;
 }
@@ -501,9 +526,24 @@ PostProcessor::OptScheme PostProcessor::transferOptimization(OptScheme& scheme, 
         swapElementsWithTransferOptimization, false, true);
 }
 
+PostProcessor::OptScheme PostProcessor::peresGateOptimization(OptScheme& scheme)
+{
+    OptScheme optimizedScheme = scheme;
+    int startIndex = 0;
+    bool repeat = true;
+
+    while (repeat)
+    {
+        optimizedScheme = tryOptimizationTactics(optimizedScheme, selectForPeresGateOptimization,
+            swapPeresElements, &repeat, false, false, &startIndex, false);
+    }
+
+    return optimizedScheme;
+}
+
 PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
     bool* optimized, SelectionFunc selectFunc, SwapFunc swapFunc,
-    bool searchPairFromEnd, bool lessComplexityRequired)
+    bool searchPairFromEnd, bool lessComplexityRequired, bool useNeighborElements /*= true*/)
 {
     assertd(optimized, string("Null 'optimized' pointer (PostProcessor::generalOptimization)"));
     *optimized = false;
@@ -537,7 +577,8 @@ PostProcessor::OptScheme PostProcessor::generalOptimization(OptScheme& scheme,
             while (repeatInner)
             {
                 subScheme = tryOptimizationTactics(subScheme, selectFunc,
-                    swapFunc, &repeatInner, searchPairFromEnd, lessComplexityRequired);
+                    swapFunc, &repeatInner, searchPairFromEnd,
+                    lessComplexityRequired, 0, useNeighborElements);
 
                 *optimized = *optimized || repeatInner;
                 repeatOuter = repeatOuter || repeatInner;
@@ -614,9 +655,10 @@ PostProcessor::OptScheme PostProcessor::getFinalSchemeImplementation(const OptSc
 PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& scheme,
     SelectionFunc selectionFunc, SwapFunc swapFunc,
     bool* optimizationSucceeded, bool searchPairFromEnd,
-    bool lessComplexityRequired, int* startIndex /* = 0 */)
+    bool lessComplexityRequired, int* startIndex /* = 0 */, bool useNeighborElements /*= true*/)
 {
-    assertd(optimizationSucceeded, string("Null ptr 'optimizationSucceeded' (PostProcessor::tryOptimizationTactics)"));
+    assertd(optimizationSucceeded,
+        string("Null ptr 'optimizationSucceeded' (PostProcessor::tryOptimizationTactics)"));
     *optimizationSucceeded = false;
 
     OptScheme optimizedScheme = scheme;
@@ -640,6 +682,9 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
         {
             if ((uint)abs(leftIndex - rightIndex) > ProgramOptions::get().maxElementsDistanceForOptimization)
                 break;
+
+            if (!useNeighborElements && abs(leftIndex - rightIndex) == 1)
+                continue;
 
             uint newLeftIndex  = uintUndefined;
             uint newRightIndex = uintUndefined;
