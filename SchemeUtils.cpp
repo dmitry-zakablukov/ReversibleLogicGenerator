@@ -11,9 +11,30 @@ uint SchemeUtils::calculateQuantumCost(const Scheme& scheme)
     if (size == 0)
         return 0;
 
+    ReverseElement prevElement;
+    bool isPreviousElementWasUsedBefore = true;
+
     uint cost = 0;
     for (auto& element : scheme)
+    {
+        if (!isPreviousElementWasUsedBefore)
+        {
+            uint peresCost = 0;
+            if (isPeresGate(prevElement, element, &peresCost))
+            {
+                cost -= getElementQuantumCost(prevElement);
+                cost += peresCost;
+
+                isPreviousElementWasUsedBefore = true;
+                continue;
+            }
+        }
+
         cost += getElementQuantumCost(element);
+
+        prevElement = element;
+        isPreviousElementWasUsedBefore = false;
+    }
 
     return cost;
 }
@@ -108,6 +129,62 @@ uint SchemeUtils::getElementQuantumCost(const ReverseElement& element)
     }
 
     return cost;
+}
+
+bool SchemeUtils::isPeresGate(const ReverseElement& left, const ReverseElement& right, uint* cost)
+{
+    assertd(cost, string("SchemeUtils::isPeresGate(): null ptr"));
+
+    word leftTargetMask     = left.getTargetMask();
+    word leftControlMask    = left.getControlMask();
+    word leftInversionMask  = left.getInversionMask();
+
+    word rightTargetMask    = right.getTargetMask();
+    word rightControlMask   = right.getControlMask();
+    word rightInversionMask = right.getInversionMask();
+
+    uint leftCount = countNonZeroBits(leftControlMask);
+    if (leftCount > 2 || leftCount == 0)
+        return false;
+
+    uint rightCount = countNonZeroBits(rightControlMask);
+    if (rightCount > 2 || rightCount == 0 || leftCount == rightCount)
+        return false;
+
+    if (leftControlMask != (rightTargetMask | rightControlMask) &&
+        rightControlMask != (leftTargetMask | leftControlMask))
+        return false;
+
+    // this is Peres gate
+    if (leftInversionMask == 0 && rightInversionMask == 0)
+        *cost = 4;
+    else
+    {
+        if (leftCount < rightCount)
+        {
+            swap(leftControlMask, rightControlMask);
+            swap(leftInversionMask, rightInversionMask);
+        }
+
+        if (rightInversionMask == 0)
+        {
+            // CNOT without inverted input
+            if (leftInversionMask == leftControlMask)
+                *cost = 7;
+            else
+                *cost = 6;
+        }
+        else
+        {
+            // CNOT with inverted input
+            if (leftInversionMask == leftControlMask)
+                *cost = 9; 
+            else
+                *cost = 8;
+        }
+    }
+
+    return true;
 }
 
 } //namespace ReversibleLogic

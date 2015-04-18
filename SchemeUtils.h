@@ -10,6 +10,7 @@ public:
 
 private:
     static uint getElementQuantumCost(const ReverseElement& element);
+    static bool isPeresGate(const ReverseElement& left, const ReverseElement& right, uint* cost);
 };
 
 } //namespace ReversibleLogic
