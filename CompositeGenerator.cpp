@@ -11,6 +11,7 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
     // process truth table with Reed-Muller generator
     uint size = table.size();
     uint n = (uint)(log(size) / log(2));
+    outputLog << "n = " << n << endl;
 
     uint threshold = getRmGeneratorWeightThreshold(n);
     outputLog << "RM generator index weight threshold: " << threshold << endl;

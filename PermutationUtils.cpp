@@ -3,8 +3,8 @@
 namespace ReversibleLogic
 {
 
-    Permutation PermutationUtils::createPermutation(const TruthTable& table,
-        bool permutationShouldBeEven /*= true*/)
+Permutation PermutationUtils::createPermutation(const TruthTable& table,
+    bool permutationShouldBeEven /*= true*/)
 {
     vector<Piece> pieces = findPieces(table);
     vector<Piece> cycles = mergePieces(pieces);
