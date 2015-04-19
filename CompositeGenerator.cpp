@@ -27,7 +27,7 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
 
     outputLog << "RM generator time: ";
     logTime(outputLog, time);
-    outputLog << " ms\nRM scheme complexity: " << rmResult.scheme.size() << endl;
+    outputLog << "RM scheme complexity: " << rmResult.scheme.size() << endl;
 
     // process residual truth table with Group Theory based generator
     GtGenerator gtGenerator;
@@ -44,7 +44,7 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
 
     outputLog << "GT generator time: ";
     logTime(outputLog, time);
-    outputLog << " ms\nGT left scheme complexity: " << gtLeftScheme.size() << endl;
+    outputLog << "GT left scheme complexity: " << gtLeftScheme.size() << endl;
     outputLog << "GT right scheme complexity: " << gtRightScheme.size() << endl;
 
     // combine GT and RM schemes
@@ -83,20 +83,19 @@ Scheme CompositeGenerator::generate(const TruthTable& table, ostream& outputLog)
     // log post processing parameters
     outputLog << "Optimization time: ";
     logTime(outputLog, time);
-    outputLog << " ms\nComplexity after optimization: " << scheme.size() << endl;
+    outputLog << "Complexity after optimization: " << scheme.size() << endl;
     outputLog << "Quantum cost after optimization: ";
     outputLog << SchemeUtils::calculateQuantumCost(scheme) << endl;
 
     outputLog << "Total time: ";
     logTime(outputLog, totalTime);
-    outputLog << " ms" << endl;
 
     return scheme;
 }
 
 void CompositeGenerator::logTime(ostream& out, float time)
 {
-    out << setiosflags(ios::fixed) << setprecision(2) << time / 1000;
+    out << setiosflags(ios::fixed) << setprecision(2) << time / 1000 << " sec" << endl;
 }
 
 uint CompositeGenerator::getRmGeneratorWeightThreshold(uint n)

@@ -70,6 +70,8 @@ void processTruthTables(ostream& resultsOutput, const string& schemesFolder)
                 assert(inputFile.is_open(),
                     string("Failed to open input file \"") + truthTableInputFileName + "\" for reading");
 
+                resultsOutput << "Truth table: " << truthTableInputFileName << endl;
+
                 TruthTableParser parser;
                 TruthTable table = parser.parse(inputFile);
 
@@ -124,7 +126,13 @@ void processTfcFiles(ostream& resultsOutput, const string& schemesFolder)
                 assert(inputFile.is_open(),
                     string("Failed to open input file \"") + tfcInputFileName + "\" for reading");
 
+                resultsOutput << "TFC file: " << tfcInputFileName << endl;
+
                 Scheme scheme = formatter.parse(inputFile);
+
+                resultsOutput << "Original quantum cost: ";
+                resultsOutput << SchemeUtils::calculateQuantumCost(scheme) << endl;
+
                 TruthTable table = makePermutationFromScheme(scheme, formatter.getVariablesCount());
 
                 string tfcOutputFileName = appendPath(schemesFolder,
