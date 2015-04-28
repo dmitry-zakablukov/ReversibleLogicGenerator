@@ -1052,7 +1052,7 @@ deque<ReverseElement> PartialGtGenerator::transformRowToCanonicalForm(MatrixMix*
 
     deque<ReverseElement> elements;
 
-    // 2) find non-zero element not form basis columns
+    // 2) find non-zero element not from basis columns
     uint firstNonZeroElementPos = findPositiveBitPosition(outerDiff, baseVectorCount);
     if (firstNonZeroElementPos == uintUndefined)
     {
@@ -1092,7 +1092,7 @@ deque<ReverseElement> PartialGtGenerator::transformRowToCanonicalForm(MatrixMix*
         }
     }
 
-    // 5) remove non-zero element not form basis columns (== make canonical form)
+    // 5) remove non-zero element not from basis columns (== make canonical form)
     {
         word targetMask = 1 << firstNonZeroElementPos;
         word controlMask = canonicalForm;
