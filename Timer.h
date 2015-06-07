@@ -18,19 +18,31 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "std.h"
+#pragma once
 
-void Range::sort()
+class Timer
 {
-    if (end < start)
-    {
-        end   ^= start;
-        start ^= end;
-        end   ^= start;
-    }
-}
+public:
+    Timer() = default;
+    virtual ~Timer() = default;
 
-bool Range::has(uint x) const
+    void start();
+    void stop();
+
+    float getElapsedMs() const;
+
+private:
+    clock_t startTime = 0;
+    clock_t endTime = 0;
+};
+
+class AutoTimer
 {
-    return x >= start && x <= end;
-}
+public:
+    explicit AutoTimer( float* elapsedTime );
+    virtual ~AutoTimer();
+
+private:
+    Timer  timer;
+    float* elapsedTime;
+};

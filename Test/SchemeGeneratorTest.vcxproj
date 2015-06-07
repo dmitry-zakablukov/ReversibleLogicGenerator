@@ -72,7 +72,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>std.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>std.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -83,7 +83,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>std.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>std.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -96,7 +96,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>std.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>std.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -111,7 +111,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>std.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>std.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -136,9 +136,9 @@
   <ItemGroup>
     <ClInclude Include="common.h" />
     <ClInclude Include="discreteLogSynthesis.h" />
-    <ClInclude Include="Gf2Field.hpp" />
+    <ClInclude Include="Gf2Field.h" />
     <ClInclude Include="optimizationTest.h" />
-    <ClInclude Include="std.hpp" />
+    <ClInclude Include="std.h" />
     <ClInclude Include="generalSynthesis.h" />
   </ItemGroup>
   <ItemGroup>

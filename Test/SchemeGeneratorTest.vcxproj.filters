@@ -37,7 +37,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="std.hpp">
+    <ClInclude Include="std.h">
       <Filter>etc</Filter>
     </ClInclude>
     <ClInclude Include="common.h">
@@ -46,7 +46,7 @@
     <ClInclude Include="optimizationTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Gf2Field.hpp">
+    <ClInclude Include="Gf2Field.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="generalSynthesis.h">

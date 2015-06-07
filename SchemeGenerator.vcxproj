@@ -71,7 +71,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>std.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>std.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -83,7 +83,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>std.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>std.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -97,7 +97,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>std.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>std.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
     </ClCompile>
@@ -114,7 +114,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>std.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>std.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
     </ClCompile>
@@ -158,31 +158,31 @@
     <ClCompile Include="Values.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BooleanEdgeSearcher.hpp" />
+    <ClInclude Include="BooleanEdgeSearcher.h" />
     <ClInclude Include="CompositeGenerator.h" />
-    <ClInclude Include="Cycle.hpp" />
-    <ClInclude Include="Element.hpp" />
+    <ClInclude Include="Cycle.h" />
+    <ClInclude Include="Element.h" />
     <ClInclude Include="Exceptions.h" />
-    <ClInclude Include="GtGenerator.hpp" />
-    <ClInclude Include="GtGeneratorWithMemory.hpp" />
+    <ClInclude Include="GtGenerator.h" />
+    <ClInclude Include="GtGeneratorWithMemory.h" />
     <ClInclude Include="IniParser.h" />
-    <ClInclude Include="PartialGtGenerator.hpp" />
-    <ClInclude Include="PartialResultParams.hpp" />
-    <ClInclude Include="Permutation.hpp" />
-    <ClInclude Include="PermutationUtils.hpp" />
-    <ClInclude Include="PostProcessor.hpp" />
+    <ClInclude Include="PartialGtGenerator.h" />
+    <ClInclude Include="PartialResultParams.h" />
+    <ClInclude Include="Permutation.h" />
+    <ClInclude Include="PermutationUtils.h" />
+    <ClInclude Include="PostProcessor.h" />
     <ClInclude Include="ProgramOptions.h" />
-    <ClInclude Include="Range.hpp" />
+    <ClInclude Include="Range.h" />
     <ClInclude Include="RmGenerator.h" />
     <ClInclude Include="RmSpectraUtils.h" />
     <ClInclude Include="SchemeUtils.h" />
-    <ClInclude Include="std.hpp" />
-    <ClInclude Include="TfcFormatter.hpp" />
-    <ClInclude Include="Timer.hpp" />
-    <ClInclude Include="Transposition.hpp" />
+    <ClInclude Include="std.h" />
+    <ClInclude Include="TfcFormatter.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="Transposition.h" />
     <ClInclude Include="TruthTableParser.h" />
     <ClInclude Include="TruthTableUtils.h" />
-    <ClInclude Include="utils.hpp" />
+    <ClInclude Include="utils.h" />
     <ClInclude Include="Values.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

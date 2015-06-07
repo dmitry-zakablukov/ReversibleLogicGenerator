@@ -18,19 +18,13 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "std.h"
+#pragma once
 
-void Range::sort()
-{
-    if (end < start)
-    {
-        end   ^= start;
-        start ^= end;
-        end   ^= start;
-    }
-}
+// libraries
+#include "../../SchemeGenerator/std.h"
 
-bool Range::has(uint x) const
-{
-    return x >= start && x <= end;
-}
+#include "common.h"
+#include "generalSynthesis.h"
+#include "discreteLogSynthesis.h"
+#include "optimizationTest.h"
+#include "Gf2Field.h"

@@ -18,19 +18,46 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "std.h"
+#pragma once
 
-void Range::sort()
+struct PartialResultParams
 {
-    if (end < start)
+    PartialResultParams();
+    virtual ~PartialResultParams() = default;
+
+    bool isBetterThan( const PartialResultParams& another ) const;
+    bool operator<( const PartialResultParams& another ) const;
+
+    word getCoveredTranspositionsCount() const;
+
+    enum PartialResultType
     {
-        end   ^= start;
-        start ^= end;
-        end   ^= start;
-    }
-}
+        tNone = 0,
+        tCommonPair,
+        tSameDiffPair,
+        tPack,
+        tEdge,
+        tFullEdge,
+    };
 
-bool Range::has(uint x) const
-{
-    return x >= start && x <= end;
-}
+    PartialResultType type;
+    uint distancesSum;
+
+    shared_ptr<list<ReversibleLogic::Transposition>> transpositions;
+    BooleanEdge edge;
+
+    struct
+    {
+        word edgeCapacity;  // tFullEdge and tEdge
+        word packSize;      // tPack
+        word diff;          // tSameDiffPair
+
+        struct              // tCommonPair
+        {
+            word leftDiff;
+            word rightDiff;
+            word distance;
+        } common;
+
+    } params;
+};

@@ -20,7 +20,7 @@
 
 // Group theory based generator class for reversible logic synthesis with additional input lines
 
-#include "std.hpp"
+#include "std.h"
 
 namespace ReversibleLogic
 {

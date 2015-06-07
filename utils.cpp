@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "std.hpp"
+#include "std.h"
 
 uint countNonZeroBits(word value)
 {

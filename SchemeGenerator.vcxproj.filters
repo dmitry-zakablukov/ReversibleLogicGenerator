@@ -94,43 +94,43 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="std.hpp">
+    <ClInclude Include="std.h">
       <Filter>etc</Filter>
     </ClInclude>
-    <ClInclude Include="Cycle.hpp">
+    <ClInclude Include="Cycle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Element.hpp">
+    <ClInclude Include="Element.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Permutation.hpp">
+    <ClInclude Include="Permutation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PermutationUtils.hpp">
+    <ClInclude Include="PermutationUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Transposition.hpp">
+    <ClInclude Include="Transposition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.hpp">
+    <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PostProcessor.hpp">
+    <ClInclude Include="PostProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Timer.hpp">
+    <ClInclude Include="Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BooleanEdgeSearcher.hpp">
+    <ClInclude Include="BooleanEdgeSearcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PartialResultParams.hpp">
+    <ClInclude Include="PartialResultParams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Range.hpp">
+    <ClInclude Include="Range.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TfcFormatter.hpp">
+    <ClInclude Include="TfcFormatter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IniParser.h">
@@ -157,13 +157,13 @@
     <ClInclude Include="RmGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GtGenerator.hpp">
+    <ClInclude Include="GtGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GtGeneratorWithMemory.hpp">
+    <ClInclude Include="GtGeneratorWithMemory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PartialGtGenerator.hpp">
+    <ClInclude Include="PartialGtGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CompositeGenerator.h">

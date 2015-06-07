@@ -18,19 +18,22 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "std.h"
+#pragma once
 
-void Range::sort()
+namespace ReversibleLogic
 {
-    if (end < start)
-    {
-        end   ^= start;
-        start ^= end;
-        end   ^= start;
-    }
-}
 
-bool Range::has(uint x) const
+class PermutationUtils
 {
-    return x >= start && x <= end;
-}
+public:
+    typedef vector<word> Piece;
+
+    static Permutation createPermutation(const TruthTable& inputTable,
+        bool permutationShouldBeEven = true);
+
+private:
+    static vector<Piece> findPieces(const TruthTable& table);
+    static vector<Piece> mergePieces(const vector<Piece>& pieces);
+};
+
+}   // namespace ReversibleLogic
