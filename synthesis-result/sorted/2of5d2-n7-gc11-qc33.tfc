@@ -1,0 +1,26 @@
+# Copyright (C) 2015  <Dmitry Zakablukov>
+#
+# Input parameters (put them into *.ini file)
+#work-mode = general-synthesis
+#tfc-input = test/tfc-input/2of5d2.tfc
+#rm-generator-weight-threshold = 4
+#transpositions-pack-size = 1
+#enable-tuning = true
+
+.v a,b,c,d,e,f,g
+.i a,b,c,d,e
+.o f
+.c 0,0
+BEGIN
+t3 a,b,f
+t2 a,b
+t2 b,c
+t3 b',c',f
+t3 b,f,g
+t2 c,d
+t3 c,d,f
+t3 d,e,f
+t2 d,e
+t3 e,f',g
+t2 g',f
+END
