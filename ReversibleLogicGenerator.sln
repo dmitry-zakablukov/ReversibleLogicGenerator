@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SchemeGenerator", "SchemeGenerator.vcxproj", "{49D2C578-4BBE-4CC1-8CBF-D42071737896}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SchemeGenerator", "engine\SchemeGenerator.vcxproj", "{49D2C578-4BBE-4CC1-8CBF-D42071737896}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SchemeGeneratorTest", "Test\SchemeGeneratorTest.vcxproj", "{6258FB6B-F1D4-4923-85E2-EE3A22C82334}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReversibleLogicGenerator", "ReversibleLogicGenerator.vcxproj", "{6258FB6B-F1D4-4923-85E2-EE3A22C82334}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
