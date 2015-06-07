@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{49D2C578-4BBE-4CC1-8CBF-D42071737896}</ProjectGuid>
-    <RootNamespace>SchemeGenerator</RootNamespace>
+    <RootNamespace>GeneratorEngine</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

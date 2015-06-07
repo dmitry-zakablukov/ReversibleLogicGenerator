@@ -21,7 +21,7 @@
 #pragma once
 
 // libraries
-#include "../../SchemeGenerator/std.h"
+#include "engine/std.h"
 
 #include "common.h"
 #include "generalSynthesis.h"
