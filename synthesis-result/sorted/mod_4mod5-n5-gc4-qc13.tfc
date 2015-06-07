@@ -5,7 +5,6 @@
 #   truth-table-input = test/truth-table-input/mod_4mod5.table
 #   rm-generator-weight-threshold = 2
 #   transpositions-pack-size = 2
-#   enable-tuning = true
 
 .v a,b,c,d,e
 .i a,b,c,d

@@ -1,0 +1,22 @@
+# Copyright (C) 2015  <Dmitry Zakablukov>
+#
+# Input parameters (put them into *.ini file):
+#   work-mode = general-synthesis
+#   truth-table-input = test/truth-table-input/mod_5mod5.table
+#   rm-generator-weight-threshold = 0
+#   transpositions-pack-size = 1
+#   do-post-optimization = false
+
+.v a,b,c,d,e,f
+.i a,b,c,d,e
+.o f
+.c 0
+BEGIN
+t6 a',b,c,d,e,f
+t6 a,b',c',d,e,f
+t6 a',b',c,d',e,f
+t6 a,b,c,d,e',f
+t6 a',b,c',d,e',f
+t6 a,b',c,d',e',f
+t6 a',b',c',d',e',f
+END
