@@ -20,11 +20,4 @@
 
 #pragma once
 
-// libraries
-#include "../../SchemeGenerator/std.h"
-
-#include "common.h"
-#include "generalSynthesis.h"
-#include "discreteLogSynthesis.h"
-#include "optimizationTest.h"
-#include "Gf2Field.h"
+void testOptimization();

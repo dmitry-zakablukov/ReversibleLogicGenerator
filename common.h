@@ -20,11 +20,9 @@
 
 #pragma once
 
-// libraries
-#include "../../SchemeGenerator/std.h"
+#define END uint(-1)
 
-#include "common.h"
-#include "generalSynthesis.h"
-#include "discreteLogSynthesis.h"
-#include "optimizationTest.h"
-#include "Gf2Field.h"
+word mask(uint first, ...);
+word binStringToInt(string value);
+string polynomialToString(word polynomial);
+vector<word> makePermutationFromScheme(ReversibleLogic::Scheme scheme, uint n);
