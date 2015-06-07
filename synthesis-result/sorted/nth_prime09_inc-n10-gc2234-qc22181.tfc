@@ -4,7 +4,6 @@
 #   work-mode = general-synthesis
 #   tfc-input = <downloaded from http://webhome.cs.uvic.ca/~dmaslov/nth_prime9_inc_7522_17975.tfc>
 #   rm-generator-weight-threshold = 9
-#   transpositions-pack-size = 2
 #   do-post-optimization = false
 #
 # Optimized by RCViewer+ (RCViewer+ is a viewer/analyzer for quantum and reversible circuits)
