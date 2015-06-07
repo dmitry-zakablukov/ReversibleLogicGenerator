@@ -684,7 +684,7 @@ PostProcessor::OptScheme PostProcessor::tryOptimizationTactics(const OptScheme& 
     OptScheme optimizedScheme = scheme;
 
     bool schemeOptimized = false;
-    int elementCount = scheme.size();
+    int elementCount = (int)scheme.size();
 
     // find left element index
     for (int leftIndex = startIndex ? *startIndex : 0;

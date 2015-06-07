@@ -265,7 +265,7 @@ void discreteLogSynthesis()
                 { chooseRandomDegree, "Random degree:" },
             };
 
-            srand((uint)time(0));
+            srand((unsigned int)time(0));
 
             for (uint taskIndex = 0; taskIndex < numTaskCount; ++taskIndex)
             {

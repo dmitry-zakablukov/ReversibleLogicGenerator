@@ -156,7 +156,7 @@ void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container&
         {
             if (controlMask & mask)
             {
-                out << indexToVariableMap.at(index);
+                out << indexToVariableMap.at((int)index);
                 if (inversionMask & mask)
                     out << '\'';
 
@@ -170,7 +170,7 @@ void ReversibleLogic::TfcFormatter::writeMainBody(ostream& out, const Container&
         word targetMask = element.getTargetMask();
         uint targetIndex = findPositiveBitPosition(targetMask);
 
-        out << indexToVariableMap.at(targetIndex) << endl;
+        out << indexToVariableMap.at((int)targetIndex) << endl;
     }
 
     out << reorderingSubscheme;

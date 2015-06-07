@@ -478,7 +478,7 @@ void TruthTableUtils::updateBestIndicesForInput(InputToBestIndexMap* mapPtr,
             DistanceSum sum;
             sum.index = output;
 
-            sum.sum = countNonZeroBits(input ^ output);
+            sum.sum = (int)countNonZeroBits(input ^ output);
 
             // insert in sorted deque
             auto iter = distances.cbegin();

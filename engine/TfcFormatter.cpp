@@ -206,10 +206,10 @@ void TfcFormatter::parseVariables(const string& line)
     string variables = line.substr(strlen(strVariablesPrefix));
     vector<string> parts = split(variables, ',');
 
-    uint count = parts.size();
+    int count = (int)parts.size();
     assertFormat(count);
 
-    for (uint index = 0; index < count; ++index)
+    for (int index = 0; index < count; ++index)
     {
         const string& key = parts[index];
         assertFormat(variableToIndexMap.find(key) == variableToIndexMap.cend());
@@ -289,7 +289,7 @@ void TfcFormatter::fillIndexToVariableMap(uint n)
         for (uint index = 0; index < n; ++index)
         {
             string name = getVariableName(index);
-            variableToIndexMap[name] = index;
+            variableToIndexMap[name] = (int)index;
         }
     }
 
@@ -314,7 +314,7 @@ void TfcFormatter::writeInputLine(ostream& out) const
         out << strInputsPrefix;
         for (uint index = 0; index < inputCount; ++index)
         {
-            out << indexToVariableMap.at(index);
+            out << indexToVariableMap.at((int)index);
             if (index != inputCount - 1)
                 out << ',';
         }
@@ -341,7 +341,7 @@ void TfcFormatter::writeOutputLine(ostream& out)
         out << strOutputsPrefix;
         for (uint index = 0; index < outputCount; ++index)
         {
-            out << indexToVariableMap.at(outputVariablesOrder.at(index));
+            out << indexToVariableMap.at((int)outputVariablesOrder.at((int)index));
             if (index != outputCount - 1)
                 out << ',';
         }
@@ -393,9 +393,9 @@ void TfcFormatter::sortOutputVariablesOrder()
 
         swap(indices[i], indices[yIndex]);
 
-        strStream << "t2 " << indexToVariableMap[i] << ',' << indexToVariableMap[yIndex] << endl;
-        strStream << "t2 " << indexToVariableMap[yIndex] << ',' << indexToVariableMap[i] << endl;
-        strStream << "t2 " << indexToVariableMap[i] << ',' << indexToVariableMap[yIndex] << endl;
+        strStream << "t2 " << indexToVariableMap[(int)i] << ',' << indexToVariableMap[(int)yIndex] << endl;
+        strStream << "t2 " << indexToVariableMap[(int)yIndex] << ',' << indexToVariableMap[(int)i] << endl;
+        strStream << "t2 " << indexToVariableMap[(int)i] << ',' << indexToVariableMap[(int)yIndex] << endl;
     }
 
     reorderingSubscheme = strStream.str();
@@ -433,7 +433,7 @@ void TfcFormatter::writeHeaderLine(ostream& out, const char* prefix) const
     uint varCount = indexToVariableMap.size();
     for (uint index = 0; index < varCount; ++index)
     {
-        out << indexToVariableMap.at(index);
+        out << indexToVariableMap.at((int)index);
         if (index != varCount - 1)
             out << ',';
     }

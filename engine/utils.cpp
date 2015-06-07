@@ -125,7 +125,7 @@ string removeQuotes(const string& value)
 
 vector<string> split(const string& value, char symbol)
 {
-    int count = std::count(value.cbegin(), value.cend(), symbol);
+    uint count = std::count(value.cbegin(), value.cend(), symbol);
     if (!count)
         return vector<string>({ value });
 

@@ -74,11 +74,11 @@ void ProgramOptions::load(const Values& values)
 
     doPostOptimization = values.getBool(strDoPostOptimization, doPostOptimization);
 
-    maxElementsDistanceForOptimization = values.getInt(strMaxElementsDistanceForOptimization,
-        maxElementsDistanceForOptimization);
+    maxElementsDistanceForOptimization = (int)values.getInt(strMaxElementsDistanceForOptimization,
+        (int)maxElementsDistanceForOptimization);
 
-    maxSubSchemeSizeForOptimization = values.getInt(strMaxSubSchemeSizeForOptimization,
-        maxSubSchemeSizeForOptimization);
+    maxSubSchemeSizeForOptimization = (int)values.getInt(strMaxSubSchemeSizeForOptimization,
+        (int)maxSubSchemeSizeForOptimization);
 
     isTuningEnabled = values.getBool(strEnableTuning, isTuningEnabled);
     isDebugBehaviorEnabled = values.getBool(strEnableDebugBehavior, isDebugBehaviorEnabled);

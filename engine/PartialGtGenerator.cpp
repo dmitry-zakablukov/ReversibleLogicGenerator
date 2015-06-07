@@ -715,7 +715,7 @@ deque<ReverseElement> PartialGtGenerator::implementIndependentTranspositions(sha
     {
         word controlMask = (1 << n) - 1;
         for (uint index = 0; index < baseVectorCount; ++index)
-            controlMask ^= 1 << mix.columnIndexMap[index];
+            controlMask ^= (word)1 << mix.columnIndexMap[index];
 
         ReverseElement element(n, 1 << mix.columnIndexMap[0], controlMask, inversionMask);
         elements = conjugate(deque<ReverseElement>{ element }, elements);
@@ -817,7 +817,7 @@ deque<ReverseElement> PartialGtGenerator::removeColumnsCopies(const vector<word>
         if (column == 0)
         {
             for (auto index : indices)
-                *inversionMask |= 1 << index;
+                *inversionMask |= (word)1 << index;
 
             continue;
         }
@@ -849,7 +849,7 @@ deque<ReverseElement> PartialGtGenerator::removeColumnsCopies(const vector<word>
                 ReverseElement element(n, 1 << *citer, 1 << *(indices.cbegin()));
                 elements.push_back(element);
 
-                *inversionMask |= 1 << *citer;
+                *inversionMask |= (word)1 << *citer;
             }
         }
 
@@ -951,7 +951,7 @@ deque<ReverseElement> PartialGtGenerator::transformMatrixToCanonicalForm(MatrixM
         }
         else
         {
-            *inversionMask ^= 1 << firstInversionPos;
+            *inversionMask ^= (word)1 << firstInversionPos;
         }
 
         // add temporary column
@@ -988,7 +988,7 @@ deque<ReverseElement> PartialGtGenerator::transformMatrixToCanonicalForm(MatrixM
     for (uint index = baseVectorCount; index < matrixWidth; ++index)
     {
         uint realIndex = mix->columnIndexMap[index];
-        *inversionMask |= 1 << realIndex;
+        *inversionMask |= (word)1 << realIndex;
     }
 
     return elements;
@@ -1091,8 +1091,8 @@ deque<ReverseElement> PartialGtGenerator::transformRowToCanonicalForm(MatrixMix*
     // 4) make almost canonical row
     {
         word diff = baseDiff ^ outerDiff;
-        if (diff & (1 << firstNonZeroElementPos))
-            diff ^= 1 << firstNonZeroElementPos;
+        if (diff & ((word)1 << firstNonZeroElementPos))
+            diff ^= (word)1 << firstNonZeroElementPos;
 
         uint mask = 1;
         while (mask <= diff)
@@ -1152,7 +1152,7 @@ word PartialGtGenerator::getRealMask(MatrixMix* mix, word inputMask) const
     while (mask <= inputMask)
     {
         if (inputMask & mask)
-            realMask |= 1 << (mix->columnIndexMap[index]);
+            realMask |= (word)1 << (mix->columnIndexMap[index]);
 
         mask <<= 1;
         ++index;
