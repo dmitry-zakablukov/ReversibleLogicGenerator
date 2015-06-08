@@ -127,19 +127,19 @@ TfcFormatter::MarkerType TfcFormatter::parseMarkerType(const string& line) const
     MarkerType type = MarkerType::mtUnknown;
     if (line.front() == '#')
         type = MarkerType::mtComment;
-    else if (line.compare(0, strlen(strVariablesPrefix), strVariablesPrefix) == 0)
+    else if (strnicmp(line.c_str(), strVariablesPrefix, strlen(strVariablesPrefix)) == 0)
         type = MarkerType::mtVariables;
-    else if (line.compare(0, strlen(strInputsPrefix), strInputsPrefix) == 0)
+    else if (strnicmp(line.c_str(), strInputsPrefix, strlen(strInputsPrefix)) == 0)
         type = MarkerType::mtInputs;
-    else if (line.compare(0, strlen(strOutputsPrefix), strOutputsPrefix) == 0)
+    else if (strnicmp(line.c_str(), strOutputsPrefix, strlen(strOutputsPrefix)) == 0)
         type = MarkerType::mtOutputs;
-    else if (line.compare(0, strlen(strConstantsPrefix), strConstantsPrefix) == 0)
+    else if (strnicmp(line.c_str(), strConstantsPrefix, strlen(strConstantsPrefix)) == 0)
         type = MarkerType::mtConstants;
-    else if (line.compare(strBeginKeyword) == 0)
+    else if (strnicmp(line.c_str(), strBeginKeyword, strlen(strBeginKeyword)) == 0)
         type = MarkerType::mtBegin;
-    else if (line.compare(strEndKeyword) == 0)
+    else if (strnicmp(line.c_str(), strEndKeyword, strlen(strEndKeyword)) == 0)
         type = MarkerType::mtEnd;
-    else if (line.size() > 3 && line.front() == 't') // "t* x"
+    else if (line.size() > 3 && (line.front() == 't' || line.front() == 'T')) // "t* x"
         type = MarkerType::mtToffoliElement;
 
     return type;
@@ -223,7 +223,7 @@ void TfcFormatter::parseElement(const string& line, Scheme* scheme) const
     assertd(scheme, string("TfcFormatter::checkMarker(): null ptr"));
 
     // first symbol is 't' (other types are not supported for now)
-    assertd(line.size() > 3 && line.front() == 't',
+    assertd(line.size() > 3 && (line.front() == 't' || line.front() == 'T'),
         string("TfcFormatter::parseElement(): wrong toffolyelement line"));
 
     string temp = line.substr(1); //skip 't'
