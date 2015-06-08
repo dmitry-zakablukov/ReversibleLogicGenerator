@@ -1,0 +1,29 @@
+# Copyright (C) 2015  <Dmitry Zakablukov>
+#
+# Input parameters (put them into *.ini file):
+#   work-mode = general-synthesis
+#   truth-table-input = test/truth-table-input/symmetric_6.table
+#   rm-generator-weight-threshold = 0
+#   transpositions-pack-size = 1
+#   do-post-optimization = false
+
+.v a,b,c,d,e,f,g
+.i a,b,c,d,e,f
+.o g
+.c 0
+BEGIN
+t2 f',g
+t2 f,g
+t5 c',d',e',f',g
+t5 c,d,e,f,g
+t7 a,b,c,d,e,f',g
+t7 a',b',c',d',e,f',g
+t7 a',b',c',d,e',f',g
+t7 a',b',c,d',e',f',g
+t7 a,b,c',d,e,f,g
+t7 a,b,c,d',e,f,g
+t7 a',b',c',d',e',f,g
+t7 a',b',c,d,e,f,g
+t7 a,b,c',d',e',f',g
+t7 a,b,c,d,e',f,g
+END
