@@ -1,0 +1,26 @@
+# Copyright (C) 2015  <Dmitry Zakablukov>
+#
+# Input parameters (put them into *.ini file):
+#   work-mode = general-synthesis
+#   tfc-input = test/tfc-input/rd53d1.tfc
+#   rm-generator-weight-threshold = 4
+#   transpositions-pack-size = 2
+
+.v a,b,c,d,e,f,g
+.i a,b,c,d,e
+.o e,f,g
+.c 0,0
+BEGIN
+t4 b,c,d,g
+t3 b,c,f
+t2 c,b
+t5 a,b,d,e,g
+t3 a,b,f
+t2 b,a
+t3 d,e,f
+t2 d,e
+t2 a,d
+t5 b',c,d,e,g
+t3 a,e,f
+t2 a,e
+END
