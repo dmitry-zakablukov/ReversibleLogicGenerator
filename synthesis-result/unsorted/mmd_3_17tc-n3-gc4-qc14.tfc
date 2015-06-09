@@ -1,0 +1,18 @@
+# Copyright (C) 2015  <Dmitry Zakablukov>
+#
+# Input parameters (put them into *.ini file):
+#   work-mode = general-synthesis
+#   truth-table-input = test/truth-table-input/mmd_3_17tc.table
+#   rm-generator-weight-threshold = 3
+#   transpositions-pack-size = 1
+
+.v a,b,c
+.i a,b,c
+.o c,a,b
+.ol y1,y2,y3
+BEGIN
+t2 b',c
+t2 c,a
+t3 a,b,c
+t3 a,c,b
+END
