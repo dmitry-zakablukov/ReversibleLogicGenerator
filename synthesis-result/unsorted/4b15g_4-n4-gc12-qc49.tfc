@@ -11,6 +11,7 @@
 .v a,b,c,d
 .i a,b,c,d
 .o b,c,d,a
+.ol y1,y2,y3,y4
 BEGIN
 t2 a,c
 t3 a',c',d
