@@ -8,7 +8,6 @@
 .i a1,a2,a3
 .o a3,a1,a2
 .ol b1,b2,b3
-.c 
 BEGIN
 
 t1 a3
