@@ -1,0 +1,27 @@
+# Copyright (C) 2015  <Dmitry Zakablukov>
+#
+# Input parameters (put them into *.ini file):
+#   work-mode = general-synthesis
+#   truth-table-input = test/truth-table-input/4b15g_4.table
+#   rm-generator-weight-threshold = 1
+#   transpositions-pack-size = 2
+#   enable-tuning = true
+#   search-for-boolean-edges = false
+
+.v a,b,c,d
+.i a,b,c,d
+.o b,c,d,a
+BEGIN
+t2 a,c
+t3 a',c',d
+t3 a,b',d
+t3 c,d,a
+t2 a',c
+t1 a
+t2 a,b
+t3 b,d,a
+t3 a,c,d
+t2 a,b
+t4 b',c,d,a
+t2 a',d
+END
