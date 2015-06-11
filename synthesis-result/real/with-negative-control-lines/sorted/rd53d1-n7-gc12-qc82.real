@@ -10,10 +10,10 @@
 .version 1.0
 .numvars 7
 .variables a1 a2 a3 a4 a5 a6 a7
-.inputs a1 a2 a3 a4 a5
-.outputs a5 a6 a7
+.inputs a1 a2 a3 a4 a5 0 0
+.outputs g g g g b1 b2 b3
 .constants -----00
-.garbage -------
+.garbage 1111---
 .begin
 
 t4 a2 a3 a4 a7
