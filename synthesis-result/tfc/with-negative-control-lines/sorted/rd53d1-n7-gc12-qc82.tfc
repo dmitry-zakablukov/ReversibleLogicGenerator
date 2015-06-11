@@ -7,21 +7,23 @@
 #   rm-generator-weight-threshold = 4
 #   transpositions-pack-size = 2
 
-.v a,b,c,d,e,f,g
-.i a,b,c,d,e
-.o e,f,g
+.v a1,a2,a3,a4,a5,a6,a7
+.i a1,a2,a3,a4,a5
+.o a5,a6,a7
 .c 0,0
 BEGIN
-t4 b,c,d,g
-t3 b,c,f
-t2 c,b
-t5 a,b,d,e,g
-t3 a,b,f
-t2 b,a
-t3 d,e,f
-t2 d,e
-t2 a,d
-t5 b',c,d,e,g
-t3 a,e,f
-t2 a,e
+
+t4 a2,a3,a4,a7
+t3 a2,a3,a6
+t2 a3,a2
+t5 a1,a2,a4,a5,a7
+t3 a1,a2,a6
+t2 a2,a1
+t3 a4,a5,a6
+t2 a4,a5
+t2 a1,a4
+t5 a2',a3,a4,a5,a7
+t3 a1,a5,a6
+t2 a1,a5
+
 END

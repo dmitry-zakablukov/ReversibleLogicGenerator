@@ -8,23 +8,25 @@
 #   transpositions-pack-size = 1
 #   do-post-optimization = false
 
-.v a,b,c,d,e,f,g
-.i a,b,c,d,e,f
-.o g
+.v a1,a2,a3,a4,a5,a6,a7
+.i a1,a2,a3,a4,a5,a6
+.o a7
 .c 0
 BEGIN
-t2 f',g
-t2 f,g
-t5 c',d',e',f',g
-t5 c,d,e,f,g
-t7 a,b,c,d,e,f',g
-t7 a',b',c',d',e,f',g
-t7 a',b',c',d,e',f',g
-t7 a',b',c,d',e',f',g
-t7 a,b,c',d,e,f,g
-t7 a,b,c,d',e,f,g
-t7 a',b',c',d',e',f,g
-t7 a',b',c,d,e,f,g
-t7 a,b,c',d',e',f',g
-t7 a,b,c,d,e',f,g
+
+t2 a6',a7
+t2 a6,a7
+t5 a3',a4',a5',a6',a7
+t5 a3,a4,a5,a6,a7
+t7 a1,a2,a3,a4,a5,a6',a7
+t7 a1',a2',a3',a4',a5,a6',a7
+t7 a1',a2',a3',a4,a5',a6',a7
+t7 a1',a2',a3,a4',a5',a6',a7
+t7 a1,a2,a3',a4,a5,a6,a7
+t7 a1,a2,a3,a4',a5,a6,a7
+t7 a1',a2',a3',a4',a5',a6,a7
+t7 a1',a2',a3,a4,a5,a6,a7
+t7 a1,a2,a3',a4',a5',a6',a7
+t7 a1,a2,a3,a4,a5',a6,a7
+
 END

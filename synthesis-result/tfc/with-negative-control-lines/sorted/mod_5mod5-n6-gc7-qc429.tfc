@@ -8,16 +8,18 @@
 #   transpositions-pack-size = 1
 #   do-post-optimization = false
 
-.v a,b,c,d,e,f
-.i a,b,c,d,e
-.o f
+.v a1,a2,a3,a4,a5,a6
+.i a1,a2,a3,a4,a5
+.o a6
 .c 0
 BEGIN
-t6 a',b,c,d,e,f
-t6 a,b',c',d,e,f
-t6 a',b',c,d',e,f
-t6 a,b,c,d,e',f
-t6 a',b,c',d,e',f
-t6 a,b',c,d',e',f
-t6 a',b',c',d',e',f
+
+t6 a1',a2,a3,a4,a5,a6
+t6 a1,a2',a3',a4,a5,a6
+t6 a1',a2',a3,a4',a5,a6
+t6 a1,a2,a3,a4,a5',a6
+t6 a1',a2,a3',a4,a5',a6
+t6 a1,a2',a3,a4',a5',a6
+t6 a1',a2',a3',a4',a5',a6
+
 END
