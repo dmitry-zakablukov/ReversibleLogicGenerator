@@ -7,16 +7,11 @@
 #   rm-generator-weight-threshold = 3
 #   transpositions-pack-size = 1
 
-#.v a,b,c
-#.i a,b,c
-#.o c,a,b
-#.ol y1,y2,y3
-
 .version 1.0
 .numvars 3
 .variables a1 a2 a3
 .inputs a1 a2 a3
-.outputs a1 a2 a3
+.outputs b2 b3 b1
 .constants ---
 .garbage ---
 .begin

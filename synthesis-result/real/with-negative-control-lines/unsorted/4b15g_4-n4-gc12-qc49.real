@@ -9,16 +9,11 @@
 #   enable-tuning = true
 #   search-for-boolean-edges = false
 
-#.v a,b,c,d
-#.i a,b,c,d
-#.o b,c,d,a
-#.ol y1,y2,y3,y4
-
 .version 1.0
 .numvars 4
 .variables a1 a2 a3 a4
 .inputs a1 a2 a3 a4
-.outputs a1 a2 a3 a4
+.outputs b4 b1 b2 b3
 .constants ----
 .garbage ----
 .begin

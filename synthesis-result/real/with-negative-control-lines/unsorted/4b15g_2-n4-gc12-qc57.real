@@ -10,16 +10,11 @@
 # Optimized by RCViewer+ (RCViewer+ is a viewer/analyzer for quantum and reversible circuits)
 # See http://ceit.aut.ac.ir/QDA/RCV.htm for more details
 
-#.v a1,a2,a3,a4
-#.i a1,a2,a3,a4
-#.o a1,a3,a4,a2
-#.ol b1,b2,b3,b4
-
 .version 1.0
 .numvars 4
 .variables a1 a2 a3 a4
 .inputs a1 a2 a3 a4
-.outputs a1 a2 a3 a4
+.outputs b1 b4 b2 b3
 .constants ----
 .garbage ----
 .begin
