@@ -127,17 +127,17 @@ TfcFormatter::MarkerType TfcFormatter::parseMarkerType(const string& line) const
     MarkerType type = MarkerType::mtUnknown;
     if (line.front() == '#')
         type = MarkerType::mtComment;
-    else if (strnicmp(line.c_str(), strVariablesPrefix, strlen(strVariablesPrefix)) == 0)
+    else if (_strnicmp(line.c_str(), strVariablesPrefix, strlen(strVariablesPrefix)) == 0)
         type = MarkerType::mtVariables;
-    else if (strnicmp(line.c_str(), strInputsPrefix, strlen(strInputsPrefix)) == 0)
+    else if (_strnicmp(line.c_str(), strInputsPrefix, strlen(strInputsPrefix)) == 0)
         type = MarkerType::mtInputs;
-    else if (strnicmp(line.c_str(), strOutputsPrefix, strlen(strOutputsPrefix)) == 0)
+    else if (_strnicmp(line.c_str(), strOutputsPrefix, strlen(strOutputsPrefix)) == 0)
         type = MarkerType::mtOutputs;
-    else if (strnicmp(line.c_str(), strConstantsPrefix, strlen(strConstantsPrefix)) == 0)
+    else if (_strnicmp(line.c_str(), strConstantsPrefix, strlen(strConstantsPrefix)) == 0)
         type = MarkerType::mtConstants;
-    else if (strnicmp(line.c_str(), strBeginKeyword, strlen(strBeginKeyword)) == 0)
+    else if (_strnicmp(line.c_str(), strBeginKeyword, strlen(strBeginKeyword)) == 0)
         type = MarkerType::mtBegin;
-    else if (strnicmp(line.c_str(), strEndKeyword, strlen(strEndKeyword)) == 0)
+    else if (_strnicmp(line.c_str(), strEndKeyword, strlen(strEndKeyword)) == 0)
         type = MarkerType::mtEnd;
     else if (line.size() > 3 && (line.front() == 't' || line.front() == 'T')) // "t* x"
         type = MarkerType::mtToffoliElement;
