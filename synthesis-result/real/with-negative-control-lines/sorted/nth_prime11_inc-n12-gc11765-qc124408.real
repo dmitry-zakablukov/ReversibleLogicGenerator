@@ -11689,12 +11689,12 @@ t2 a2 a1
 t2 a3 a4
 t2 a2 a3
 t2 a2 a9
-t11 a1' a3 a4 a5' a6 a7 a8' a9 a10' a11 a2
+t11 -a1 a3 a4 -a5 a6 a7 -a8 a9 -a10 a11 a2
 t2 a2 a3
 t2 a3 a10
 t2 a2 a3
 t2 a2 a7
-t11 a1' a3 a4 a5' a6 a7 a8' a9 a10 a11 a2
+t11 -a1 a3 a4 -a5 a6 a7 -a8 a9 a10 a11 a2
 t2 a2 a9
 t2 a2 a7
 t2 a2 a3
@@ -11708,7 +11708,7 @@ t2 a1 a2
 t2 a1 a7
 t2 a1 a9
 t2 a1 a11
-t11 a2 a3 a4 a5 a6 a7 a8' a9 a10 a11 a1
+t11 a2 a3 a4 a5 a6 a7 -a8 a9 a10 a11 a1
 t2 a1 a11
 t2 a1 a9
 t2 a1 a7
@@ -11720,7 +11720,7 @@ t2 a2 a3
 t2 a6 a9
 t2 a6 a11
 t2 a5 a6
-t11 a1 a2 a3' a4' a6 a7 a8' a9 a10 a11 a5
+t11 a1 a2 -a3 -a4 a6 a7 -a8 a9 a10 a11 a5
 t2 a5 a6
 t2 a6 a11
 t2 a6 a9
@@ -11728,7 +11728,7 @@ t2 a7 a4
 t2 a7 a8
 t2 a2 a7
 t2 a2 a9
-t11 a1' a3 a4 a5 a6' a7 a8 a9 a10' a11 a2
+t11 -a1 a3 a4 a5 -a6 a7 a8 a9 -a10 a11 a2
 t2 a2 a9
 t2 a2 a7
 t2 a7 a8
@@ -11737,7 +11737,7 @@ t2 a10 a7
 t2 a10 a8
 t2 a10 a9
 t2 a3 a10
-t11 a1' a2 a4 a5' a6 a7 a8 a9 a10 a11 a3
+t11 -a1 a2 a4 -a5 a6 a7 a8 a9 a10 a11 a3
 t2 a3 a10
 t2 a10 a9
 t2 a10 a8
@@ -11745,14 +11745,14 @@ t2 a10 a7
 t2 a5 a9
 t2 a3 a5
 t2 a3 a10
-t11 a1 a2' a4' a5 a6' a7 a8' a9 a10 a11 a3
+t11 a1 -a2 -a4 a5 -a6 a7 -a8 a9 a10 a11 a3
 t2 a3 a10
 t2 a3 a5
 t2 a5 a9
 t2 a2 a4
 t2 a2 a9
 t2 a2 a11
-t11 a1' a3 a4' a5' a6 a7 a8 a9' a10' a11' a2
+t11 -a1 a3 -a4 -a5 a6 a7 a8 -a9 -a10 -a11 a2
 t2 a2 a11
 t2 a2 a4
 t2 a2 a3
@@ -11760,13 +11760,13 @@ t2 a2 a10
 t2 a1 a2
 t2 a1 a7
 t2 a1 a11
-t11 a2 a3 a4 a5' a6 a7 a8' a9 a10 a11 a1
+t11 a2 a3 a4 -a5 a6 a7 -a8 a9 a10 a11 a1
 t2 a1 a2
 t2 a2 a10
 t2 a2 a4
 t2 a1 a2
 t2 a1 a8
-t11 a2 a3 a4 a5' a6 a7 a8 a9 a10 a11 a1
+t11 a2 a3 a4 -a5 a6 a7 a8 a9 a10 a11 a1
 t2 a1 a11
 t2 a1 a8
 t2 a1 a7
@@ -11779,7 +11779,7 @@ t2 a6 a7
 t2 a6 a8
 t2 a6 a9
 t2 a6 a11
-t11 a1 a2' a3 a4 a5 a7 a8 a9 a10 a11 a6
+t11 a1 -a2 a3 a4 a5 a7 a8 a9 a10 a11 a6
 t2 a6 a11
 t2 a6 a9
 t2 a6 a8

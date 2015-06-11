@@ -25,7 +25,7 @@ t2 a2 a1
 t3 a4 a5 a6
 t2 a4 a5
 t2 a1 a4
-t5 a2' a3 a4 a5 a7
+t5 -a2 a3 a4 a5 a7
 t3 a1 a5 a6
 t2 a1 a5
 

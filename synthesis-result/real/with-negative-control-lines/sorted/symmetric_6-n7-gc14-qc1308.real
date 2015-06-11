@@ -17,19 +17,19 @@
 .garbage 111111-
 .begin
 
-t2 a6' a7
+t2 -a6 a7
 t2 a6 a7
-t5 a3' a4' a5' a6' a7
+t5 -a3 -a4 -a5 -a6 a7
 t5 a3 a4 a5 a6 a7
-t7 a1 a2 a3 a4 a5 a6' a7
-t7 a1' a2' a3' a4' a5 a6' a7
-t7 a1' a2' a3' a4 a5' a6' a7
-t7 a1' a2' a3 a4' a5' a6' a7
-t7 a1 a2 a3' a4 a5 a6 a7
-t7 a1 a2 a3 a4' a5 a6 a7
-t7 a1' a2' a3' a4' a5' a6 a7
-t7 a1' a2' a3 a4 a5 a6 a7
-t7 a1 a2 a3' a4' a5' a6' a7
-t7 a1 a2 a3 a4 a5' a6 a7
+t7 a1 a2 a3 a4 a5 -a6 a7
+t7 -a1 -a2 -a3 -a4 a5 -a6 a7
+t7 -a1 -a2 -a3 a4 -a5 -a6 a7
+t7 -a1 -a2 a3 -a4 -a5 -a6 a7
+t7 a1 a2 -a3 a4 a5 a6 a7
+t7 a1 a2 a3 -a4 a5 a6 a7
+t7 -a1 -a2 -a3 -a4 -a5 a6 a7
+t7 -a1 -a2 a3 a4 a5 a6 a7
+t7 a1 a2 -a3 -a4 -a5 -a6 a7
+t7 a1 a2 a3 a4 -a5 a6 a7
 
 .end

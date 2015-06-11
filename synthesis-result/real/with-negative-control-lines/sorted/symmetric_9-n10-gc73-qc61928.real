@@ -19,78 +19,78 @@
 .garbage 111111111-
 .begin
 
-t2 a9' a10
+t2 -a9 a10
 t2 a9 a10
-t6 a5' a6' a7' a8' a9' a10
+t6 -a5 -a6 -a7 -a8 -a9 a10
 t5 a1 a2 a3 a4 a10
 t6 a5 a6 a7 a8 a9 a10
-t6 a1' a2' a3' a4' a9' a10
-t6 a1 a2 a3 a4 a9' a10
-t7 a2' a3' a4' a6' a7' a8' a10
+t6 -a1 -a2 -a3 -a4 -a9 a10
+t6 a1 a2 a3 a4 -a9 a10
+t7 -a2 -a3 -a4 -a6 -a7 -a8 a10
 t7 a2 a3 a4 a6 a7 a8 a10
-t7 a1 a5' a6' a7' a8' a9' a10
-t7 a1' a5 a6 a7 a8 a9 a10
-t7 a1' a2' a3' a4' a5 a9' a10
-t7 a1 a2 a3 a4 a5' a9 a10
-t10 a1' a2' a3' a4 a5' a6' a7' a8 a9' a10
-t10 a1' a2' a3 a4' a5' a6' a7' a8 a9' a10
-t10 a1' a2' a3' a4 a5' a6' a7 a8' a9' a10
-t10 a1' a2' a3 a4' a5' a6' a7 a8' a9' a10
-t10 a1' a2 a3' a4' a5' a6' a7 a8' a9' a10
-t10 a1 a2' a3' a4' a5' a6' a7 a8' a9' a10
-t10 a1' a2 a3 a4 a5 a6' a7 a8 a9 a10
-t10 a1 a2' a3 a4 a5 a6' a7 a8 a9 a10
-t10 a1' a2 a3 a4 a5 a6 a7' a8 a9 a10
-t10 a1 a2' a3 a4 a5 a6 a7' a8 a9 a10
-t10 a1 a2 a3' a4 a5 a6 a7' a8 a9 a10
-t10 a1 a2 a3 a4' a5 a6 a7' a8 a9 a10
-t10 a1' a2' a3' a4 a5' a6 a7' a8' a9' a10
-t10 a1' a2 a3' a4' a5' a6 a7' a8' a9' a10
-t10 a1' a2' a3' a4 a5 a6' a7' a8' a9' a10
-t10 a1' a2' a3 a4' a5' a6 a7' a8' a9' a10
-t10 a1' a2' a3' a4' a5' a6' a7' a8 a9 a10
-t10 a1' a2 a3 a4 a5 a6 a7 a8' a9 a10
-t10 a1 a2' a3 a4 a5 a6 a7 a8' a9 a10
-t10 a1 a2 a3' a4 a5 a6 a7 a8' a9 a10
-t10 a1 a2 a3 a4' a5 a6 a7 a8' a9 a10
-t10 a1' a2' a3' a4' a5' a6' a7 a8' a9 a10
-t10 a1 a2 a3' a4 a5 a6' a7 a8 a9 a10
-t10 a1 a2 a3 a4' a5' a6 a7 a8 a9 a10
-t10 a1' a2 a3' a4' a5' a6' a7' a8 a9' a10
-t10 a1 a2 a3 a4' a5 a6' a7 a8 a9 a10
-t10 a1 a2' a3 a4 a5 a6 a7 a8 a9' a10
-t10 a1 a2 a3 a4' a5 a6 a7 a8 a9' a10
-t10 a1' a2' a3 a4' a5' a6' a7' a8' a9 a10
-t10 a1' a2 a3' a4' a5' a6' a7' a8' a9 a10
-t10 a1 a2 a3' a4 a5 a6 a7 a8 a9' a10
-t10 a1' a2' a3 a4' a5 a6' a7' a8' a9' a10
-t10 a1' a2' a3' a4' a5' a6 a7' a8' a9 a10
-t10 a1 a2 a3' a4' a5' a6' a7' a8' a9' a10
-t10 a1 a2' a3' a4 a5' a6' a7' a8' a9' a10
-t10 a1' a2' a3 a4 a5 a6 a7 a8 a9 a10
-t10 a1' a2 a3 a4' a5 a6 a7 a8 a9 a10
-t10 a1 a2 a3 a4 a5 a6' a7 a8 a9' a10
-t10 a1 a2 a3 a4 a5 a6' a7' a8' a9 a10
-t10 a1' a2' a3' a4' a5 a6' a7' a8 a9' a10
-t10 a1 a2' a3' a4' a5 a6 a7 a8 a9 a10
-t10 a1' a2 a3 a4 a5' a6' a7' a8' a9' a10
-t10 a1' a2' a3' a4' a5' a6 a7 a8 a9' a10
-t10 a1 a2 a3 a4 a5 a6 a7 a8' a9' a10
-t10 a1 a2' a3 a4' a5' a6' a7' a8' a9' a10
-t10 a1' a2 a3 a4 a5' a6 a7 a8 a9' a10
-t10 a1' a2 a3' a4' a5 a6' a7' a8' a9' a10
-t10 a1 a2' a3 a4 a5' a6 a7 a8 a9 a10
-t10 a1 a2 a3' a4 a5' a6 a7 a8 a9 a10
-t10 a1' a2' a3' a4 a5' a6' a7' a8' a9 a10
-t10 a1' a2 a3' a4 a5 a6 a7 a8 a9 a10
-t10 a1' a2' a3' a4' a5 a6' a7 a8' a9' a10
-t10 a1' a2' a3' a4' a5 a6 a7' a8' a9' a10
-t10 a1 a2 a3 a4 a5' a6 a7' a8 a9 a10
-t10 a1 a2' a3' a4' a5' a6 a7' a8' a9' a10
-t10 a1 a2' a3' a4' a5 a6' a7' a8' a9 a10
-t10 a1 a2' a3' a4' a5' a6' a7' a8 a9' a10
-t10 a1 a2 a3 a4 a5' a6' a7 a8 a9 a10
-t10 a1 a2 a3 a4 a5 a6 a7' a8 a9' a10
-t10 a1 a2 a3 a4 a5' a6 a7 a8' a9 a10
+t7 a1 -a5 -a6 -a7 -a8 -a9 a10
+t7 -a1 a5 a6 a7 a8 a9 a10
+t7 -a1 -a2 -a3 -a4 a5 -a9 a10
+t7 a1 a2 a3 a4 -a5 a9 a10
+t10 -a1 -a2 -a3 a4 -a5 -a6 -a7 a8 -a9 a10
+t10 -a1 -a2 a3 -a4 -a5 -a6 -a7 a8 -a9 a10
+t10 -a1 -a2 -a3 a4 -a5 -a6 a7 -a8 -a9 a10
+t10 -a1 -a2 a3 -a4 -a5 -a6 a7 -a8 -a9 a10
+t10 -a1 a2 -a3 -a4 -a5 -a6 a7 -a8 -a9 a10
+t10 a1 -a2 -a3 -a4 -a5 -a6 a7 -a8 -a9 a10
+t10 -a1 a2 a3 a4 a5 -a6 a7 a8 a9 a10
+t10 a1 -a2 a3 a4 a5 -a6 a7 a8 a9 a10
+t10 -a1 a2 a3 a4 a5 a6 -a7 a8 a9 a10
+t10 a1 -a2 a3 a4 a5 a6 -a7 a8 a9 a10
+t10 a1 a2 -a3 a4 a5 a6 -a7 a8 a9 a10
+t10 a1 a2 a3 -a4 a5 a6 -a7 a8 a9 a10
+t10 -a1 -a2 -a3 a4 -a5 a6 -a7 -a8 -a9 a10
+t10 -a1 a2 -a3 -a4 -a5 a6 -a7 -a8 -a9 a10
+t10 -a1 -a2 -a3 a4 a5 -a6 -a7 -a8 -a9 a10
+t10 -a1 -a2 a3 -a4 -a5 a6 -a7 -a8 -a9 a10
+t10 -a1 -a2 -a3 -a4 -a5 -a6 -a7 a8 a9 a10
+t10 -a1 a2 a3 a4 a5 a6 a7 -a8 a9 a10
+t10 a1 -a2 a3 a4 a5 a6 a7 -a8 a9 a10
+t10 a1 a2 -a3 a4 a5 a6 a7 -a8 a9 a10
+t10 a1 a2 a3 -a4 a5 a6 a7 -a8 a9 a10
+t10 -a1 -a2 -a3 -a4 -a5 -a6 a7 -a8 a9 a10
+t10 a1 a2 -a3 a4 a5 -a6 a7 a8 a9 a10
+t10 a1 a2 a3 -a4 -a5 a6 a7 a8 a9 a10
+t10 -a1 a2 -a3 -a4 -a5 -a6 -a7 a8 -a9 a10
+t10 a1 a2 a3 -a4 a5 -a6 a7 a8 a9 a10
+t10 a1 -a2 a3 a4 a5 a6 a7 a8 -a9 a10
+t10 a1 a2 a3 -a4 a5 a6 a7 a8 -a9 a10
+t10 -a1 -a2 a3 -a4 -a5 -a6 -a7 -a8 a9 a10
+t10 -a1 a2 -a3 -a4 -a5 -a6 -a7 -a8 a9 a10
+t10 a1 a2 -a3 a4 a5 a6 a7 a8 -a9 a10
+t10 -a1 -a2 a3 -a4 a5 -a6 -a7 -a8 -a9 a10
+t10 -a1 -a2 -a3 -a4 -a5 a6 -a7 -a8 a9 a10
+t10 a1 a2 -a3 -a4 -a5 -a6 -a7 -a8 -a9 a10
+t10 a1 -a2 -a3 a4 -a5 -a6 -a7 -a8 -a9 a10
+t10 -a1 -a2 a3 a4 a5 a6 a7 a8 a9 a10
+t10 -a1 a2 a3 -a4 a5 a6 a7 a8 a9 a10
+t10 a1 a2 a3 a4 a5 -a6 a7 a8 -a9 a10
+t10 a1 a2 a3 a4 a5 -a6 -a7 -a8 a9 a10
+t10 -a1 -a2 -a3 -a4 a5 -a6 -a7 a8 -a9 a10
+t10 a1 -a2 -a3 -a4 a5 a6 a7 a8 a9 a10
+t10 -a1 a2 a3 a4 -a5 -a6 -a7 -a8 -a9 a10
+t10 -a1 -a2 -a3 -a4 -a5 a6 a7 a8 -a9 a10
+t10 a1 a2 a3 a4 a5 a6 a7 -a8 -a9 a10
+t10 a1 -a2 a3 -a4 -a5 -a6 -a7 -a8 -a9 a10
+t10 -a1 a2 a3 a4 -a5 a6 a7 a8 -a9 a10
+t10 -a1 a2 -a3 -a4 a5 -a6 -a7 -a8 -a9 a10
+t10 a1 -a2 a3 a4 -a5 a6 a7 a8 a9 a10
+t10 a1 a2 -a3 a4 -a5 a6 a7 a8 a9 a10
+t10 -a1 -a2 -a3 a4 -a5 -a6 -a7 -a8 a9 a10
+t10 -a1 a2 -a3 a4 a5 a6 a7 a8 a9 a10
+t10 -a1 -a2 -a3 -a4 a5 -a6 a7 -a8 -a9 a10
+t10 -a1 -a2 -a3 -a4 a5 a6 -a7 -a8 -a9 a10
+t10 a1 a2 a3 a4 -a5 a6 -a7 a8 a9 a10
+t10 a1 -a2 -a3 -a4 -a5 a6 -a7 -a8 -a9 a10
+t10 a1 -a2 -a3 -a4 a5 -a6 -a7 -a8 a9 a10
+t10 a1 -a2 -a3 -a4 -a5 -a6 -a7 a8 -a9 a10
+t10 a1 a2 a3 a4 -a5 -a6 a7 a8 a9 a10
+t10 a1 a2 a3 a4 a5 a6 -a7 a8 -a9 a10
+t10 a1 a2 a3 a4 -a5 a6 a7 -a8 a9 a10
 
 .end

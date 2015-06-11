@@ -20,14 +20,14 @@
 .begin
 
 t3 a3 a4 a1
-t3 a3' a4 a2
-t3 a1 a4' a3
-t3 a2' a3' a1
+t3 -a3 a4 a2
+t3 a1 -a4 a3
+t3 -a2 -a3 a1
 t2 a1 a4
 t4 a1 a3 a4 a2
-t3 a1 a2' a3
+t3 a1 -a2 a3
 t2 a1 a2
-t4 a2 a3' a4 a1
+t4 a2 -a3 a4 a1
 t2 a1 a4
 t2 a1 a3
 t1 a2
