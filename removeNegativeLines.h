@@ -20,12 +20,4 @@
 
 #pragma once
 
-// libraries
-#include "engine/std.h"
-
-#include "common.h"
-#include "generalSynthesis.h"
-#include "discreteLogSynthesis.h"
-#include "optimizationTest.h"
-#include "removeNegativeLines.h"
-#include "Gf2Field.h"
+void removeNegativeLines();

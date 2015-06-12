@@ -35,6 +35,9 @@
     <ClCompile Include="discreteLogSynthesis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="removeNegativeLines.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="std.h">
@@ -53,6 +56,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="discreteLogSynthesis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="removeNegativeLines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -18,14 +18,8 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#pragma once
+#include "std.h"
 
-// libraries
-#include "engine/std.h"
-
-#include "common.h"
-#include "generalSynthesis.h"
-#include "discreteLogSynthesis.h"
-#include "optimizationTest.h"
-#include "removeNegativeLines.h"
-#include "Gf2Field.h"
+void removeNegativeLines()
+{
+}

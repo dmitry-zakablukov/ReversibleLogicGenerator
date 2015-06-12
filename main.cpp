@@ -28,7 +28,7 @@ void printUsage(const string& fullProgramPath)
         "                       if not specified, default options would be used\n"
         "\n"
         "General options:\n"
-        "    work-mode = < general-synthesis | post-processing | discrete-log-synthesis >\n"
+        "    work-mode = < general-synthesis | post-processing | discrete-log-synthesis | remove-negative-lines >\n"
         "    input-file = <filename>\n"
         "    truth-table-input = <filename>\n"
         "    tfc-input = <filename>\n"
@@ -74,6 +74,7 @@ int main(int argc, const char* argv[])
     const char* strGeneralSynthesisMode = "general-synthesis";
     const char* strDiscreteLogSynthesisMode = "discrete-log-synthesis";
     const char* strPostProcessingMode = "post-processing";
+    const char* strRemoveNegativeLinesMode = "remove-negative-lines";
 
     if (argc == 2)
     {
@@ -105,6 +106,8 @@ int main(int argc, const char* argv[])
             discreteLogSynthesis();
         else if (workMode == strPostProcessingMode)
             testOptimization();
+        else if (workMode == strRemoveNegativeLinesMode)
+            removeNegativeLines();
         else
         {
             if (workMode.empty())
@@ -115,7 +118,8 @@ int main(int argc, const char* argv[])
             cerr <<
                 "    " << strGeneralSynthesisMode << '\n' <<
                 "    " << strDiscreteLogSynthesisMode << '\n' <<
-                "    " << strPostProcessingMode << endl;
+                "    " << strPostProcessingMode << '\n' <<
+                "    " << strRemoveNegativeLinesMode << endl;
         }
 
         ProgramOptions::uninit();
