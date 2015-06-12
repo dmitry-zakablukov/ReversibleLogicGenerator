@@ -98,10 +98,10 @@ bool ReverseElement::operator ==(const ReverseElement& another) const
     assertd(another.isValid(), string("Reverse element is not valid"));
 
     bool equal = true;
-    if(n != another.getInputCount()
-            || targetMask != another.getTargetMask()
-            || controlMask != another.getControlMask()
-            || inversionMask != another.getInversionMask())
+    if (n != another.getInputCount()
+        || targetMask != another.getTargetMask()
+        || controlMask != another.getControlMask()
+        || inversionMask != another.getInversionMask())
     {
         equal = false;
     }
@@ -122,17 +122,17 @@ bool ReverseElement::isValid() const
     uint targetCount = countNonZeroBits(targetMask);
     word maxValue = 1 << n;
 
-    if(targetCount != 1
-            || (targetMask & controlMask)
-            || (targetMask & inversionMask)
-            || targetMask > maxValue
-            || controlMask > maxValue
-            || inversionMask > maxValue)
+    if (targetCount != 1
+        || (targetMask & controlMask)
+        || (targetMask & inversionMask)
+        || targetMask > maxValue
+        || controlMask > maxValue
+        || inversionMask > maxValue)
     {
         valid = false;
     }
 
-    if(valid && !isIndependent())
+    if (valid && !isIndependent())
     {
         uint controlCount = countNonZeroBits(controlMask);
         valid = (controlCount + 2 <= n);
@@ -161,7 +161,7 @@ bool ReverseElement::isSwappable(const ReverseElement& another,
 {
     assertd(withOneControlLineInverting, string("Null ptr (withOneControlLineInverting)"));
 
-    word anotherTargetMask  = another.getTargetMask();
+    word anotherTargetMask = another.getTargetMask();
     word anotherControlMask = another.getControlMask();
     word anotherInversionMask = another.getInversionMask();
 
@@ -169,21 +169,13 @@ bool ReverseElement::isSwappable(const ReverseElement& another,
     if (!swappable && !withoutAnyChanges)
     {
         // check variant, when elements can be swapped with only one control line inversion
-        if ((targetMask | controlMask) == anotherControlMask)
+        if ((controlMask & anotherControlMask) == controlMask &&
+            (inversionMask & anotherInversionMask) == inversionMask ||
+            (controlMask & anotherControlMask) == anotherControlMask &&
+            (inversionMask & anotherInversionMask) == anotherInversionMask)
         {
-            if (inversionMask == (~targetMask & anotherInversionMask))
-            {
-                swappable = true;
-                *withOneControlLineInverting = false;
-            }
-        }
-        else if ((anotherTargetMask | anotherControlMask) == controlMask)
-        {
-            if (anotherInversionMask == (~anotherTargetMask & inversionMask))
-            {
-                swappable = true;
-                *withOneControlLineInverting = true;
-            }
+            swappable = true;
+            *withOneControlLineInverting = true;
         }
     }
 
