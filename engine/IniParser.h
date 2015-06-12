@@ -18,4 +18,14 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "std.h"
+#pragma once
+
+class IniParser
+{
+public:
+    static Values parse(istream& stream);
+
+private:
+    static bool isComment(const string& line);
+    static void split(const string& line, Values* values);
+};

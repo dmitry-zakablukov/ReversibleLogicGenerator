@@ -18,4 +18,19 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "std.h"
+#pragma once
+
+namespace ReversibleLogic
+{
+
+class SchemeUtils
+{
+public:
+    static uint calculateQuantumCost(const Scheme& scheme);
+
+private:
+    static uint getElementQuantumCost(const ReverseElement& element);
+    static bool isPeresGate(const ReverseElement& left, const ReverseElement& right, uint* cost);
+};
+
+} //namespace ReversibleLogic

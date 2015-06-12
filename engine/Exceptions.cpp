@@ -19,3 +19,28 @@
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "std.h"
+
+AssertionError::AssertionError(string&& message)
+    : message(move(message))
+{
+}
+
+const char* AssertionError::what() const
+{
+    return message.c_str();
+}
+
+InvalidFormatException::InvalidFormatException(string&& message)
+    : message(move(message))
+{
+}
+
+void InvalidFormatException::setMessage(string&& newMessage)
+{
+    message = move(newMessage);
+}
+
+const char* InvalidFormatException::what() const
+{
+    return message.c_str();
+}

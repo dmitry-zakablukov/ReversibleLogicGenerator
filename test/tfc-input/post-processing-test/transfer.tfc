@@ -1,0 +1,17 @@
+.v a,b,c,d
+.i a,b,c,d
+.o a,b,c,d
+BEGIN
+t3 b',c,a
+t3 a,c,d
+t3 b',c,a
+t4 a,b,c,d
+t2 b,a
+t4 a,b,c,d
+t3 b,c,d
+t2 b,a
+t4 a,b,c,d
+t4 a,b,c',d
+t3 b,c',a
+t4 a',b,c',d
+END

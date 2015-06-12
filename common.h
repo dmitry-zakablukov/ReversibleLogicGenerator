@@ -18,4 +18,11 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "std.h"
+#pragma once
+
+#define END uint(-1)
+
+word mask(uint first, ...);
+word binStringToInt(string value);
+string polynomialToString(word polynomial);
+vector<word> makePermutationFromScheme(ReversibleLogic::Scheme scheme, uint n);

@@ -18,4 +18,22 @@
 // You should have received a copy of the GNU General Public License
 // along with ReversibleLogicGenerator.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "std.h"
+#pragma once
+
+namespace ReversibleLogic
+{
+
+class CompositeGenerator
+{
+public:
+    CompositeGenerator() = default;
+    virtual ~CompositeGenerator() = default;
+
+    Scheme generate(const TruthTable& table, ostream& outputLog);
+
+private:
+    uint getRmGeneratorWeightThreshold(uint n);
+    void logTime(ostream& out, float time);
+};
+
+} //namespace ReversibleLogic
