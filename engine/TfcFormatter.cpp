@@ -24,12 +24,13 @@ namespace ReversibleLogic
 {
 
 // static strings
-const char* TfcFormatter::strVariablesPrefix = ".v ";
-const char* TfcFormatter::strInputsPrefix    = ".i ";
-const char* TfcFormatter::strOutputsPrefix   = ".o ";
-const char* TfcFormatter::strConstantsPrefix = ".c ";
-const char* TfcFormatter::strBeginKeyword    = "BEGIN";
-const char* TfcFormatter::strEndKeyword      = "END";
+const char* TfcFormatter::strVariablesPrefix    = ".v ";
+const char* TfcFormatter::strInputsPrefix       = ".i ";
+const char* TfcFormatter::strOutputsPrefix      = ".o ";
+const char* TfcFormatter::strOutputLabelsPrefix = ".ol ";
+const char* TfcFormatter::strConstantsPrefix    = ".c ";
+const char* TfcFormatter::strBeginKeyword       = "BEGIN";
+const char* TfcFormatter::strEndKeyword         = "END";
 
 
 TfcFormatter::TfcFormatter(uint n, uint m, unordered_map<uint, uint> outputVariablesOrder)
@@ -93,6 +94,10 @@ Scheme TfcFormatter::parse(istream& stream)
                 outputsLine = line;
                 break;
 
+            case MarkerType::mtOutputLabels:
+                outputLabelsLine = line;
+                break;
+
             case MarkerType::mtConstants:
                 constantsLine = line;
                 break;
@@ -133,6 +138,8 @@ TfcFormatter::MarkerType TfcFormatter::parseMarkerType(const string& line) const
         type = MarkerType::mtInputs;
     else if (_strnicmp(line.c_str(), strOutputsPrefix, strlen(strOutputsPrefix)) == 0)
         type = MarkerType::mtOutputs;
+    else if (_strnicmp(line.c_str(), strOutputLabelsPrefix, strlen(strOutputLabelsPrefix)) == 0)
+        type = MarkerType::mtOutputLabels;
     else if (_strnicmp(line.c_str(), strConstantsPrefix, strlen(strConstantsPrefix)) == 0)
         type = MarkerType::mtConstants;
     else if (_strnicmp(line.c_str(), strBeginKeyword, strlen(strBeginKeyword)) == 0)
@@ -192,6 +199,9 @@ void TfcFormatter::checkMarker(Markers* markers, MarkerType type) const
             else
                 result = false;
         }
+        break;
+
+    case MarkerType::mtOutputLabels:
         break;
 
     default:
@@ -350,6 +360,9 @@ void TfcFormatter::writeOutputLine(ostream& out)
     }
     else
         out << outputsLine << endl;
+
+    if (!outputLabelsLine.empty())
+        out << outputLabelsLine << endl;
 }
 
 void TfcFormatter::sortOutputVariablesOrder()

@@ -47,6 +47,7 @@ private:
         mtVariables,
         mtInputs,
         mtOutputs,
+        mtOutputLabels,
         mtConstants,
         mtBegin,
         mtEnd,
@@ -105,11 +106,13 @@ private:
 
     string inputsLine;
     string outputsLine;
+    string outputLabelsLine;
     string constantsLine;
 
     static const char* strVariablesPrefix;
     static const char* strInputsPrefix;
     static const char* strOutputsPrefix;
+    static const char* strOutputLabelsPrefix;
     static const char* strConstantsPrefix;
     static const char* strBeginKeyword;
     static const char* strEndKeyword;
