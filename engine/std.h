@@ -47,9 +47,11 @@
 #   include <sys/types.h>
 #   define _access(x,y) access((x), (y))
 #   define _mkdir(x) mkdir((x), 0777)
+#   define NOEXCEPT noexcept
 #else //__GNUC__
 #   include <direct.h> //mkdir
 #   include <io.h> //access
+#   define NOEXCEPT
 #endif //__GNUC__
 
 using namespace std;
