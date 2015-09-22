@@ -964,8 +964,8 @@ deque<ReverseElement> PartialGtGenerator::transformMatrixToCanonicalForm(MatrixM
     uint baseMask = (1 << baseVectorCount) - 1;
     for (uint index = 0; index < k; index += 2)
     {
-        uint xIndex = wordUndefined;
-        uint yIndex = wordUndefined;
+        uint xIndex = uintUndefined;
+        uint yIndex = uintUndefined;
 
         findBestRowInMatrix(mix->matrix, index, baseMask, &xIndex, &yIndex);
         assertd(xIndex == (yIndex ^ 1), string("transformMatrixToCanonicalForm(): wrong indices found"));

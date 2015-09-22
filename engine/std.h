@@ -45,8 +45,12 @@
 #   include <inttypes.h>
 #   include <sys/stat.h>
 #   include <sys/types.h>
-#   define _access(x,y) access((x), (y))
-#   define _mkdir(x) mkdir((x), 0777)
+
+#   define _access access
+#   define _mkdir(name) mkdir((name), 0777)
+#   define _strnicmp strncasecmp
+#   define sscanf_s sscanf
+
 #   define NOEXCEPT noexcept
 #else //__GNUC__
 #   include <direct.h> //mkdir
