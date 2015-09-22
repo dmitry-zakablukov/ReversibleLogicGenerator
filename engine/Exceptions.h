@@ -27,7 +27,7 @@ public:
     AssertionError(string&& message);
     virtual ~AssertionError() = default;
 
-    virtual const char* what() const;
+    virtual const char* what() const NOEXCEPT;
 
 private:
     string message;
@@ -41,7 +41,7 @@ public:
     virtual ~InvalidFormatException() = default;
 
     void setMessage(string&& newMessage);
-    virtual const char* what() const;
+    virtual const char* what() const NOEXCEPT;
 
 private:
     string message;

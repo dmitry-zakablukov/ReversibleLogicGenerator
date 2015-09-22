@@ -42,9 +42,11 @@ TruthTable getHwb(uint n)
 }
 
 void synthesizeScheme(const TruthTable& table, ostream& resultsOutput, const string& tfcOutputFileName,
-    ReversibleLogic::TfcFormatter& formatter = ReversibleLogic::TfcFormatter())
+    ReversibleLogic::TfcFormatter* formatter)
 {
     using namespace ReversibleLogic;
+
+    assertd(formatter, string("synthesizeScheme(): null ptr"));
 
     try
     {
@@ -57,7 +59,7 @@ void synthesizeScheme(const TruthTable& table, ostream& resultsOutput, const str
 
         resultsOutput << "Scheme file: " << tfcOutputFileName << endl;
 
-        formatter.format(tfcOutput, scheme);
+        formatter->format(tfcOutput, scheme);
         tfcOutput.close();
     }
     catch (exception& ex)
@@ -70,6 +72,12 @@ void synthesizeScheme(const TruthTable& table, ostream& resultsOutput, const str
     }
 
     resultsOutput << "\n===============================================================" << endl;
+}
+
+void synthesizeScheme(const TruthTable& table, ostream& resultsOutput, const string& tfcOutputFileName)
+{
+    ReversibleLogic::TfcFormatter formatter;
+    synthesizeScheme(table, resultsOutput, tfcOutputFileName, &formatter);
 }
 
 void processTruthTables(ostream& resultsOutput, const string& schemesFolder)
@@ -116,7 +124,7 @@ void processTruthTables(ostream& resultsOutput, const string& schemesFolder)
                     getFileName(truthTableInputFileName) + "-out.tfc");
 
                 TfcFormatter formatter(inputCount, outputCount, outputVariablesOrder);
-                synthesizeScheme(table, resultsOutput, tfcOutputFileName, formatter);
+                synthesizeScheme(table, resultsOutput, tfcOutputFileName, &formatter);
             }
             catch (exception& ex)
             {
@@ -158,7 +166,7 @@ void processTfcFiles(ostream& resultsOutput, const string& schemesFolder)
                 string tfcOutputFileName = appendPath(schemesFolder,
                     getFileName(tfcInputFileName) + "-out.tfc");
 
-                synthesizeScheme(table, resultsOutput, tfcOutputFileName, formatter);
+                synthesizeScheme(table, resultsOutput, tfcOutputFileName, &formatter);
             }
             catch (exception& ex)
             {
