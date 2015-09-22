@@ -41,8 +41,16 @@
 #include <ctime>
 #include <fstream>
 
-#include <direct.h> //mkdir
-#include <io.h> //access
+#if defined(__GNUC__)
+#   include <inttypes.h>
+#   include <sys/stat.h>
+#   include <sys/types.h>
+#   define _access(x,y) access((x), (y))
+#   define _mkdir(x) mkdir((x), 0777)
+#else //__GNUC__
+#   include <direct.h> //mkdir
+#   include <io.h> //access
+#endif //__GNUC__
 
 using namespace std;
 
@@ -50,15 +58,22 @@ using namespace std;
 //#include "libs/gmp/include/gmpxx.h"
 //typedef mpz_class word;
 
-#if defined(_WIN64)
-    typedef unsigned __int64 word;
-#else   // WIN64
-    typedef unsigned __int32 word;
-#endif  // WIN64
+#if defined(__GNUC__)
+#   if defined(__LP64__)
+        typedef uint64_t word;
+#   else //__LP64__
+        typedef uint32_t word;
+#   endif //__LP64__
+#else //__GNUC
+#   if defined(_WIN64)
+        typedef unsigned __int64 word;
+#   else   // WIN64
+        typedef unsigned __int32 word;
+#   endif  // WIN64
+    typedef size_t uint;
+#endif //__GNUC__
 
-typedef size_t uint;
-
-#define uintUndefined (size_t)(-1)
+#define uintUndefined (uint)(-1)
 #define wordUndefined (word)(-1)
 
 // headers
