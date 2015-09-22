@@ -45,6 +45,7 @@
 #   include <inttypes.h>
 #   include <sys/stat.h>
 #   include <sys/types.h>
+#   include <unistd.h>
 
 #   define _access access
 #   define _mkdir(name) mkdir((name), 0777)
