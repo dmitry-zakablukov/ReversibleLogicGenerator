@@ -25,7 +25,7 @@ AssertionError::AssertionError(string&& message)
 {
 }
 
-const char* AssertionError::what() const
+const char* AssertionError::what() const NOEXCEPT
 {
     return message.c_str();
 }
@@ -40,7 +40,7 @@ void InvalidFormatException::setMessage(string&& newMessage)
     message = move(newMessage);
 }
 
-const char* InvalidFormatException::what() const
+const char* InvalidFormatException::what() const NOEXCEPT
 {
     return message.c_str();
 }
